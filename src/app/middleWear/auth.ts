@@ -44,11 +44,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
     }
 
-    // Check if user is blocked
-    const userStatus = user?.status;
-    if (userStatus === "blocked") {
-      throw new ApiError(httpStatus.FORBIDDEN, "User is blocked!");
-    }
+ 
 
     // Check if the request was sent by authorized user or not
     if (requiredRoles && !requiredRoles.includes(role)) {

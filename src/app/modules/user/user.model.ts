@@ -13,8 +13,9 @@ const userSchema = new Schema<TUser>({
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
     select: 0,
+    required: [true, "Password is required"],
+   
   },
   role: {
     type: String,

@@ -26,7 +26,7 @@ const getSingleUserFromDB = async (id: string) => {
 const createAUserIntoDB = async (payload: TUser) => {
   const existingUser = await User.findOne({
     email: payload.email,
-    role: USER_ROLE.USER
+    role: USER_ROLE.USER,
   });
   if (existingUser) {
     throw new ApiError(
@@ -40,8 +40,12 @@ const createAUserIntoDB = async (payload: TUser) => {
   );
   payload.password = newHashedPassword;
 
-  const result = await User.create(payload);
-  return result;
+  const result = await User.create(payload)
+return {
+  name: result.name,
+  email: result.email,
+  role: result.role,
+};
 };
 
 export const UserServices = {

@@ -14,7 +14,7 @@ app.use(cookieParser());
 app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello Legalmate!");
+  res.send("Hello harmonia!");
 });
 
 // Error handler middlewear is positioned after all the routes definition because after the routes are handled then error will occur, not before

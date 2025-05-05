@@ -11,4 +11,4 @@ export interface TUser {
   updatedAt: Date;
 }
 
-export type TUserRole = keyof typeof USER_ROLE;
+export type TUserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
