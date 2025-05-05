@@ -19,17 +19,16 @@ const userSchema = new Schema<TUser>({
   role: {
     type: String,
     required: true,
-    enum: ["lawyer", "admin", "client"],
+    enum: ["user", "admin"],
+    default: "user"
   },
-  status: {
-    type: String,
-    enum: ["in-progress", "blocked"],
-    default: "in-progress",
-  },
+
   isDeleted: {
     type: Boolean,
     default: false,
   },
+},{
+  timestamps: true
 });
 
 export const User = model<TUser>("User", userSchema);

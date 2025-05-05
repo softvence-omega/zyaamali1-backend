@@ -7,12 +7,12 @@ import config from "../../config";
 import bcrypt from "bcrypt";
 import { createToken, verifyToken } from "./auth.utils";
 import { sendEmail } from "../../utils/sendEmail";
+import USER_ROLE from "../../constants/userRole";
 
 const loginUser = async (payload: TLoginUser) => {
-  const user = await User.findOne({ email: payload?.email }).select(
+  const user = await User.findOne({ email: payload?.email, role: USER_ROLE.USER }).select(
     "+password"
   );
-  console.log(user, payload);
 
   // Check if user exists
   if (!user) {
@@ -25,11 +25,6 @@ const loginUser = async (payload: TLoginUser) => {
     throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
   }
 
-  // Check if user is blocked
-  const userStatus = user?.status;
-  if (userStatus === "blocked") {
-    throw new ApiError(httpStatus.FORBIDDEN, "User is blocked!");
-  }
 
   // Check if password is correct
   if (!(await bcrypt.compare(payload?.password, user?.password))) {
@@ -77,11 +72,7 @@ const changePassword = async (
     throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
   }
 
-  // Check if user is blocked
-  const userStatus = user?.status;
-  if (userStatus === "blocked") {
-    throw new ApiError(httpStatus.FORBIDDEN, "User is blocked!");
-  }
+
 
   // Check if password is correct
   if (!(await bcrypt.compare(payload?.oldPassword, user?.password))) {
@@ -123,11 +114,6 @@ const refreshToken = async (token: string) => {
     throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted !");
   }
 
-  // checking if the user is blocked
-  const userStatus = user?.status;
-  if (userStatus === "blocked") {
-    throw new ApiError(httpStatus.FORBIDDEN, "This user is blocked ! !");
-  }
 
   const jwtPayload = {
     userId: user.id,
@@ -146,10 +132,9 @@ const refreshToken = async (token: string) => {
 };
 
 const forgetPassword = async (email: string) => {
+
   // checking if the user exists
-  console.log(email);
-  console.log(await User.find());
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email, role: USER_ROLE.USER });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "This user is not found !");
   }
@@ -159,11 +144,6 @@ const forgetPassword = async (email: string) => {
     throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted !");
   }
 
-  // checking if the user is blocked
-  const userStatus = user?.status;
-  if (userStatus === "blocked") {
-    throw new ApiError(httpStatus.FORBIDDEN, "This user is blocked ! !");
-  }
 
   const jwtPayload = {
     userId: user.id,

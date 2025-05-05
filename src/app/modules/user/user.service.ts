@@ -1,4 +1,5 @@
 import config from "../../config";
+import USER_ROLE from "../../constants/userRole";
 import ApiError from "../../errors/ApiError";
 import { TUser } from "./user.interface";
 import { User } from "./user.model";
@@ -14,7 +15,6 @@ const getSingleUserFromDB = async (id: string) => {
   const deletedOrBlockedUser = await User.findOne({
     _id: id,
     isDeleted: false,
-    status: { $ne: "blocked" },
   });
   if (!deletedOrBlockedUser)
     throw new ApiError(httpStatus.FORBIDDEN, "Failed to Fetch user");
@@ -26,6 +26,7 @@ const getSingleUserFromDB = async (id: string) => {
 const createAUserIntoDB = async (payload: TUser) => {
   const existingUser = await User.findOne({
     email: payload.email,
+    role: USER_ROLE.USER
   });
   if (existingUser) {
     throw new ApiError(

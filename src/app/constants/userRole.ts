@@ -1,7 +1,6 @@
 const USER_ROLE = {
-  lawyer: "lawyer",
-  client: "client",
-  admin: "admin",
+    USER: "user",
+    ADMIN: "admin"
 } as const;
 
 export default USER_ROLE;
