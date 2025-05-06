@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "generateModule": "node scripts/generate-module.js",
-
+    "mo": "node scripts/generate-module.js",
     "start": "node ./dist/server.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
