@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "generateModule": "node scripts/generate-module.js",
-
+    "mo": "node scripts/generate-module.js",
     "start": "node ./dist/server.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,6 +25,7 @@
     "mongoose": "^8.4.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
+    "stripe": "^18.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
