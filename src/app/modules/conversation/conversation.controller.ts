@@ -3,8 +3,8 @@ import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { conversationService } from "./conversation.service";
-import { TContent } from "./conversation.interface";
 import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
+import { TPrompt, TResponse } from "./conversation.interface";
 
 const createConversartion = catchAsync(async (req: Request, res: Response) => {
   const result = await conversationService.createConversationIntoDB(
@@ -24,39 +24,64 @@ const addAMessage = catchAsync(async (req: Request, res: Response) => {
     promptFile?: Express.Multer.File[];
     responseFile?: Express.Multer.File[];
   };
+  console.log(files);
   const { prompt, response, chatId } = req.body;
 
-  let parsedPrompt: TContent = JSON.parse(prompt);
-  let parsedResponse: TContent = JSON.parse(response);
+  let parsedPrompt: TPrompt[] = JSON.parse(prompt);
+  let parsedResponse: TResponse[] = JSON.parse(response);
 
-  if (files?.promptFile?.[0] && parsedPrompt.type !== "text") {
-    const uploaded = (await sendFileToCloudinary(
-      files.promptFile[0].filename,
-      files.promptFile[0].path,
-      parsedPrompt.type
-    )) as { secure_url: string };
-    parsedPrompt.content = uploaded.secure_url;
+  // Upload prompt files to cloud and assign URLs
+  if (files?.promptFile && files.promptFile.length > 0) {
+    let promptFileIndex = 0;
+    for (let i = 0; i < parsedPrompt.length; i++) {
+      const item = parsedPrompt[i];
+      if (item.type !== "text") {
+        const file = files.promptFile[promptFileIndex++];
+        // promptFileIndex++;
+        if (file) {
+          const uploaded = (await sendFileToCloudinary(
+            file.filename,
+            file.path,
+            item.type
+          )) as { secure_url: string };
+          item.content = uploaded.secure_url;
+        }
+      }
+    }
   }
 
-  if (files?.responseFile?.[0] && parsedResponse.type !== "text") {
-    const uploaded = (await sendFileToCloudinary(
-      files.responseFile[0].filename,
-      files.responseFile[0].path,
-      parsedResponse.type
-    )) as { secure_url: string };
-    parsedResponse.content = uploaded.secure_url;
+  // Upload response files to cloud and assign URLs
+  if (files?.responseFile && files.responseFile.length > 0) {
+    let responseFileIndex = 0;
+    for (let i = 0; i < parsedResponse.length; i++) {
+      const item = parsedResponse[i];
+      if (item.type !== "text" && item.type !== "card") {
+        const file = files.responseFile[responseFileIndex++];
+        // responseFileIndex++;
+        if (file) {
+          const uploaded = (await sendFileToCloudinary(
+            file.filename,
+            file.path,
+            item.type
+          )) as { secure_url: string };
+          item.content = uploaded.secure_url;
+        }
+      }
+    }
   }
-
+  console.log("parsed Prompt -> ", parsedPrompt);
+  console.log("parsed Response -> ", parsedResponse);
   const result = await conversationService.addAMessage({
     userId,
     chatId,
     prompt: parsedPrompt,
     response: parsedResponse,
   });
+
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "Conversation created successfully",
+    message: "Message added successfully",
     data: result,
   });
 });
@@ -75,10 +100,9 @@ const getAllConversations = catchAsync(async (req: Request, res: Response) => {
 const getMessagesFromConversation = catchAsync(
   async (req: Request, res: Response) => {
     const { conversationId } = req.params;
-    const result =
-      await conversationService.getMessagesFromConversationFromDB(
-        conversationId
-      );
+    const result = await conversationService.getMessagesFromConversationFromDB(
+      conversationId
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

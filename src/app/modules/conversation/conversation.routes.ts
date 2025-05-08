@@ -18,8 +18,8 @@ router.post(
   "/add-message",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   upload.fields([
-    { name: "promptFile", maxCount: 1 },
-    { name: "responseFile", maxCount: 1 },
+    { name: "promptFile", maxCount: 10 },
+    { name: "responseFile", maxCount: 10 },
   ]),
   conversationController.addAMessage
 );

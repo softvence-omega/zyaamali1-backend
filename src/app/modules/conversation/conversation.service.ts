@@ -41,18 +41,16 @@ const getAllConversationsFromDB = async (id: string) => {
 };
 
 const getMessagesFromConversationFromDB = async (conversationId: string) => {
-  const conversation = await Conversation.findById(conversationId)
-    .populate({
-      path: "chat",
-      model: Message,
-      populate: {
-        path: "userId",
-        select: "_id name email", // include relevant user fields
-      },
-    })
-    .exec();
+  const conversation = await Conversation.findById(conversationId).populate({
+    path: "chat",
+    model: Message,
+    populate: {
+      path: "userId",
+      select: "_id name email", // include relevant user fields
+    },
+  });
   if (!conversation) {
-    throw new Error("Conversation not found");
+    throw new ApiError(404, "Conversation not found");
   }
 
   return conversation;

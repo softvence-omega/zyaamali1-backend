@@ -1,45 +1,52 @@
 import { Schema, model, Types } from "mongoose";
-import { TContent, TConversation, TMessage } from "./conversation.interface";
+import { TConversation, TMessage } from "./conversation.interface";
 
-const ContentSchema = new Schema<TContent>(
+const CardSchema = new Schema(
   {
-    type: {
-      type: String,
-      enum: ["text", "audio", "video", "image"],
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
+    title: { type: String, required: true },
+    description: String,
+    type: { type: String, enum: ["image", "video"], required: true },
+    file: { type: String, required: true },
+    price: { type: Number, required: true },
   },
   { _id: false }
 );
 
-const MessageSchema = new Schema<TMessage>(
+// Prompt schema
+const PromptSchema = new Schema(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+    type: {
+      type: String,
+      enum: ["text", "audio", "video", "image", "document"],
       required: true,
     },
-    chatId: {
-      type: Schema.Types.ObjectId,
-      ref: "Conversation",
-      required: true,
-    },
-    prompt: {
-      type: ContentSchema,
-      required: true,
-    },
-    response: {
-      type: ContentSchema,
-      required: true,
-    },
+    content: { type: String, required: true },
   },
+  { _id: false }
+);
+
+// Response schema
+const ResponseSchema = new Schema(
   {
-    timestamps: true,
-  }
+    type: {
+      type: String,
+      enum: ["text", "audio", "video", "image", "document", "card"],
+      required: true,
+    },
+    content: { type: Schema.Types.Mixed, required: true }, // will be string or TCard[]
+  },
+  { _id: false }
+);
+
+// Message schema
+const MessageSchema = new Schema(
+  {
+    userId: { type: Types.ObjectId, ref: "User", required: true },
+    chatId: { type: Types.ObjectId, ref: "Conversation", required: true },
+    prompt: { type: [PromptSchema], required: true },
+    response: { type: [ResponseSchema], required: true },
+  },
+  { timestamps: true }
 );
 
 const ConversationSchema = new Schema<TConversation>(
