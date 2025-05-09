@@ -35,7 +35,7 @@ const ResponseSchema = new Schema(
     },
     isCard: { type: Boolean, default: false },
     content: { type: String },
-    cardContent: { type: [CardSchema], required: false },
+    cardContent: [CardSchema],
   },
   { _id: false }
 );
@@ -50,6 +50,7 @@ const MessageSchema = new Schema<TMessage>(
       required: true,
     },
     prompt: { type: [PromptSchema], required: true },
+    enhancedPrompt: String,
     response: { type: [ResponseSchema], required: true },
   },
   { timestamps: true }
