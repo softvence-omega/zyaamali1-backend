@@ -15,7 +15,9 @@ export type TPrompt = {
 
 export type TResponse = {
   type: "text" | "audio" | "video" | "image" | "document" | "card";
-  content: string | TCard[];
+  isCard: boolean;
+  content?: string;
+  cardContent?: TCard[];
 };
 
 export type TMessage = {

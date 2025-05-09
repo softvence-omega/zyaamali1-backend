@@ -1,4 +1,4 @@
-import { Schema, model, Types } from "mongoose";
+import { Schema, model } from "mongoose";
 import { TConversation, TMessage } from "./conversation.interface";
 
 const CardSchema = new Schema(
@@ -33,16 +33,22 @@ const ResponseSchema = new Schema(
       enum: ["text", "audio", "video", "image", "document", "card"],
       required: true,
     },
-    content: { type: Schema.Types.Mixed, required: true }, // will be string or TCard[]
+    isCard: { type: Boolean, default: false },
+    content: { type: String },
+    cardContent: { type: [CardSchema], required: false },
   },
   { _id: false }
 );
 
 // Message schema
-const MessageSchema = new Schema(
+const MessageSchema = new Schema<TMessage>(
   {
-    userId: { type: Types.ObjectId, ref: "User", required: true },
-    chatId: { type: Types.ObjectId, ref: "Conversation", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    chatId: {
+      type: Schema.Types.ObjectId,
+      ref: "Conversation",
+      required: true,
+    },
     prompt: { type: [PromptSchema], required: true },
     response: { type: [ResponseSchema], required: true },
   },
