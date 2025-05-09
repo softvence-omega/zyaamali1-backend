@@ -3,8 +3,6 @@ import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { conversationService } from "./conversation.service";
-import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
-import { TPrompt, TResponse } from "./conversation.interface";
 
 const createConversartion = catchAsync(async (req: Request, res: Response) => {
   const result = await conversationService.createConversationIntoDB(
@@ -20,12 +18,9 @@ const createConversartion = catchAsync(async (req: Request, res: Response) => {
 
 const addAMessage = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
-  const { prompt, response, chatId } = req.body;
   const result = await conversationService.addAMessage({
     userId,
-    chatId,
-    prompt,
-    response,
+    ...req.body,
   });
 
   sendResponse(res, {
