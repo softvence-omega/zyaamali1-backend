@@ -20,62 +20,12 @@ const createConversartion = catchAsync(async (req: Request, res: Response) => {
 
 const addAMessage = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
-  const files = req.files as {
-    promptFile?: Express.Multer.File[];
-    responseFile?: Express.Multer.File[];
-  };
-  console.log(files);
   const { prompt, response, chatId } = req.body;
-
-  let parsedPrompt: TPrompt[] = JSON.parse(prompt);
-  let parsedResponse: TResponse[] = JSON.parse(response);
-
-  // Upload prompt files to cloud and assign URLs
-  if (files?.promptFile && files.promptFile.length > 0) {
-    let promptFileIndex = 0;
-    for (let i = 0; i < parsedPrompt.length; i++) {
-      const item = parsedPrompt[i];
-      if (item.type !== "text") {
-        const file = files.promptFile[promptFileIndex++];
-        // promptFileIndex++;
-        if (file) {
-          const uploaded = (await sendFileToCloudinary(
-            file.filename,
-            file.path,
-            item.type
-          )) as { secure_url: string };
-          item.content = uploaded.secure_url;
-        }
-      }
-    }
-  }
-
-  // Upload response files to cloud and assign URLs
-  if (files?.responseFile && files.responseFile.length > 0) {
-    let responseFileIndex = 0;
-    for (let i = 0; i < parsedResponse.length; i++) {
-      const item = parsedResponse[i];
-      if (item.type !== "text" && item.type !== "card") {
-        const file = files.responseFile[responseFileIndex++];
-        // responseFileIndex++;
-        if (file) {
-          const uploaded = (await sendFileToCloudinary(
-            file.filename,
-            file.path,
-            item.type
-          )) as { secure_url: string };
-          item.content = uploaded.secure_url;
-        }
-      }
-    }
-  }
-  console.log("parsed Prompt -> ", parsedPrompt);
-  console.log("parsed Response -> ", parsedResponse);
   const result = await conversationService.addAMessage({
     userId,
     chatId,
-    prompt: parsedPrompt,
-    response: parsedResponse,
+    prompt,
+    response,
   });
 
   sendResponse(res, {
