@@ -7,6 +7,7 @@ export interface TUser {
   password: string;
   role: "user" | "admin";
   isDeleted: boolean;
+  isGoogleUser: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
