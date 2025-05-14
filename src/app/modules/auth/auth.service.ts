@@ -10,9 +10,10 @@ import { sendEmail } from "../../utils/sendEmail";
 import USER_ROLE from "../../constants/userRole";
 
 const loginUser = async (payload: TLoginUser) => {
-  const user = await User.findOne({ email: payload?.email, role: USER_ROLE.USER }).select(
-    "+password"
-  );
+  const user = await User.findOne({
+    email: payload?.email,
+    role: USER_ROLE.USER,
+  }).select("+password");
 
   // Check if user exists
   if (!user) {
@@ -24,7 +25,6 @@ const loginUser = async (payload: TLoginUser) => {
   if (isUserDeleted) {
     throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
   }
-
 
   // Check if password is correct
   if (!(await bcrypt.compare(payload?.password, user?.password))) {
@@ -55,8 +55,52 @@ const loginUser = async (payload: TLoginUser) => {
   };
 };
 
+export const handleGoogleAuth = async (profile: any) => {
+  const email = profile.emails?.[0]?.value;
+  const name = profile.displayName;
+
+  let user = await User.findOne({ email, role: USER_ROLE.USER });
+
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      role: USER_ROLE.USER,
+      isGoogleUser: true,
+    });
+  }
+
+  if (user.isDeleted) {
+    throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted!");
+  }
+
+  const jwtPayload = {
+    userId: user._id.toString(),
+    role: user.role,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret!,
+    parseInt(config.jwt_access_expires_in!)
+  );
+
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret!,
+    parseInt(config.jwt_refresh_expires_in!)
+  );
+
+  return {
+    name: user.name,
+    email: user.email,
+    accessToken,
+    refreshToken,
+  };
+};
+
 const changePassword = async (
-  userData: JwtPayload,
+  userData: any,
   payload: { oldPassword: string; newPassword: string }
 ) => {
   const user = await User.findById(userData.userId).select("+password");
@@ -71,8 +115,6 @@ const changePassword = async (
   if (isUserDeleted) {
     throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
   }
-
-
 
   // Check if password is correct
   if (!(await bcrypt.compare(payload?.oldPassword, user?.password))) {
@@ -114,7 +156,6 @@ const refreshToken = async (token: string) => {
     throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted !");
   }
 
-
   const jwtPayload = {
     userId: user.id,
     role: user.role,
@@ -132,7 +173,6 @@ const refreshToken = async (token: string) => {
 };
 
 const forgetPassword = async (email: string) => {
-
   // checking if the user exists
   const user = await User.findOne({ email, role: USER_ROLE.USER });
   if (!user) {
@@ -143,7 +183,6 @@ const forgetPassword = async (email: string) => {
   if (isDeleted) {
     throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted !");
   }
-
 
   const jwtPayload = {
     userId: user.id,
@@ -162,6 +201,7 @@ const forgetPassword = async (email: string) => {
 
 export const AuthServices = {
   loginUser,
+  handleGoogleAuth,
   changePassword,
   refreshToken,
   forgetPassword,
