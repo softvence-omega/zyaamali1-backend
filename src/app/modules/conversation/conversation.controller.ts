@@ -3,12 +3,10 @@ import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { conversationService } from "./conversation.service";
-import { TContent } from "./conversation.interface";
-import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
 
 const createConversartion = catchAsync(async (req: Request, res: Response) => {
   const result = await conversationService.createConversationIntoDB(
-    req.user.userId
+    req.loggedInUser.userId
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -19,50 +17,22 @@ const createConversartion = catchAsync(async (req: Request, res: Response) => {
 });
 
 const addAMessage = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user;
-  const files = req.files as {
-    promptFile?: Express.Multer.File[];
-    responseFile?: Express.Multer.File[];
-  };
-  const { prompt, response, chatId } = req.body;
-
-  let parsedPrompt: TContent = JSON.parse(prompt);
-  let parsedResponse: TContent = JSON.parse(response);
-
-  if (files?.promptFile?.[0] && parsedPrompt.type !== "text") {
-    const uploaded = (await sendFileToCloudinary(
-      files.promptFile[0].filename,
-      files.promptFile[0].path,
-      parsedPrompt.type
-    )) as { secure_url: string };
-    parsedPrompt.content = uploaded.secure_url;
-  }
-
-  if (files?.responseFile?.[0] && parsedResponse.type !== "text") {
-    const uploaded = (await sendFileToCloudinary(
-      files.responseFile[0].filename,
-      files.responseFile[0].path,
-      parsedResponse.type
-    )) as { secure_url: string };
-    parsedResponse.content = uploaded.secure_url;
-  }
-
+  const { userId } = req.loggedInUser;
   const result = await conversationService.addAMessage({
     userId,
-    chatId,
-    prompt: parsedPrompt,
-    response: parsedResponse,
+    ...req.body,
   });
+
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "Conversation created successfully",
+    message: "Message added successfully",
     data: result,
   });
 });
 
 const getAllConversations = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user;
+  const { userId } = req.loggedInUser;
   const result = await conversationService.getAllConversationsFromDB(userId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -75,10 +45,9 @@ const getAllConversations = catchAsync(async (req: Request, res: Response) => {
 const getMessagesFromConversation = catchAsync(
   async (req: Request, res: Response) => {
     const { conversationId } = req.params;
-    const result =
-      await conversationService.getMessagesFromConversationFromDB(
-        conversationId
-      );
+    const result = await conversationService.getMessagesFromConversationFromDB(
+      conversationId
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

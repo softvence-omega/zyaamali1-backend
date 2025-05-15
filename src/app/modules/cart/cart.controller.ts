@@ -5,8 +5,8 @@ import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 
 const postCart = catchAsync(async (req: Request, res: Response) => {
-  const {userId} = req.user
-  const result = await cartService.postCartIntoDB({...req.body, userId});
+  const { userId } = req.loggedInUser;
+  const result = await cartService.postCartIntoDB({ ...req.body, userId });
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
@@ -16,7 +16,7 @@ const postCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllCart = catchAsync(async (req: Request, res: Response) => {
-  const {userId} = req.user
+  const { userId } = req.loggedInUser;
 
   const result = await cartService.getAllCartFromDB(req.query, userId);
   sendResponse(res, {
@@ -28,7 +28,7 @@ const getAllCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSingleCart = catchAsync(async (req: Request, res: Response) => {
-  const {userId} = req.user
+  const { userId } = req.loggedInUser;
 
   const result = await cartService.getSingleCartFromDB(req.params.id, userId);
   sendResponse(res, {
@@ -40,8 +40,8 @@ const getSingleCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateCart = catchAsync(async (req: Request, res: Response) => {
-  const {userId} = req.user
-  const {id} = req.params;
+  const { userId } = req.loggedInUser;
+  const { id } = req.params;
 
   const result = await cartService.updateCartIntoDB(req.body, id, userId);
   sendResponse(res, {
@@ -53,7 +53,7 @@ const updateCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteCart = catchAsync(async (req: Request, res: Response) => {
-  const {userId} = req.user
+  const { userId } = req.loggedInUser;
 
   await cartService.deleteCartFromDB(req.params.id, userId);
   sendResponse(res, {

@@ -4,6 +4,8 @@ import router from "./app/routes";
 import globalErrorHandler from "./app/middleWear/globalErrorHandler";
 import notFound from "./app/middleWear/notFound";
 import cookieParser from "cookie-parser";
+import "./app/middleWear/passport";
+import passport from "passport";
 
 const app = express();
 
@@ -11,6 +13,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(passport.initialize());
+
 app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {

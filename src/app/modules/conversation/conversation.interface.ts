@@ -1,30 +1,31 @@
 import { Types } from "mongoose";
 
-
-export type TCard ={
+export type TCard = {
   title: string;
   description?: string;
   type: "image" | "video";
   file: string;
   price: number;
-}
+};
 
-export type TResponse = {
-  type: "text" | "audio" | "video" | "image" ;
+export type TPrompt = {
+  type: "text" | "audio" | "video" | "image" | "document";
   content: string;
 };
 
-export type TCardResponse = {
-  type: "card"
-  content: TCard[]; 
+export type TResponse = {
+  type: "text" | "audio" | "video" | "image" | "document" | "card";
+  isCard: boolean;
+  content?: string;
+  cardContent?: TCard[];
 };
-
 
 export type TMessage = {
   userId: Types.ObjectId;
   chatId: Types.ObjectId;
-  prompt: TResponse[];
-  response: (TCardResponse | TResponse)[];
+  prompt: TPrompt[];
+  enhancedPrompt?: string;
+  response: TResponse[];
 };
 
 export type TConversation = {
@@ -32,4 +33,3 @@ export type TConversation = {
   userId: Types.ObjectId;
   chat: Types.ObjectId[];
 };
-

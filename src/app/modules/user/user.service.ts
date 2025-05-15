@@ -12,12 +12,11 @@ const getAllUsersFromDB = async () => {
 };
 
 const getSingleUserFromDB = async (id: string) => {
-  const deletedOrBlockedUser = await User.findOne({
+  const user = await User.findOne({
     _id: id,
     isDeleted: false,
   });
-  if (!deletedOrBlockedUser)
-    throw new ApiError(httpStatus.FORBIDDEN, "Failed to Fetch user");
+  if (!user) throw new ApiError(httpStatus.FORBIDDEN, "Failed to Fetch user");
 
   const result = await User.findById(id);
   return result;
@@ -40,12 +39,12 @@ const createAUserIntoDB = async (payload: TUser) => {
   );
   payload.password = newHashedPassword;
 
-  const result = await User.create(payload)
-return {
-  name: result.name,
-  email: result.email,
-  role: result.role,
-};
+  const result = await User.create(payload);
+  return {
+    name: result.name,
+    email: result.email,
+    role: result.role,
+  };
 };
 
 export const UserServices = {

@@ -2,7 +2,6 @@ import { Router } from "express";
 import { conversationController } from "./conversation.controller";
 import auth from "../../middleWear/auth";
 import USER_ROLE from "../../constants/userRole";
-import { upload } from "../../utils/sendFileToCloudinary";
 import { validateRequest } from "../../middleWear/validateRequest";
 import { ConversationValidations } from "./conversation.validation";
 
@@ -17,10 +16,6 @@ router.post(
 router.post(
   "/add-message",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  upload.fields([
-    { name: "promptFile", maxCount: 1 },
-    { name: "responseFile", maxCount: 1 },
-  ]),
   conversationController.addAMessage
 );
 

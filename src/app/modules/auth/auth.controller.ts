@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 import config from "../../config";
+import { createToken } from "./auth.utils";
 
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
@@ -22,8 +23,44 @@ const loginUser = catchAsync(async (req, res) => {
   });
 });
 
+const googleCallback = catchAsync(async (req, res) => {
+  const user = req.user as any;
+  console.log(user);
+
+  const jwtPayload = {
+    userId: user._id.toString(),
+    role: user.role,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret!,
+    parseInt(config.jwt_access_expires_in!)
+  );
+
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret!,
+    parseInt(config.jwt_refresh_expires_in!)
+  );
+
+  res.cookie("refreshToken", refreshToken, {
+    secure: config.node_env === "production",
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Login successful",
+    data: { accessToken },
+  });
+});
+
 const changePassword = catchAsync(async (req, res) => {
-  const result = await AuthServices.changePassword(req.user, req.body);
+  const result = await AuthServices.changePassword(req.loggedInUser, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -55,6 +92,7 @@ const forgetPassword = catchAsync(async (req, res) => {
 
 export const AuthControllers = {
   loginUser,
+  googleCallback,
   changePassword,
   refreshToken,
   forgetPassword,
