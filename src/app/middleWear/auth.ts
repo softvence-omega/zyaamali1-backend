@@ -44,8 +44,6 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
     }
 
- 
-
     // Check if the request was sent by authorized user or not
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new ApiError(
@@ -54,7 +52,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       );
     }
 
-    req.user = decoded as JwtPayload;
+    req.loggedInUser = decoded as JwtPayload;
     next();
   });
 };

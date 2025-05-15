@@ -6,7 +6,7 @@ import { conversationService } from "./conversation.service";
 
 const createConversartion = catchAsync(async (req: Request, res: Response) => {
   const result = await conversationService.createConversationIntoDB(
-    req.user.userId
+    req.loggedInUser.userId
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -17,7 +17,7 @@ const createConversartion = catchAsync(async (req: Request, res: Response) => {
 });
 
 const addAMessage = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user;
+  const { userId } = req.loggedInUser;
   const result = await conversationService.addAMessage({
     userId,
     ...req.body,
@@ -32,7 +32,7 @@ const addAMessage = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllConversations = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user;
+  const { userId } = req.loggedInUser;
   const result = await conversationService.getAllConversationsFromDB(userId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
