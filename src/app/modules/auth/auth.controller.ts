@@ -1,8 +1,9 @@
 import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
-import { AuthServices, handleGoogleAuth } from "./auth.service";
+import { AuthServices } from "./auth.service";
 import config from "../../config";
+import { createToken } from "./auth.utils";
 
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
@@ -23,7 +24,25 @@ const loginUser = catchAsync(async (req, res) => {
 });
 
 const googleCallback = catchAsync(async (req, res) => {
-  const { accessToken, refreshToken } = req.user;
+  const user = req.user as any;
+  console.log(user);
+
+  const jwtPayload = {
+    userId: user._id.toString(),
+    role: user.role,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret!,
+    parseInt(config.jwt_access_expires_in!)
+  );
+
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret!,
+    parseInt(config.jwt_refresh_expires_in!)
+  );
 
   res.cookie("refreshToken", refreshToken, {
     secure: config.node_env === "production",

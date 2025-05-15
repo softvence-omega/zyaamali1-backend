@@ -55,49 +55,49 @@ const loginUser = async (payload: TLoginUser) => {
   };
 };
 
-export const handleGoogleAuth = async (profile: any) => {
-  const email = profile.emails?.[0]?.value;
-  const name = profile.displayName;
+// export const handleGoogleAuth = async (profile: any) => {
+//   const email = profile.emails?.[0]?.value;
+//   const name = profile.displayName;
 
-  let user = await User.findOne({ email, role: USER_ROLE.USER });
+//   let user = await User.findOne({ email, role: USER_ROLE.USER });
 
-  if (!user) {
-    user = await User.create({
-      name,
-      email,
-      role: USER_ROLE.USER,
-      isGoogleUser: true,
-    });
-  }
+//   if (!user) {
+//     user = await User.create({
+//       name,
+//       email,
+//       role: USER_ROLE.USER,
+//       isGoogleUser: true,
+//     });
+//   }
 
-  if (user.isDeleted) {
-    throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted!");
-  }
+//   if (user.isDeleted) {
+//     throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted!");
+//   }
 
-  const jwtPayload = {
-    userId: user._id.toString(),
-    role: user.role,
-  };
+//   const jwtPayload = {
+//     userId: user._id.toString(),
+//     role: user.role,
+//   };
 
-  const accessToken = createToken(
-    jwtPayload,
-    config.jwt_access_secret!,
-    parseInt(config.jwt_access_expires_in!)
-  );
+//   const accessToken = createToken(
+//     jwtPayload,
+//     config.jwt_access_secret!,
+//     parseInt(config.jwt_access_expires_in!)
+//   );
 
-  const refreshToken = createToken(
-    jwtPayload,
-    config.jwt_refresh_secret!,
-    parseInt(config.jwt_refresh_expires_in!)
-  );
+//   const refreshToken = createToken(
+//     jwtPayload,
+//     config.jwt_refresh_secret!,
+//     parseInt(config.jwt_refresh_expires_in!)
+//   );
 
-  return {
-    name: user.name,
-    email: user.email,
-    accessToken,
-    refreshToken,
-  };
-};
+//   return {
+//     name: user.name,
+//     email: user.email,
+//     accessToken,
+//     refreshToken,
+//   };
+// };
 
 const changePassword = async (
   userData: any,
@@ -201,7 +201,6 @@ const forgetPassword = async (email: string) => {
 
 export const AuthServices = {
   loginUser,
-  handleGoogleAuth,
   changePassword,
   refreshToken,
   forgetPassword,
