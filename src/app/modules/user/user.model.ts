@@ -7,6 +7,10 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+      default: null,
+    },
     email: {
       type: String,
       required: true,
@@ -16,7 +20,7 @@ const userSchema = new Schema<TUser>(
       type: String,
       select: false,
       required: function () {
-        return !this.isGoogleUser; // Only require password if not a Google user
+        return !this.provider; // Only require password if not a Google user
       },
     },
     role: {
@@ -29,8 +33,8 @@ const userSchema = new Schema<TUser>(
       type: Boolean,
       default: false,
     },
-    isGoogleUser: {
-      type: Boolean,
+    provider: {
+      type: String,
       default: false,
     },
   },

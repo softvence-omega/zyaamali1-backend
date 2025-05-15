@@ -5,27 +5,6 @@ import { AuthValidation } from "./auth.validation";
 import USER_ROLE from "../../constants/userRole";
 import auth from "../../middleWear/auth";
 import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { handleGoogleAuth } from "./auth.service";
-import config from "../../config";
-
-// passport.use(
-//   new GoogleStrategy(
-//     {
-//       clientID: config.google_client_id!,
-//       clientSecret: config.google_client_secret!,
-//       callbackURL: `${config.google_callback_url}/api/v1/auth/google/callback`,
-//     },
-//     async (_accessToken, _refreshToken, profile, done) => {
-//       try {
-//         const user = await handleGoogleAuth(profile);
-//         return done(null, user);
-//       } catch (err) {
-//         return done(err as any, false);
-//       }
-//     }
-//   )
-// );
 
 const router = express.Router();
 
@@ -37,7 +16,10 @@ router.post(
 
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })
 );
 
 router.get(
