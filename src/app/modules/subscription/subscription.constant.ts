@@ -1,0 +1,1 @@
+export const SUBSCRIPTION_SEARCHABLE_FIELDS = [];

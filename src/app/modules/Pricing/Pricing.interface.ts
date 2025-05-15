@@ -1,5 +1,5 @@
 export interface IPricing {
-    name: string;
+  name: string;
   usedCase: string;
   price: number;
   dailyCredits: number;

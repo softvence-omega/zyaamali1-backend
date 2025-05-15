@@ -3,8 +3,8 @@ import { UserRoutes } from "../modules/user/user.route";
 import { AuthRoutes } from "../modules/auth/auth.route";
 import { ConversationRoutes } from "../modules/conversation/conversation.routes";
 import { cartRoutes } from "../modules/cart/cart.routes";
-import { paymentRoutes } from "../modules/payment/payment.routes";
 import { PricingRoutes } from "../modules/Pricing/Pricing.routes";
+import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
 
 const router = Router();
 
@@ -26,8 +26,8 @@ const moduleRoutes = [
     route: UserRoutes,
   },
   {
-    path: "/payment",
-    route: paymentRoutes,
+    path: "/subscriptions",
+    route: subscriptionRoutes,
   },
   {
     path: "/conversations",

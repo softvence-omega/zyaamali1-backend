@@ -35,8 +35,8 @@ const getSinglePricing = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updatePricing = catchAsync(async (req: Request, res: Response) => {
-  const {id} = req.params;
-  const result = await PricingService.updatePricingIntoDB({...req.body, id});
+  const { id } = req.params;
+  const result = await PricingService.updatePricingIntoDB({ ...req.body, id });
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
