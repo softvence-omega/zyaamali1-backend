@@ -19,6 +19,13 @@ const loginUser = async (payload: TLoginUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
   }
 
+  if (user.provider && !user?.password) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `Try Login with ${user.provider}!`
+    );
+  }
+
   // Check if user is deleted
   const isUserDeleted = user?.isDeleted;
   if (isUserDeleted) {
@@ -48,6 +55,7 @@ const loginUser = async (payload: TLoginUser) => {
     config.jwt_refresh_secret as string,
     parseInt(config.jwt_refresh_expires_in as string)
   );
+  console.log(user);
   return {
     accessToken,
     refreshToken,
