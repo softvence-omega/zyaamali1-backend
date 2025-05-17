@@ -12,7 +12,6 @@ import USER_ROLE from "../../constants/userRole";
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.findOne({
     email: payload?.email,
-    role: USER_ROLE.USER,
   }).select("+password");
 
   // Check if user exists
@@ -52,52 +51,15 @@ const loginUser = async (payload: TLoginUser) => {
   return {
     accessToken,
     refreshToken,
+    user: {
+      name: user.name,
+      email: user.email,
+      _id: user._id,
+      image: user.image,
+      role: user.role,
+    },
   };
 };
-
-// export const handleGoogleAuth = async (profile: any) => {
-//   const email = profile.emails?.[0]?.value;
-//   const name = profile.displayName;
-
-//   let user = await User.findOne({ email, role: USER_ROLE.USER });
-
-//   if (!user) {
-//     user = await User.create({
-//       name,
-//       email,
-//       role: USER_ROLE.USER,
-//       isGoogleUser: true,
-//     });
-//   }
-
-//   if (user.isDeleted) {
-//     throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted!");
-//   }
-
-//   const jwtPayload = {
-//     userId: user._id.toString(),
-//     role: user.role,
-//   };
-
-//   const accessToken = createToken(
-//     jwtPayload,
-//     config.jwt_access_secret!,
-//     parseInt(config.jwt_access_expires_in!)
-//   );
-
-//   const refreshToken = createToken(
-//     jwtPayload,
-//     config.jwt_refresh_secret!,
-//     parseInt(config.jwt_refresh_expires_in!)
-//   );
-
-//   return {
-//     name: user.name,
-//     email: user.email,
-//     accessToken,
-//     refreshToken,
-//   };
-// };
 
 const changePassword = async (
   userData: any,
@@ -174,7 +136,7 @@ const refreshToken = async (token: string) => {
 
 const forgetPassword = async (email: string) => {
   // checking if the user exists
-  const user = await User.findOne({ email, role: USER_ROLE.USER });
+  const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "This user is not found !");
   }
@@ -185,7 +147,7 @@ const forgetPassword = async (email: string) => {
   }
 
   const jwtPayload = {
-    userId: user.id,
+    userId: user._id.toString(),
     role: user.role,
   };
 
@@ -194,9 +156,52 @@ const forgetPassword = async (email: string) => {
     config.jwt_access_secret as string,
     1000 * 60 * 10 // 10 minutes
   );
-  const resetUILink = `${config.reset_pass_ui_link}?id=${user.id}&token=${resetToken}`;
+  const resetUILink = `${config.reset_pass_ui_link}?id=${user._id}&token=${resetToken}`;
   console.log(resetUILink);
   sendEmail(user?.email, resetUILink);
+};
+
+const resetPassword = async (
+  payload: { id: string; newPassword: string },
+  token: string
+) => {
+  // checking if the user is exist
+  const user = await User.findById(payload.id);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "This user is not found !");
+  }
+  // checking if the user is already deleted
+  const isDeleted = user?.isDeleted;
+  if (isDeleted) {
+    throw new ApiError(httpStatus.FORBIDDEN, "This user is deleted !");
+  }
+
+  const decoded = verifyToken(token, config.jwt_access_secret as string);
+
+  if (payload.id !== decoded.userId) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "Forbidden access: Unauthorized user"
+    );
+  }
+
+  // Hash new password
+  const newHashedPassword = await bcrypt.hash(
+    payload?.newPassword,
+    Number(config.bcrypt_salt_rounds)
+  );
+
+  await User.findOneAndUpdate(
+    {
+      _id: decoded.userId,
+      role: decoded.role,
+    },
+    {
+      password: newHashedPassword,
+      needsPasswordChange: false,
+      passwordChangedAt: new Date(), // Stores the UTC date and time of password change operation
+    }
+  );
 };
 
 export const AuthServices = {
@@ -204,4 +209,5 @@ export const AuthServices = {
   changePassword,
   refreshToken,
   forgetPassword,
+  resetPassword,
 };
