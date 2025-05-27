@@ -7,7 +7,7 @@ import { createToken } from "./auth.utils";
 
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
-  const { refreshToken, accessToken } = result;
+  const { refreshToken, accessToken, user } = result;
 
   res.cookie("refreshToken", refreshToken, {
     secure: config.node_env === "production",
@@ -19,7 +19,7 @@ const loginUser = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Login successful",
-    data: { accessToken },
+    data: { accessToken, user },
   });
 });
 
@@ -90,10 +90,22 @@ const forgetPassword = catchAsync(async (req, res) => {
   });
 });
 
+const resetPassword = catchAsync(async (req, res) => {
+  const token = req.headers.authorization as string;
+  const result = await AuthServices.resetPassword(req.body, token);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Password has been reset successfully!",
+    data: result,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   googleCallback,
   changePassword,
   refreshToken,
   forgetPassword,
+  resetPassword,
 };
