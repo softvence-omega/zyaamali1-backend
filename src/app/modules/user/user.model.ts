@@ -29,6 +29,10 @@ const userSchema = new Schema<TUser>(
       enum: ["user", "admin"],
       default: "user",
     },
+    token: {
+      type: Number,
+      default: 100,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

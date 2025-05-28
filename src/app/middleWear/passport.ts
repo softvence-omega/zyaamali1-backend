@@ -24,7 +24,10 @@ passport.use(
               null!
             );
           }
-          return done(null, user);
+          return done(null, {
+            ...user.toObject(),
+            _id: user._id.toString(),
+          });
         }
 
         user = await User.create({
@@ -34,7 +37,13 @@ passport.use(
           provider: profile.provider,
         });
 
-        return done(null, user);
+
+
+
+        return done(null, {
+          ...user.toObject(),
+          _id: user._id.toString()
+        });
       } catch (err) {
         return done(err as any, null!);
       }

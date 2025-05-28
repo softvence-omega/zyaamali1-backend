@@ -19,19 +19,11 @@ const PricingSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    dailyCredits: {
-      type: Number,
-      required: true,
-    },
-    totalCredits: {
+    token: {
       type: Number,
       required: true,
     },
 
-    Storage: {
-      type: Number,
-      required: true,
-    },
 
     isDelete: {
       type: Boolean,

@@ -9,6 +9,8 @@ export interface TUser {
   role: "user" | "admin";
   isDeleted: boolean;
   provider?: string;
+  token: number;
+
   createdAt: Date;
   updatedAt: Date;
 }
