@@ -19,9 +19,18 @@ const getSingleUserFromDB = async (id: string) => {
     isDeleted: false,
   });
   if (!user) throw new ApiError(httpStatus.FORBIDDEN, "Failed to Fetch user");
+  return user;
+};
 
-  const result = await User.findById(id);
-  return result;
+const getMeFromDB = async (user: JwtPayload) => {
+  const existingUser = await User.findOne({
+    _id: user.userId,
+    isDeleted: false,
+  });
+  if (!existingUser)
+    throw new ApiError(httpStatus.FORBIDDEN, "Failed to Fetch user");
+
+  return existingUser;
 };
 
 const createAUserIntoDB = async (payload: TUser) => {
@@ -46,7 +55,10 @@ const createAUserIntoDB = async (payload: TUser) => {
 };
 
 const uploadImageIntoDB = async (userData: any, file: any) => {
-  const user = await User.findById(userData.userId);
+  const user = await User.findOne({
+    _id: userData.userId,
+    isDeleted: false,
+  });
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   if (!file)
     throw new ApiError(httpStatus.BAD_REQUEST, "Please provide an image first");
@@ -68,7 +80,10 @@ const uploadImageIntoDB = async (userData: any, file: any) => {
 };
 
 const changeUserLanguage = async (user: any, language: string) => {
-  const existingUser = await User.findById(user.userId);
+  const existingUser = await await User.findOne({
+    _id: user.userId,
+    isDeleted: false,
+  });
   if (!existingUser)
     throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
   return await User.findByIdAndUpdate(
@@ -79,7 +94,10 @@ const changeUserLanguage = async (user: any, language: string) => {
 };
 
 const changeUserTheme = async (user: any, theme: string) => {
-  const existingUser = await User.findById(user.userId);
+  const existingUser = await User.findOne({
+    _id: user.userId,
+    isDeleted: false,
+  });
   if (!existingUser)
     throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
   return await User.findByIdAndUpdate(
@@ -89,11 +107,24 @@ const changeUserTheme = async (user: any, theme: string) => {
   );
 };
 
+const toggleUserDeleteInDB = async (id: string, deleted: boolean) => {
+  const existingUser = await User.findById(id);
+  if (!existingUser)
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
+  return await User.findByIdAndUpdate(
+    id,
+    { isDeleted: deleted },
+    { new: true, runValidators: true }
+  );
+};
+
 export const UserServices = {
   getSingleUserFromDB,
+  getMeFromDB,
   getAllUsersFromDB,
   createAUserIntoDB,
   changeUserLanguage,
   changeUserTheme,
   uploadImageIntoDB,
+  toggleUserDeleteInDB,
 };

@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.get("/:id", auth(USER_ROLE.ADMIN), UserControllers.getSingleUser);
 router.get("/", auth(USER_ROLE.ADMIN), UserControllers.getAllUsers);
+router.get("/me", auth(USER_ROLE.USER, USER_ROLE.ADMIN), UserControllers.getMe);
 router.post(
   "/createAUser",
   validateRequest(UserValidations.createUserValidationSchema),
@@ -34,6 +35,13 @@ router.patch(
   auth(USER_ROLE.USER, USER_ROLE.ADMIN),
   validateRequest(UserValidations.changeThemeValidationSchema),
   UserControllers.changeUserTheme
+);
+
+router.patch(
+  "/delete/:id",
+  auth(USER_ROLE.ADMIN),
+  validateRequest(UserValidations.deleteUserValidationSchema),
+  UserControllers.toggleUserDelete
 );
 
 export const UserRoutes = router;

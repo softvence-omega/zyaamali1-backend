@@ -24,6 +24,16 @@ const getSingleUser = catchAsync(async (req, res) => {
   });
 });
 
+const getMe = catchAsync(async (req, res) => {
+  const result = await UserServices.getMeFromDB(req.loggedInUser);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "My information retrieved successfully",
+    data: result,
+  });
+});
+
 const createAUser = catchAsync(async (req, res) => {
   const result = await UserServices.createAUserIntoDB(req.body);
   sendResponse(res, {
@@ -73,11 +83,26 @@ const changeUserTheme = catchAsync(async (req, res) => {
   });
 });
 
+const toggleUserDelete = catchAsync(async (req, res) => {
+  const result = await UserServices.toggleUserDeleteInDB(
+    req.params.id,
+    req.body.deleted
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User deleted successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getSingleUser,
+  getMe,
   getAllUsers,
   createAUser,
   changeUserLanguage,
   changeUserTheme,
   uploadImage,
+  toggleUserDelete,
 };

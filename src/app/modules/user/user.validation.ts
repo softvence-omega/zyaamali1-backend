@@ -20,9 +20,15 @@ const changeThemeValidationSchema = z.object({
     theme: z.enum(["light", "dark", "system"]),
   }),
 });
+const deleteUserValidationSchema = z.object({
+  body: z.object({
+    deleted: z.boolean(),
+  }),
+});
 
 export const UserValidations = {
   createUserValidationSchema,
   changeLanguageValidationSchema,
   changeThemeValidationSchema,
+  deleteUserValidationSchema,
 };
