@@ -19,13 +19,6 @@ const loginUser = async (payload: TLoginUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
   }
 
-  if (user.provider && !user?.password) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      `Try Login with ${user.provider}!`
-    );
-  }
-
   // Check if user is deleted
   const isUserDeleted = user?.isDeleted;
   if (isUserDeleted) {
@@ -42,6 +35,8 @@ const loginUser = async (payload: TLoginUser) => {
     userId: user._id.toString(),
     role: user.role,
   };
+  console.log("Access secret -> ", config.jwt_access_secret);
+  console.log("Access Secret -> ", config.jwt_access_expires_in);
 
   //++++++++++++++++   ACCESS TOKEN   ++++++++++++++++
   const accessToken = createToken(
@@ -55,17 +50,9 @@ const loginUser = async (payload: TLoginUser) => {
     config.jwt_refresh_secret as string,
     parseInt(config.jwt_refresh_expires_in as string)
   );
-  console.log(user);
   return {
     accessToken,
     refreshToken,
-    // user: {
-    //   name: user.name,
-    //   email: user.email,
-    //   _id: user._id,
-    //   image: user.image,
-    //   role: user.role,
-    // },
   };
 };
 

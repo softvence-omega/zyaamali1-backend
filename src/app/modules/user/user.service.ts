@@ -1,3 +1,4 @@
+import { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import USER_ROLE from "../../constants/userRole";
 import ApiError from "../../errors/ApiError";
@@ -5,6 +6,7 @@ import { TUser } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
+import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
 
 const getAllUsersFromDB = async () => {
   const result = await User.find({ isDeleted: false });
@@ -40,15 +42,58 @@ const createAUserIntoDB = async (payload: TUser) => {
   payload.password = newHashedPassword;
 
   const result = await User.create(payload);
-  return {
-    name: result.name,
-    email: result.email,
-    role: result.role,
-  };
+  return result;
+};
+
+const uploadImageIntoDB = async (userData: any, file: any) => {
+  const user = await User.findById(userData.userId);
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  if (!file)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Please provide an image first");
+
+  const imageName = `${user.name}-${user.role}-${Date.now()}`;
+  const cloudinary_response = (await sendFileToCloudinary(
+    imageName,
+    file?.path,
+    "image"
+  )) as { secure_url: string };
+  console.log(cloudinary_response);
+
+  const result = await User.findOneAndUpdate(
+    { _id: userData.userId },
+    { image: cloudinary_response.secure_url },
+    { new: true, runValidators: true }
+  );
+  return result;
+};
+
+const changeUserLanguage = async (user: any, language: string) => {
+  const existingUser = await User.findById(user.userId);
+  if (!existingUser)
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
+  return await User.findByIdAndUpdate(
+    user.userId,
+    { language },
+    { new: true, runValidators: true }
+  );
+};
+
+const changeUserTheme = async (user: any, theme: string) => {
+  const existingUser = await User.findById(user.userId);
+  if (!existingUser)
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
+  return await User.findByIdAndUpdate(
+    user.userId,
+    { theme },
+    { new: true, runValidators: true }
+  );
 };
 
 export const UserServices = {
   getSingleUserFromDB,
   getAllUsersFromDB,
   createAUserIntoDB,
+  changeUserLanguage,
+  changeUserTheme,
+  uploadImageIntoDB,
 };

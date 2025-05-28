@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import { TUser } from "./user.interface";
+import { LANGUAGE } from "./user.constants";
 
 const userSchema = new Schema<TUser>(
   {
@@ -20,7 +21,7 @@ const userSchema = new Schema<TUser>(
       type: String,
       select: false,
       required: function () {
-        return !this.provider; // Only require password if not a Google user
+        return !this.provider;
       },
     },
     role: {
@@ -29,13 +30,27 @@ const userSchema = new Schema<TUser>(
       enum: ["user", "admin"],
       default: "user",
     },
+    token: {
+      type: Number,
+      required: true,
+      default: 100,
+    },
+    theme: {
+      type: String,
+      enum: ["dark", "light", "system"],
+      default: "system",
+    },
+    language: {
+      type: String,
+      enum: LANGUAGE,
+      default: "English",
+    },
     isDeleted: {
       type: Boolean,
       default: false,
     },
     provider: {
       type: String,
-      default: false,
     },
   },
   {

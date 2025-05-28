@@ -24,7 +24,10 @@ const auth = (...requiredRoles: TUserRole[]) => {
     try {
       decoded = verifyToken(token, config.jwt_access_secret as string);
     } catch (error) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized access!");
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        "Could not verify: Unauthorized access happened"
+      );
     }
     console.log(decoded);
     const { userId, role, iat } = decoded;

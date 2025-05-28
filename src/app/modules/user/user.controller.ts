@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
@@ -35,8 +34,50 @@ const createAUser = catchAsync(async (req, res) => {
   });
 });
 
+const uploadImage = catchAsync(async (req, res) => {
+  const result = await UserServices.uploadImageIntoDB(
+    req.loggedInUser,
+    req.file
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Image updated successfully",
+    data: result,
+  });
+});
+
+const changeUserLanguage = catchAsync(async (req, res) => {
+  const result = await UserServices.changeUserLanguage(
+    req.loggedInUser,
+    req.body.language
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User language updated successfully",
+    data: result,
+  });
+});
+
+const changeUserTheme = catchAsync(async (req, res) => {
+  const result = await UserServices.changeUserTheme(
+    req.loggedInUser,
+    req.body.theme
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User theme updated successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getSingleUser,
   getAllUsers,
   createAUser,
+  changeUserLanguage,
+  changeUserTheme,
+  uploadImage,
 };

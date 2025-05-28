@@ -7,7 +7,7 @@ import { createToken } from "./auth.utils";
 
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
-  const { refreshToken, accessToken, user } = result;
+  const { refreshToken, accessToken } = result;
 
   res.cookie("refreshToken", refreshToken, {
     secure: config.node_env === "production",
@@ -19,7 +19,7 @@ const loginUser = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Login successful",
-    data: { accessToken, user },
+    data: { accessToken },
   });
 });
 
