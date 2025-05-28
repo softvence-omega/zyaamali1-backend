@@ -31,6 +31,7 @@ export type TMessage = {
 };
 
 export type TConversation = {
+  model : string;
   name: string;
   userId: Types.ObjectId;
   chat: Types.ObjectId[];

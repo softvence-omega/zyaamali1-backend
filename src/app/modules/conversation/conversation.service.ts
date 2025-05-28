@@ -56,7 +56,7 @@ const addAMessage = async (payload: TMessage) => {
 
     // 4. Calculate token usage
     const pricePerToken = configureData.dollerPerToken;
-    const tokenUsed = Math.ceil(payload.price / pricePerToken);
+    const tokenUsed = (payload.price / pricePerToken).toFixed(10);
 
     // 5. Deduct token from user
     const updatedUser = await User.findByIdAndUpdate(
