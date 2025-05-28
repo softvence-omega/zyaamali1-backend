@@ -21,14 +21,17 @@ export type TResponse = {
 };
 
 export type TMessage = {
+  
   userId: Types.ObjectId;
   chatId: Types.ObjectId;
   prompt: TPrompt[];
   enhancedPrompt?: string;
   response: TResponse[];
+  price: number;
 };
 
 export type TConversation = {
+  model : string;
   name: string;
   userId: Types.ObjectId;
   chat: Types.ObjectId[];

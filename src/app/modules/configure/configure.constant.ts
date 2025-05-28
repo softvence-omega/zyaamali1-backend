@@ -1,0 +1,1 @@
+export const CONFIGURE_SEARCHABLE_FIELDS = [];

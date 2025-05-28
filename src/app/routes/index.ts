@@ -5,6 +5,7 @@ import { ConversationRoutes } from "../modules/conversation/conversation.routes"
 import { cartRoutes } from "../modules/cart/cart.routes";
 import { PricingRoutes } from "../modules/Pricing/Pricing.routes";
 import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
+import { configureRoutes } from "../modules/configure/configure.routes";
 
 const router = Router();
 
@@ -16,6 +17,10 @@ const moduleRoutes = [
   {
     path: "/pricing",
     route: PricingRoutes,
+  },
+  {
+    path: "/configure",
+    route: configureRoutes,
   },
   {
     path: "/cart",

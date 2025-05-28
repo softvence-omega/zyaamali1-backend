@@ -51,6 +51,7 @@ const ResponseSchema = new Schema(
 const MessageSchema = new Schema<TMessage>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+   price: { type: Number, required: true, min: 0 },
     chatId: {
       type: Schema.Types.ObjectId,
       ref: "Conversation",
@@ -65,6 +66,10 @@ const MessageSchema = new Schema<TMessage>(
 
 const ConversationSchema = new Schema<TConversation>(
   {
+    model: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
