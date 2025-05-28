@@ -52,8 +52,6 @@ export interface TUser {
   language: TLanguage;
   isDeleted: boolean;
   provider?: string;
-  token: number;
-
   createdAt: Date;
   updatedAt: Date;
 }

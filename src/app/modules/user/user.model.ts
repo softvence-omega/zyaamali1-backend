@@ -32,7 +32,18 @@ const userSchema = new Schema<TUser>(
     },
     token: {
       type: Number,
+      required: true,
       default: 100,
+    },
+    theme: {
+      type: String,
+      enum: ["dark", "light", "system"],
+      default: "system",
+    },
+    language: {
+      type: String,
+      enum: LANGUAGE,
+      default: "English",
     },
     isDeleted: {
       type: Boolean,
