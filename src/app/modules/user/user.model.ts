@@ -34,6 +34,7 @@ const userSchema = new Schema<TUser>(
       type: Number,
       required: true,
       default: 100,
+      min: 0,
     },
     theme: {
       type: String,
