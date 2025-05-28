@@ -51,7 +51,16 @@ const createAUserIntoDB = async (payload: TUser) => {
   payload.password = newHashedPassword;
 
   const result = await User.create(payload);
-  return result;
+  return {
+    name: result.name,
+    image: result.image,
+    email: result.email,
+    password: result.password,
+    role: result.role,
+    token: result.token,
+    theme: result.theme,
+    language: result.language,
+  };
 };
 
 const uploadImageIntoDB = async (userData: any, file: any) => {

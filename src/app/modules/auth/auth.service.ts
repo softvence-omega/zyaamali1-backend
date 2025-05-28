@@ -36,8 +36,6 @@ const loginUser = async (payload: TLoginUser) => {
     userId: user._id.toString(),
     role: user.role,
   };
-  console.log("Access secret -> ", config.jwt_access_secret);
-  console.log("Access Secret -> ", config.jwt_access_expires_in);
 
   //++++++++++++++++   ACCESS TOKEN   ++++++++++++++++
   const accessToken = createToken(
