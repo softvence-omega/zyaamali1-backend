@@ -12,7 +12,7 @@ import USER_ROLE from "../../constants/userRole";
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.findOne({
     email: payload?.email,
-    role: USER_ROLE.USER,
+    // role: USER_ROLE.USER,
   }).select("+password");
 
   // Check if user exists

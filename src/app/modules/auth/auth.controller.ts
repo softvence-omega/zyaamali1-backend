@@ -6,6 +6,8 @@ import config from "../../config";
 import { createToken } from "./auth.utils";
 
 const loginUser = catchAsync(async (req, res) => {
+  console.log("Login request body:", req.body);
+ 
   const result = await AuthServices.loginUser(req.body);
   const { refreshToken, accessToken } = result;
 

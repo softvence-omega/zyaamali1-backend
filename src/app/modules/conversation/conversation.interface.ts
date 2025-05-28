@@ -21,11 +21,13 @@ export type TResponse = {
 };
 
 export type TMessage = {
+  
   userId: Types.ObjectId;
   chatId: Types.ObjectId;
   prompt: TPrompt[];
   enhancedPrompt?: string;
   response: TResponse[];
+  price: number;
 };
 
 export type TConversation = {

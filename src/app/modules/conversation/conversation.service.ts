@@ -2,6 +2,9 @@ import httpStatus from "http-status";
 import { Conversation, Message } from "./conversation.model";
 import { TMessage } from "./conversation.interface";
 import ApiError from "../../errors/ApiError";
+import { User } from "../user/user.model";
+import { configureModel } from "../configure/configure.model";
+import mongoose from "mongoose";
 
 const createConversationIntoDB = async (id: string) => {
   const result = await Conversation.create({
@@ -13,23 +16,68 @@ const createConversationIntoDB = async (id: string) => {
 };
 
 const addAMessage = async (payload: TMessage) => {
-  const result = await Message.create(payload);
-  if (!result) {
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Failed to create message"
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    // 1. Create the message
+    const message = await Message.create([payload], { session });
+    const result = message[0];
+    if (!result) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to create message"
+      );
+    }
+
+    // 2. Push message to conversation
+    const conversation = await Conversation.findByIdAndUpdate(
+      payload.chatId,
+      { $push: { chat: result._id } },
+      { session }
     );
-  }
-  const conversation = await Conversation.findByIdAndUpdate(payload.chatId, {
-    $push: { chat: result._id },
-  });
-  if (!conversation) {
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Failed to create conversation"
+
+    if (!conversation) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to create conversation"
+      );
+    }
+
+    // 3. Fetch config
+    const configureData = await configureModel.findOne({}, null, { session });
+    if (!configureData) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "Configuration data not found"
+      );
+    }
+
+    // 4. Calculate token usage
+    const pricePerToken = configureData.dollerPerToken;
+    const tokenUsed = Math.ceil(payload.price / pricePerToken);
+
+    // 5. Deduct token from user
+    const updatedUser = await User.findByIdAndUpdate(
+      payload.userId,
+      { $inc: { token: -tokenUsed } },
+      { new: true, session }
     );
+
+    if (!updatedUser) {
+      throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-  return result;
 };
 
 const getAllConversationsFromDB = async (id: string) => {
