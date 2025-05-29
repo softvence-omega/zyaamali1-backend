@@ -10,9 +10,6 @@ import { User } from "./app/modules/user/user.model";
 import bcrypt from "bcrypt";
 import config from "./app/config";
 import { configureModel } from "./app/modules/configure/configure.model";
-import ApiError from "./app/errors/ApiError";
-import httpStatus from "http-status";
-
 const app = express();
 
 // Middlewares
@@ -30,11 +27,11 @@ app.get("/", (req: Request, res: Response) => {
 export const createDefaultAdmin = async () => {
   try {
     const existingAdmin = await User.findOne({ email: "mohibullamiazi@gmail.com" });
-     const newHashedPassword = await bcrypt.hash(
-       "Admin123",
-       Number(config.bcrypt_salt_rounds)
-     );
-   
+    const newHashedPassword = await bcrypt.hash(
+      "Admin123",
+      Number(config.bcrypt_salt_rounds)
+    );
+
     if (!existingAdmin) {
       await User.create({
         name: "Mohebulla miazi",
@@ -54,20 +51,25 @@ export const createDefaultAdmin = async () => {
 
 createDefaultAdmin();
 
-const postConfigureIntoDB = async(data: any) => {
-    try {
-     const count = await configureModel.countDocuments();
-     if(count > 0) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Configure already exists, you can only update it.")
-     }else{
-       return await configureModel.create(data);
-     }
-    } catch (error: unknown) {
-      throw error;
-    }
-  }
+const postConfigureIntoDB = async () => {
+  try {
+    const count = await configureModel.countDocuments();
+    if (count > 0) {
+      console.log("ℹ️ Configuration already exists in the database.");
+    } else {
+      return await configureModel.create({
+        dollerPerToken: 5,
+        dailyTokenLimit: 100
 
-// Error handler middlewear is positioned after all the routes definition because after the routes are handled then error will occur, not before
+      });
+    }
+  } catch (error: unknown) {
+    throw error;
+  }
+}
+
+postConfigureIntoDB()
+
 app.use(notFound);
 app.use(globalErrorHandler);
 
