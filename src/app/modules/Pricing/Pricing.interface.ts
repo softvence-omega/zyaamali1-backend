@@ -3,5 +3,5 @@ export interface IPricing {
   usedCase: string;
   price: number;
   token: number;
-  isDelete?: boolean;
+  isDeleted?: boolean;
 }

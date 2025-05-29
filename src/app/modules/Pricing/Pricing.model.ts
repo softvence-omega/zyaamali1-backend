@@ -26,7 +26,7 @@ const PricingSchema = new mongoose.Schema(
     },
 
 
-    isDelete: {
+    isDeleted: {
       type: Boolean,
       default: false,
     },

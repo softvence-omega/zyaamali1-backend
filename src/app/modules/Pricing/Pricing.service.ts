@@ -1,21 +1,23 @@
 import { PricingModel } from "./Pricing.model";
 import { PRICING_SEARCHABLE_FIELDS } from "./Pricing.constant";
 import QueryBuilder from "../../builder/QueryBuilder";
-import status from "http-status";
 import ApiError from "../../errors/ApiError";
+import httpStatus from "http-status";
 
 export const PricingService = {
   async postPricingIntoDB(data: any) {
     try {
+      // Check if a pricing plan with the same name already exists
+      const existingPricing = await PricingModel.findOne({ name: data.name, isDeleted: false });
+      if (existingPricing) {
+        throw new ApiError(httpStatus.CONFLICT, "A pricing plan with this name already exists.");
+      }
       return await PricingModel.create(data);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
+
   async getAllPricingFromDB(query: any) {
     try {
       const service_query = new QueryBuilder(PricingModel.find(), query)
@@ -27,69 +29,66 @@ export const PricingService = {
 
       const result = await service_query.modelQuery;
       const meta = await service_query.countTotal();
-      return {
-        result,
-        meta,
-      };
+      return { result, meta };
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
+
   async getSinglePricingFromDB(id: string) {
     try {
-      return await PricingModel.findOne({ _id: id, isDelete: false });
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
+      const pricing = await PricingModel.findOne({ _id: id, isDeleted: false });
+
+      if (!pricing) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Pricing not found or has been deleted.");
       }
+
+      return pricing;
+    } catch (error: unknown) {
+      throw error;
+
     }
   },
+
   async updatePricingIntoDB(data: any) {
     try {
-      const isDeleted = await PricingModel.findOne({ _id: data.id });
-      if (isDeleted?.isDelete) {
-        throw new ApiError(status.NOT_FOUND, "Pricing is already deleted");
+      const existingPricing = await PricingModel.findOne({ _id: data.id });
+
+      if (!existingPricing) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Pricing not found.");
       }
 
-      const result = await PricingModel.updateOne({ _id: data.id }, data, {
-        new: true,
-      });
-      if (!result) {
-        throw new Error("Pricing not found.");
+      if (existingPricing.isDeleted) {
+        throw new ApiError(httpStatus.GONE, "Cannot update: pricing has been deleted.");
       }
+
+      const result = await PricingModel.findByIdAndUpdate(data.id, data, { new: true });
+
       return result;
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
+
     }
   },
+
   async deletePricingFromDB(id: string) {
     try {
-      // Step 1: Check if the Pricing exists in the database
-      const isExist = await PricingModel.findOne({ _id: id });
+      const pricing = await PricingModel.findOne({ _id: id });
 
-      if (!isExist) {
-        throw new ApiError(status.NOT_FOUND, "Pricing not found");
+      if (!pricing) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Pricing not found.");
       }
 
-      // Step 4: Delete the home Pricing from the database
-      await PricingModel.updateOne({ _id: id }, { isDelete: true });
+      if (pricing.isDeleted) {
+        throw new ApiError(httpStatus.GONE, "Pricing is already deleted.");
+      }
+
+      await PricingModel.updateOne({ _id: id }, { isDeleted: true });
+
       return;
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
+
     }
   },
 };

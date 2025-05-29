@@ -24,7 +24,6 @@ export const PricingPostValidation = z.object({
       required_error: "Token is required",
     }),
 
-    isDelete: z.boolean().optional(),
   }),
 });
 

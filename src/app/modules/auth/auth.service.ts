@@ -26,6 +26,15 @@ const loginUser = async (payload: TLoginUser) => {
     throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
   }
 
+  // check if user is registerd with google or facebook
+
+  if ( !user.password &&  user?.provider) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      `You are registered with ${user.provider}. Please login with ${user.provider} instead!`
+    );
+  }
+
   // Check if password is correct
   if (!(await bcrypt.compare(payload?.password, user?.password))) {
     throw new ApiError(httpStatus.FORBIDDEN, "Password did not match!");
