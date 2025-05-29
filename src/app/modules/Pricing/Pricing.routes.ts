@@ -5,21 +5,26 @@ import {
   PricingUpdateValidation,
 } from "./Pricing.validation";
 import { validateRequest } from "../../middleWear/validateRequest";
+import auth from "../../middleWear/auth";
+import USER_ROLE from "../../constants/userRole";
 
 const router = express.Router();
 
 router.post(
-  "/create_pricing",
+  "/create-pricing",
+  auth(USER_ROLE.ADMIN),
   validateRequest(PricingPostValidation),
   PricingController.postPricing
 );
-router.get("/get_all_Pricing", PricingController.getAllPricing);
-router.get("/get_single_Pricing/:id", PricingController.getSinglePricing);
+router.get("/get-all-pricing", PricingController.getAllPricing);
+router.get("/get-single-pricing/:id", PricingController.getSinglePricing);
 router.put(
-  "/update_Pricing/:id",
+  "/update-pricing/:id",
+  auth(USER_ROLE.ADMIN),
+
   validateRequest(PricingUpdateValidation),
   PricingController.updatePricing
 );
-router.delete("/delete_Pricing/:id", PricingController.deletePricing);
+router.delete("/delete-pricing/:id", PricingController.deletePricing);
 
 export const PricingRoutes = router;

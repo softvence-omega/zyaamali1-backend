@@ -9,7 +9,7 @@ const postPricing = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
-    message: "Created successfully",
+    message: "New pricing plan has been created successfully.",
     data: result,
   });
 });
@@ -19,7 +19,7 @@ const getAllPricing = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "Fetched successfully",
+    message: "All pricing plans retrieved successfully.",
     data: result,
   });
 });
@@ -29,7 +29,7 @@ const getSinglePricing = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "Fetched successfully",
+    message: "Pricing plan details retrieved successfully.",
     data: result,
   });
 });
@@ -40,7 +40,7 @@ const updatePricing = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "Updated successfully",
+    message: "Pricing plan updated successfully.",
     data: result,
   });
 });
@@ -50,7 +50,7 @@ const deletePricing = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "Deleted successfully",
+    message: "Pricing plan deleted successfully.",
     data: null,
   });
 });

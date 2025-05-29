@@ -20,25 +20,9 @@ export const PricingPostValidation = z.object({
       })
       .nonnegative("Price cannot be negative"),
 
-    dailyCredits: z
-      .number({
-        required_error: "Daily credits are required",
-      })
-      .int("Daily credits must be an integer")
-      .nonnegative("Daily credits cannot be negative"),
-
-    totalCredits: z
-      .number({
-        required_error: "Total credits are required",
-      })
-      .int("Total credits must be an integer")
-      .nonnegative("Total credits cannot be negative"),
-
-    Storage: z
-      .number({
-        required_error: "Storage is required",
-      })
-      .nonnegative("Storage cannot be negative"),
+    token: z.number({
+      required_error: "Token is required",
+    }),
 
     isDelete: z.boolean().optional(),
   }),

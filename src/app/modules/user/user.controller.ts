@@ -8,7 +8,7 @@ const getAllUsers = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Users retrieved successfully",
+    message: "All users retrieved successfully.",
     data: result,
   });
 });
@@ -19,7 +19,7 @@ const getSingleUser = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User data retrieved successfully",
+    message: "User details retrieved successfully.",
     data: result,
   });
 });
@@ -29,7 +29,7 @@ const getMe = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "My information retrieved successfully",
+    message: "Authenticated user information retrieved successfully.",
     data: result,
   });
 });
@@ -39,7 +39,7 @@ const createAUser = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User created successfully",
+    message: "New user created successfully.",
     data: result,
   });
 });
@@ -52,7 +52,7 @@ const uploadImage = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Image updated successfully",
+    message: "Profile image updated successfully.",
     data: result,
   });
 });
@@ -65,7 +65,7 @@ const changeUserLanguage = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User language updated successfully",
+    message: "Preferred language updated successfully.",
     data: result,
   });
 });
@@ -78,7 +78,7 @@ const changeUserTheme = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User theme updated successfully",
+    message: "Theme preference updated successfully.",
     data: result,
   });
 });
@@ -91,7 +91,9 @@ const toggleUserDelete = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User deleted successfully",
+    message: req.body.deleted
+      ? "User marked as deleted successfully."
+      : "User restored successfully.",
     data: result,
   });
 });

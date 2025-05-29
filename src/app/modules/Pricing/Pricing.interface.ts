@@ -2,8 +2,6 @@ export interface IPricing {
   name: string;
   usedCase: string;
   price: number;
-  dailyCredits: number;
-  totalCredits: number;
-  Storage: number;
+  token: number;
   isDelete?: boolean;
 }

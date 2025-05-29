@@ -8,12 +8,11 @@ const createConversartion = catchAsync(async (req: Request, res: Response) => {
   const result = await conversationService.createConversationIntoDB(
     req.loggedInUser.userId,
     req.body.model
-
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Conversation created successfully",
+    message: "A new conversation has been successfully created.",
     data: result,
   });
 });
@@ -28,7 +27,7 @@ const addAMessage = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "Message added successfully",
+    message: "Your message has been added to the conversation.",
     data: result,
   });
 });
@@ -39,7 +38,7 @@ const getAllConversations = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Conversations fetched successfully",
+    message: "All your conversations have been retrieved successfully.",
     data: result,
   });
 });
@@ -53,7 +52,7 @@ const getMessagesFromConversation = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Messages fetched successfully",
+      message: "Messages from the conversation have been fetched successfully.",
       data: result,
     });
   }
@@ -65,7 +64,7 @@ const deleteConversation = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Conversation deleted successfully",
+    message: "The conversation has been deleted successfully.",
     data: null,
   });
 });
@@ -80,7 +79,7 @@ const changeConversationName = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Conversation name changed successfully",
+      message: "The conversation name has been updated successfully.",
       data: result,
     });
   }
