@@ -5,6 +5,5 @@ export interface ISubscription  {
     pricingPlanId: mongoose.Types.ObjectId;
     stripeSubscriptionId: string;
     stripeCustomerId: string;
-    currentPeriodEnd: Date;
     status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
   }

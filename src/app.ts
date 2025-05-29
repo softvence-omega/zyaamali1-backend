@@ -10,7 +10,16 @@ import { User } from "./app/modules/user/user.model";
 import bcrypt from "bcrypt";
 import config from "./app/config";
 import { configureModel } from "./app/modules/configure/configure.model";
+import { handleStripeWebhook } from "./app/modules/subscription/subscription.controller";
+import bodyParser from "body-parser";
 const app = express();
+
+
+app.post(
+  "/api/v1/subscriptions/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
 
 // Middlewares
 app.use(cors());

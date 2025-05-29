@@ -15,6 +15,9 @@ declare global {
 import { PricingModel } from "../Pricing/Pricing.model";
 import { stripe } from "../../utils/stripe";
 import { subscriptionModel } from "./subscription.model";
+import config from "../../config";
+import ApiError from "../../errors/ApiError";
+import httpStatus from "http-status";
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   const { pricingPlanId, userId, email } = req.body;
@@ -35,12 +38,11 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
             name: plan.name,
           },
           unit_amount: plan.price * 100, // USD in cents
-          recurring: { interval: "month" },
         },
         quantity: 1,
       },
     ],
-    mode: "subscription",
+    mode: "payment",
     success_url: `${process.env.CLIENT_URL}/subscription-success`,
     cancel_url: `${process.env.CLIENT_URL}/subscription-cancel`,
     metadata: {
@@ -81,8 +83,7 @@ export const checkSubscription = async (
 
   if (
     !subscription ||
-    subscription.status !== "active" ||
-    new Date() > subscription.currentPeriodEnd
+    subscription.status !== "active"
   ) {
     return res
       .status(403)
@@ -103,44 +104,49 @@ export const getSubscriptionStatus = async (req: Request, res: Response) => {
   }
 
   const isActive =
-    subscription.status === 'active' && new Date() < new Date(subscription.currentPeriodEnd);
+    subscription.status === 'active';
 
   res.json({ isActive });
 };
 
 export const handleStripeWebhook = async (req: Request, res: Response) => {
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+  const sig = req.headers['stripe-signature'] as string | undefined;
+  const webhookSecret = config.STRIPE_WEBHOOK_SECRET;
+
+  if (!sig || !webhookSecret) {
+    throw new Error("Missing signature or webhook secret")
+  }
+
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig!, webhookSecret);
+    // IMPORTANT: req.body is a Buffer because of express.raw()
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    console.log('Stripe event:', event);
   } catch (err: any) {
-    console.error('⚠️ Webhook signature verification failed.', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error('Webhook signature verification failed.', err.message);
+    throw new Error(`Webhook Error: ${err.message}`)
   }
 
+  // Your event handling logic here
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
+    console.log('Checkout session completed:', session);
 
-    try {
-      const subscription = await stripe.subscriptions.retrieve(session.subscription);
-console.log("session", session)
-      await subscriptionModel.create({
-        userId: session.metadata.userId,
-        pricingPlanId: session.metadata.pricingPlanId,
-        stripeSubscriptionId: session.subscription,
-        stripeCustomerId: session.customer,
-        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
-        status: subscription.status,
-      });
 
-      console.log('✅ Subscription saved for user:', session.metadata.userId);
-    } catch (err) {
-      console.error('❌ Error saving subscription:', err);
-      return res.status(500).send('Internal Server Error');
-    }
+    await subscriptionModel.create({
+      userId: session.metadata.userId,
+      pricingPlanId: session.metadata.pricingPlanId,
+      stripePaymentIntentId: session.payment_intent,
+      stripeCustomerId: session.customer,
+      status: session.payment_status,
+      amountPaid: session.amount_total,
+      currency: session.currency,
+    });
   }
 
-  res.status(200).send(); // Always respond with 200 to Stripe
+  return res.status(200).send();
 };
+
+
+
