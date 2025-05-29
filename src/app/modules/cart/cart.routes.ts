@@ -8,7 +8,7 @@ import USER_ROLE from "../../constants/userRole";
 const router = express.Router();
 
 router.post(
-  "/create-cart",
+  "/add-to-cart",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   validateRequest(cartPostValidation),
   cartController.postCart

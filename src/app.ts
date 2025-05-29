@@ -11,7 +11,7 @@ import bcrypt from "bcrypt";
 import config from "./app/config";
 import { configureModel } from "./app/modules/configure/configure.model";
 import { handleStripeWebhook } from "./app/modules/subscription/subscription.controller";
-import bodyParser from "body-parser";
+import "./app/utils/dailyTokenReset"; // Importing the daily token reset utility to ensure it's executed
 const app = express();
 
 

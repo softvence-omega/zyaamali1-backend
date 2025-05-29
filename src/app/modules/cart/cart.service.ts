@@ -9,17 +9,13 @@ export const cartService = {
     try {
       return await cartModel.create(data);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
 
   async getAllCartFromDB(query: any, userId: string) {
     try {
-      const service_query = new QueryBuilder(cartModel.find({userId}), query)
+      const service_query = new QueryBuilder(cartModel.find({ userId }), query)
         .search(CART_SEARCHABLE_FIELDS)
         .filter()
         .sort()
@@ -33,11 +29,7 @@ export const cartService = {
         meta,
       };
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
   async getSingleCartFromDB(id: string, userId: string) {
@@ -48,11 +40,7 @@ export const cartService = {
         isDeleted: false
       });
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
   async updateCartIntoDB(data: any, id: string, userId: string) {
@@ -70,31 +58,26 @@ export const cartService = {
       }
       return result;
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
-  async deleteCartFromDB(id: string, userId:string) {
+  async deleteCartFromDB(id: string, userId: string) {
     try {
       // Step 1: Check if the cart exists in the database
-      const isExist = await cartModel.findOne({ _id: id, userId});
+      const isExist = await cartModel.findOne({ _id: id, userId });
 
       if (!isExist) {
         throw new ApiError(status.NOT_FOUND, "cart not found");
+      }
+      if (isExist.isDeleted) {
+        throw new ApiError(status.NOT_FOUND, "Cart is already deleted");
       }
 
       // Step 4: Delete the home cart from the database
       await cartModel.updateOne({ _id: id, userId }, { isDeleted: true });
       return;
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+      throw error;
     }
   },
 };
