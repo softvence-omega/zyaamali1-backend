@@ -9,6 +9,9 @@ import passport from "passport";
 import { User } from "./app/modules/user/user.model";
 import bcrypt from "bcrypt";
 import config from "./app/config";
+import { configureModel } from "./app/modules/configure/configure.model";
+import ApiError from "./app/errors/ApiError";
+import httpStatus from "http-status";
 
 const app = express();
 
@@ -50,6 +53,19 @@ export const createDefaultAdmin = async () => {
 };
 
 createDefaultAdmin();
+
+const postConfigureIntoDB = async(data: any) => {
+    try {
+     const count = await configureModel.countDocuments();
+     if(count > 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Configure already exists, you can only update it.")
+     }else{
+       return await configureModel.create(data);
+     }
+    } catch (error: unknown) {
+      throw error;
+    }
+  }
 
 // Error handler middlewear is positioned after all the routes definition because after the routes are handled then error will occur, not before
 app.use(notFound);

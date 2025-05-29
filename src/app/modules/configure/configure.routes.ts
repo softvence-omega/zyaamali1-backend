@@ -4,7 +4,6 @@ import { configureController } from "./configure.controller";
 
 const router = express.Router();
 
-router.post("/post-configure", configureController.postConfigure);
 router.get("/get-all-configure", configureController.getAllConfigure);
 router.get("/get_single_configure/:id", configureController.getSingleConfigure);
 router.put("/update-configure/:id", configureController.updateConfigure);

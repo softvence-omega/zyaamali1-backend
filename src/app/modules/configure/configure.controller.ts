@@ -4,10 +4,7 @@ import sendResponse from "../../utils/sendResponse";
 import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 
-const postConfigure = catchAsync(async (req: Request, res: Response) => {
-  const result = await configureService.postConfigureIntoDB(req.body);
-  sendResponse(res, { statusCode: status.CREATED, success: true, message: "Configured successfully", data: result });
-});
+
 
 const getAllConfigure = catchAsync(async (req: Request, res: Response) => {
   const result = await configureService.getAllConfigureFromDB(req.query);
@@ -28,4 +25,4 @@ const updateConfigure = catchAsync(async (req: Request, res: Response) => {
 
 
 
-export const configureController = { postConfigure, getAllConfigure, getSingleConfigure, updateConfigure };
+export const configureController = {  getAllConfigure, getSingleConfigure, updateConfigure };

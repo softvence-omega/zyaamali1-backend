@@ -7,18 +7,7 @@ import ApiError from "../../errors/ApiError";
 
 export const configureService = {
   
-  async postConfigureIntoDB(data: any) {
-    try {
-     const count = await configureModel.countDocuments();
-     if(count > 0) {
-      throw new ApiError(status.BAD_REQUEST, "Configure already exists, you can only update it.")
-     }else{
-       return await configureModel.create(data);
-     }
-    } catch (error: unknown) {
-      throw error;
-    }
-  },
+ 
   async getAllConfigureFromDB(query: any) {
     try {
       const service_query = new QueryBuilder(configureModel.find(), query)
