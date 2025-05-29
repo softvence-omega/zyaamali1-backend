@@ -18,6 +18,8 @@ import { subscriptionModel } from "./subscription.model";
 import config from "../../config";
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
+import { User } from "../user/user.model";
+import mongoose from "mongoose";
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   const { pricingPlanId, userId, email } = req.body;
@@ -114,39 +116,63 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
   const webhookSecret = config.STRIPE_WEBHOOK_SECRET;
 
   if (!sig || !webhookSecret) {
-    throw new Error("Missing signature or webhook secret")
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Missing Stripe signature or webhook secret');
   }
 
   let event;
-
   try {
-    // IMPORTANT: req.body is a Buffer because of express.raw()
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-    console.log('Stripe event:', event);
   } catch (err: any) {
-    console.error('Webhook signature verification failed.', err.message);
-    throw new Error(`Webhook Error: ${err.message}`)
+    console.error('Webhook signature verification failed:', err.message);
+    throw new ApiError(httpStatus.BAD_REQUEST, `Webhook Error: ${err.message}`);
   }
 
-  // Your event handling logic here
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
-    console.log('Checkout session completed:', session);
 
+    if (session.payment_status !== 'paid') {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Payment was not successful');
+    }
 
-    await subscriptionModel.create({
-      userId: session.metadata.userId,
-      pricingPlanId: session.metadata.pricingPlanId,
-      stripePaymentIntentId: session.payment_intent,
-      stripeCustomerId: session.customer,
-      status: session.payment_status,
-      amountPaid: session.amount_total,
-      currency: session.currency,
-    });
+    const sessionDb = await mongoose.startSession();
+    sessionDb.startTransaction();
+
+    try {
+      // Save subscription
+      await subscriptionModel.create([{
+        userId: session.metadata.userId,
+        pricingPlanId: session.metadata.pricingPlanId,
+        stripePaymentIntentId: session.payment_intent,
+        stripeCustomerId: session.customer,
+        status: session.payment_status,
+        amountPaid: session.amount_total,
+        currency: session.currency,
+      }], { session: sessionDb });
+
+      // Update user tokens if plan exists
+      if (session.metadata.pricingPlanId) {
+        const pricingPlan = await PricingModel.findById(session.metadata.pricingPlanId).session(sessionDb);
+        if (!pricingPlan) {
+          throw new ApiError(httpStatus.NOT_FOUND, 'Pricing plan not found');
+        }
+
+        await User.findByIdAndUpdate(
+          session.metadata.userId,
+          { $inc: { token: pricingPlan.token } },
+          { new: true, session: sessionDb }
+        );
+      }
+
+      await sessionDb.commitTransaction();
+    } catch (error) {
+      await sessionDb.abortTransaction();
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Stripe webhook processing failed');
+    } finally {
+      sessionDb.endSession();
+    }
   }
 
-  return res.status(200).send();
+  res.status(200).send(); // Acknowledge webhook to Stripe
 };
-
 
 
