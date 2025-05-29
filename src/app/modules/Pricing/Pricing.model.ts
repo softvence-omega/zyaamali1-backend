@@ -22,6 +22,7 @@ const PricingSchema = new mongoose.Schema(
     token: {
       type: Number,
       required: true,
+      min: 0,
     },
 
 

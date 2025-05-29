@@ -26,7 +26,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     } catch (error) {
       throw new ApiError(
         httpStatus.UNAUTHORIZED,
-        "Unauthorized access happened"
+        "Could not verify: Unauthorized access happened"
       );
     }
     console.log(decoded);

@@ -10,6 +10,9 @@ const router = Router();
 router.post(
   "/create-conversation",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  validateRequest(
+    ConversationValidations.createConversationNameValidationSchema
+  ),
   conversationController.createConversartion
 );
 

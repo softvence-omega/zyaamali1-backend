@@ -69,7 +69,6 @@ const ConversationSchema = new Schema<TConversation>(
     model: {
       type: String,
       required: true,
-      
     },
     name: {
       type: String,
