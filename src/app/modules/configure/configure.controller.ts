@@ -9,7 +9,7 @@ const getAllConfigure = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "All configuration settings retrieved successfully.",
+    message: "configuration settings retrieved successfully.",
     data: result,
   });
 });

@@ -18,11 +18,7 @@ export const configureService = {
         .fields();
 
       const result = await service_query.modelQuery;
-      const meta = await service_query.countTotal();
-      return {
-        result,
-        meta,
-      };
+     return result[0] || null; // Return the first configuration or null if none exists
 
     } catch (error: unknown) {
       throw error;
@@ -53,7 +49,7 @@ export const configureService = {
       config.models.delete(modelName);
       await config.save();
       return config;
-      
+
     } catch (error: unknown) {
       throw error;
 

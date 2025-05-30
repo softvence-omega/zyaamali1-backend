@@ -27,6 +27,6 @@ const configureSchema = new mongoose.Schema({
         default: {}
     }
 
-}, { timestamps: true });
+});
 
 export const configureModel = mongoose.model("configure", configureSchema);

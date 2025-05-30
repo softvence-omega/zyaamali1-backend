@@ -7,7 +7,6 @@ import config from "../../config";
 import bcrypt from "bcrypt";
 import { createToken, verifyToken } from "./auth.utils";
 import { sendEmail } from "../../utils/sendEmail";
-import USER_ROLE from "../../constants/userRole";
 
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.findOne({
@@ -36,7 +35,7 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   // Check if password is correct
-  if (!(await bcrypt.compare(payload?.password, user?.password))) {
+  if (!(await bcrypt.compare(payload?.password, user?.password))) { 
     throw new ApiError(httpStatus.FORBIDDEN, "Password did not match!");
   }
 
