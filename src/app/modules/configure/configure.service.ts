@@ -6,8 +6,8 @@ import ApiError from "../../errors/ApiError";
 
 
 export const configureService = {
-  
- 
+
+
   async getAllConfigureFromDB(query: any) {
     try {
       const service_query = new QueryBuilder(configureModel.find(), query)
@@ -37,22 +37,57 @@ export const configureService = {
 
     }
   },
-  async updateConfigureIntoDB(data: any) {
+  async deleteConfigureIntoDB(id: string, modelName: string) {
+    try {
+      const config = await configureModel.findById(id);
+      if (!config) {
+        throw new ApiError(status.NOT_FOUND, "Configuration not found");
+      }
+      if (!config.models.has(modelName)) {
+        throw new ApiError(status.NOT_FOUND, "Model not found in configuration");
+      }
+
+      config.models.delete(modelName);
+    } catch (error: unknown) {
+      throw error;
+
+    }
+  },
+  async updateConfigureIntoDB(data: {
+    dollerPerToken?: number;
+    dailyTokenLimit?: number;
+    modelName?: string;
+    inputToken?: number;
+    outputToken?: number;
+    id: string;
+  }) {
     try {
 
 
       const isExisting = await configureModel.findOne({ _id: data.id });
       if (!isExisting) {
-        throw new ApiError(status.NOT_FOUND, "configure not found");
+        throw new ApiError(status.NOT_FOUND, "Configuration not found");
       }
 
-      const result = await configureModel.updateOne({ _id: data.id }, data, {
-        new: true,
-      });
-      if (!result) {
-        throw new Error("configure not found.");
+      // Update top-level fields:
+      if (typeof data.dollerPerToken === 'number') {
+        isExisting.dollerPerToken = data.dollerPerToken;
       }
-      return result;
+
+      if (typeof data.dailyTokenLimit === 'number') {
+        isExisting.dailyTokenLimit = data.dailyTokenLimit;
+      }
+
+      // Update nested model fields:
+      if (data.modelName && data.inputToken && data.outputToken) {
+        isExisting.models.set(data.modelName, {
+          inputToken: data.inputToken,
+          outputToken: data.outputToken,
+        })
+      }
+
+      await isExisting.save();
+      return isExisting;
 
 
     } catch (error: unknown) {

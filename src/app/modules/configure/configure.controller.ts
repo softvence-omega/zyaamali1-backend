@@ -37,9 +37,24 @@ const updateConfigure = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const deleteConfigure = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { modelName } = req.body;
+  const result = await configureService.deleteConfigureIntoDB(
+    id,
+    modelName,
+  );
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Model delete from configuration successfully.",
+    data: result,
+  });
+});
 
 export const configureController = {
   getAllConfigure,
   getSingleConfigure,
   updateConfigure,
+  deleteConfigure
 };
