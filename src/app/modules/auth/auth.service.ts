@@ -2,7 +2,6 @@ import httpStatus from "http-status";
 import ApiError from "../../errors/ApiError";
 import { User } from "../user/user.model";
 import { TLoginUser } from "./auth.interface";
-import { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import bcrypt from "bcrypt";
 import { createToken, verifyToken } from "./auth.utils";
