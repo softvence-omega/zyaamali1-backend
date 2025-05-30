@@ -39,15 +39,21 @@ export const configureService = {
   },
   async deleteConfigureIntoDB(id: string, modelName: string) {
     try {
+
       const config = await configureModel.findById(id);
+
       if (!config) {
         throw new ApiError(status.NOT_FOUND, "Configuration not found");
       }
+
       if (!config.models.has(modelName)) {
         throw new ApiError(status.NOT_FOUND, "Model not found in configuration");
       }
 
       config.models.delete(modelName);
+      await config.save();
+      return config;
+      
     } catch (error: unknown) {
       throw error;
 
