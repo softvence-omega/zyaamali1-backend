@@ -7,6 +7,15 @@ import QueryBuilder from "../../builder/QueryBuilder";
 export const cartService = {
   async postCartIntoDB(data: any) {
     try {
+      const isExist = await cartModel.findOne({
+        userId: data.userId,
+        isDeleted: false,
+        title: data.title
+      })
+
+      if(isExist){
+        throw new ApiError(status.CONFLICT, "Cart already exists.");
+      }
       return await cartModel.create(data);
     } catch (error: unknown) {
       throw error;
@@ -50,6 +59,7 @@ export const cartService = {
         throw new ApiError(status.NOT_FOUND, "cart is already deleted");
       }
 
+      console.log("dagta", data)
       const result = await cartModel.updateOne({ _id: id, userId }, data, {
         new: true,
       });

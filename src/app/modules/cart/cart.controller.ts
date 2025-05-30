@@ -42,19 +42,17 @@ const getSingleCart = catchAsync(async (req: Request, res: Response) => {
 const updateCart = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.loggedInUser;
   const { id } = req.params;
-
   const result = await cartService.updateCartIntoDB(req.body, id, userId);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: "Updated successfully",
+    message: "Quantity updated successfully",
     data: result,
   });
 });
 
 const deleteCart = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.loggedInUser;
-
   await cartService.deleteCartFromDB(req.params.id, userId);
   sendResponse(res, {
     statusCode: status.OK,

@@ -10,4 +10,8 @@ export const cartPostValidation = z.object({
   })
 });
 
-export const cartUpdateValidation = cartPostValidation.partial();
+export const cartUpdateValidation = z.object({
+  body: z.object({
+    quantity: z.number(),
+  })
+});
