@@ -18,7 +18,7 @@ const getSingleUserFromDB = async (id: string) => {
     _id: id,
     isDeleted: false,
   });
-  if (!user) throw new ApiError(httpStatus.FORBIDDEN, "Failed to Fetch user");
+  if (!user) throw new ApiError(httpStatus.FORBIDDEN, "User not Found!");
   return user;
 };
 
@@ -55,7 +55,6 @@ const createAUserIntoDB = async (payload: TUser) => {
     name: result.name,
     image: result.image,
     email: result.email,
-    password: result.password,
     role: result.role,
     token: result.token,
     theme: result.theme,
