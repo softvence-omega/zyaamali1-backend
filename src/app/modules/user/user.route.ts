@@ -12,10 +12,13 @@ router.get("/single/:id", UserControllers.getSingleUser);
 router.get("/", auth(USER_ROLE.ADMIN), UserControllers.getAllUsers);
 router.get("/me", auth(USER_ROLE.USER, USER_ROLE.ADMIN), UserControllers.getMe);
 router.post(
-  "/createAUser",
+  "/register",
   validateRequest(UserValidations.createUserValidationSchema),
   UserControllers.createAUser
 );
+router.post("/verify", UserControllers.verifyEmail);
+router.post("/resend-verification", UserControllers.resendVerificationCode);
+
 
 router.post(
   "/upload-image",

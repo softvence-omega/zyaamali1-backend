@@ -47,6 +47,10 @@ export interface TUser {
   email: string;
   password: string;
   role: "user" | "admin";
+  isVerified: boolean;
+  verificationCode?: string;
+  verificationCodeExpiresAt?: Date;
+  lastVerificationSentAt?: Date;
   token: number;
   theme: "dark" | "light" | "system";
   language: TLanguage;

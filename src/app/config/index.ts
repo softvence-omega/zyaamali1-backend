@@ -22,5 +22,6 @@ export default {
   google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
   google_callback_url: process.env.GOOGLE_CALLBACK_URL,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  PROJECT_NAME: process.env.PROJECT_NAME,
 
 };

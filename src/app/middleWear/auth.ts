@@ -37,6 +37,9 @@ const auth = (...requiredRoles: TUserRole[]) => {
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
     }
+    if( user.isVerified === false) {
+      throw new ApiError(httpStatus.FORBIDDEN, "Please verify your email first!");
+    }
 
     // Check if user is deleted
     const isUserDeleted = user?.isDeleted;

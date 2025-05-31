@@ -1,7 +1,11 @@
-import { UserServices } from "./user.service";
+import { generateVerificationCode, UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import httpStatus from "http-status";
+import { User } from "./user.model";
+import ApiError from "../../errors/ApiError";
+import config from "../../config";
+import { createToken } from "../auth/auth.utils";
 
 const getAllUsers = catchAsync(async (req, res) => {
   const result = await UserServices.getAllUsersFromDB();
@@ -35,11 +39,12 @@ const getMe = catchAsync(async (req, res) => {
 });
 
 const createAUser = catchAsync(async (req, res) => {
+
   const result = await UserServices.createAUserIntoDB(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "New user created successfully.",
+    message: "User created successfully. Please check your email for verification.",
     data: result,
   });
 });
@@ -98,9 +103,85 @@ const toggleUserDelete = catchAsync(async (req, res) => {
   });
 });
 
+
+const verifyEmail = catchAsync(async (req, res) => {
+  const { email, code } = req.body;
+
+  const user: any = await User.findOne({
+    email,
+    verificationCode: code,
+  })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Invalid email or verification code");
+
+  }
+
+  if (user.isVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Email is already verified")
+  }
+
+  if (user.verificationCode !== code || new Date() > user.verificationCodeExpiresAt) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Invalid or expired verification code")
+  }
+
+  user.isVerified = true;
+  user.verificationCode = null;
+  user.verificationCodeExpiresAt = null;
+  await user.save();
+
+  const jwtPayload = { userId: user._id.toString(), role: user.role };
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    parseInt(config.jwt_access_expires_in as string)
+  );
+ sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Email verified successfully",
+    data: { accessToken },
+  });
+})
+const resendVerificationCode = catchAsync(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+  if (user.isVerified) throw new ApiError(httpStatus.BAD_REQUEST, "User already verified");
+
+  const now = new Date();
+  const lastSent = user.lastVerificationSentAt || new Date(0);
+  const oneDayLater = new Date(lastSent.getTime() + 24 * 60 * 60 * 1000);
+
+  if (now < oneDayLater) {
+    throw new ApiError(httpStatus.TOO_MANY_REQUESTS, "You can request a new code once every 24 hours");
+  }
+
+  user.verificationCode = generateVerificationCode();
+  user.verificationCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  user.lastVerificationSentAt = now;
+  await user.save();
+
+  // TODO: Send email with new code
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Verification code resent",
+    data: null
+  });
+
+
+
+});
+
+
 export const UserControllers = {
   getSingleUser,
+  verifyEmail,
   getMe,
+  resendVerificationCode,
   getAllUsers,
   createAUser,
   changeUserLanguage,

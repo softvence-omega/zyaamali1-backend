@@ -7,6 +7,16 @@ import { User } from "./user.model";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
+import { sendVerificationEmail } from "../../utils/sendVerificationEmail";
+
+
+  export const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit verification code 
+}
+
+
+
+
 
 const getAllUsersFromDB = async () => {
   const result = await User.find({ isDeleted: false });
@@ -33,34 +43,63 @@ const getMeFromDB = async (user: JwtPayload) => {
   return existingUser;
 };
 
-const createAUserIntoDB = async (payload: TUser) => {
-  const existingUser = await User.findOne({
-    email: payload.email,
-    role: USER_ROLE.USER,
-  });
-  if (existingUser) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      "User with this email already exists"
-    );
-  }
-  const newHashedPassword = await bcrypt.hash(
-    payload?.password,
-    Number(config.bcrypt_salt_rounds)
-  );
-  payload.password = newHashedPassword;
+import mongoose from 'mongoose';
 
-  const result = await User.create(payload);
-  return {
-    name: result.name,
-    image: result.image,
-    email: result.email,
-    role: result.role,
-    token: result.token,
-    theme: result.theme,
-    language: result.language,
-  };
+const createAUserIntoDB = async (payload: TUser) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const existingUser = await User.findOne({ email: payload.email }).session(session);
+    if (existingUser) {
+      throw new ApiError(httpStatus.CONFLICT, "User with this email already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(payload.password, Number(config.bcrypt_salt_rounds));
+    const verificationCode = generateVerificationCode();
+    const verificationCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const lastVerificationSentAt = new Date();
+
+    // Prepare user data
+    const userData = {
+      ...payload,
+      password: hashedPassword,
+      verificationCode,
+      verificationCodeExpiresAt,
+      lastVerificationSentAt,
+      isVerified: false,
+    };
+
+    // Try to create the user in transaction
+    const user : any = await User.create([userData], { session });
+
+    // Send email after DB is guaranteed to be successful
+    await sendVerificationEmail(payload.email, verificationCode);
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      name: user[0].name,
+      image: user[0].image,
+      email: user[0].email,
+      role: user[0].role,
+      token: user[0].token,
+      theme: user[0].theme,
+      language: user[0].language,
+      isVerified: user[0].isVerified,
+      isVerificationExpired: user[0].verificationCodeExpiresAt < new Date(),
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Optional: Log or handle retry here
+    throw error
+  }
 };
+
 
 const uploadImageIntoDB = async (userData: any, file: any) => {
   const user = await User.findOne({

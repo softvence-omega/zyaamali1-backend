@@ -24,6 +24,22 @@ const userSchema = new Schema<TUser>(
         return !this.provider;
       },
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationCode: {
+      type: String,
+      default: null,
+    },
+    verificationCodeExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    lastVerificationSentAt: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       required: true,

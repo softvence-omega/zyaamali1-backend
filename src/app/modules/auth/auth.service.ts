@@ -8,7 +8,7 @@ import { createToken, verifyToken } from "./auth.utils";
 import { sendEmail } from "../../utils/sendEmail";
 
 const loginUser = async (payload: TLoginUser) => {
-  const user = await User.findOne({
+  const user: any = await User.findOne({
     email: payload?.email,
     // role: USER_ROLE.USER,
   }).select("+password");
@@ -16,6 +16,9 @@ const loginUser = async (payload: TLoginUser) => {
   // Check if user exists
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
+  }
+  if (user.isVerified === false) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Please verify your email first!")
   }
 
   // Check if user is deleted
@@ -26,7 +29,7 @@ const loginUser = async (payload: TLoginUser) => {
 
   // check if user is registerd with google or facebook
 
-  if ( !user.password &&  user?.provider) {
+  if (!user.password && user?.provider) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       `You are registered with ${user.provider}. Please login with ${user.provider} instead!`
@@ -34,7 +37,7 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   // Check if password is correct
-  if (!(await bcrypt.compare(payload?.password, user?.password))) { 
+  if (!(await bcrypt.compare(payload?.password, user?.password))) {
     throw new ApiError(httpStatus.FORBIDDEN, "Password did not match!");
   }
 
@@ -59,6 +62,8 @@ const loginUser = async (payload: TLoginUser) => {
   return {
     accessToken,
     refreshToken,
+    isVerified: user.isVerified,
+    isVerificationExpired: user.verificationCodeExpiresAt < new Date(),
   };
 };
 
