@@ -22,10 +22,7 @@ const moduleRoutes = [
     path: "/configure",
     route: configureRoutes,
   },
-  {
-    path: "/cart",
-    route: cartRoutes,
-  },
+
   {
     path: "/users",
     route: UserRoutes,
