@@ -116,7 +116,6 @@ const uploadImageIntoDB = async (userData: any, file: any) => {
     file?.path,
     "image"
   )) as { secure_url: string };
-  console.log(cloudinary_response);
 
   const result = await User.findOneAndUpdate(
     { _id: userData.userId },

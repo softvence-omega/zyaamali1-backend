@@ -29,7 +29,6 @@ const auth = (...requiredRoles: TUserRole[]) => {
         "Could not verify: Unauthorized access happened"
       );
     }
-    console.log(decoded);
     const { userId, role, iat } = decoded;
     const user = await User.findById(userId);
 

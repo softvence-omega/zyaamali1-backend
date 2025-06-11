@@ -26,7 +26,6 @@ const loginUser = catchAsync(async (req, res) => {
 
 const googleCallback = catchAsync(async (req, res) => {
   const user = req.user as any;
-  console.log(user);
 
   const jwtPayload = {
     userId: user._id.toString(),
