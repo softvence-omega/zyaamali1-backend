@@ -25,6 +25,6 @@ router.put(
   validateRequest(PricingUpdateValidation),
   PricingController.updatePricing
 );
-router.delete("/delete-pricing/:id",   auth(USER_ROLE.ADMIN),PricingController.deletePricing);
+router.delete("/delete-pricing/:id", auth(USER_ROLE.ADMIN), PricingController.deletePricing);
 
 export const PricingRoutes = router;

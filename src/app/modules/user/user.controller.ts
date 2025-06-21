@@ -8,12 +8,20 @@ import config from "../../config";
 import { createToken } from "../auth/auth.utils";
 
 const getAllUsers = catchAsync(async (req, res) => {
-  const result = await UserServices.getAllUsersFromDB();
+  const result = await UserServices.getAllUsersFromDB(req.query); // pass query params
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "All users retrieved successfully.",
-    data: result,
+    data: {
+      result: result.data,
+      meta: {
+        page: result.meta.page,
+        limit: result.meta.limit,
+        totalPages: result.meta.totalPage,
+        totalResults: result.meta.total,
+      }
+    },
   });
 });
 
@@ -136,7 +144,7 @@ const verifyEmail = catchAsync(async (req, res) => {
     config.jwt_access_secret as string,
     parseInt(config.jwt_access_expires_in as string)
   );
- sendResponse(res, {
+  sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Email verified successfully",

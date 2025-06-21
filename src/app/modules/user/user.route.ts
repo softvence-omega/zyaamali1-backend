@@ -9,8 +9,8 @@ import { upload } from "../../utils/sendFileToCloudinary";
 const router = express.Router();
 
 router.get("/single/:id", UserControllers.getSingleUser);
-router.get("/", auth(USER_ROLE.ADMIN), UserControllers.getAllUsers);
-router.get("/me", auth(USER_ROLE.USER, USER_ROLE.ADMIN), UserControllers.getMe);
+router.get("/", auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN), UserControllers.getAllUsers);
+router.get("/me", auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.USER, USER_ROLE.SUPER_ADMIN), UserControllers.getMe);
 router.post(
   "/register",
   validateRequest(UserValidations.createUserValidationSchema),
