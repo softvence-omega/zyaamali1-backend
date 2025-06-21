@@ -1,14 +1,25 @@
 import { Schema, model } from "mongoose";
 import { TUser } from "./user.interface";
-import { LANGUAGE } from "./user.constants";
 
 const userSchema = new Schema<TUser>(
   {
-    name: {
+    fullName: {
       type: String,
       required: true,
+      trim: true,
+    },
+    companyName: {
+      type: String,
+      required: function (this: TUser) {
+        return this.role === "admin"
+      },
+      trim: true,
     },
     image: {
+      type: String,
+      default: null,
+    },
+    country: {
       type: String,
       default: null,
     },
@@ -16,6 +27,8 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -43,24 +56,13 @@ const userSchema = new Schema<TUser>(
     role: {
       type: String,
       required: true,
-      enum: ["user", "admin"],
-      default: "user",
+      enum: ["superAdmin", "admin", "creator", "viewer"],
+      default: "viewer", // ✅ fixed default to a valid enum value
     },
-    token: {
+    credit: {
       type: Number,
       required: true,
-      default: 100,
       min: 0,
-    },
-    theme: {
-      type: String,
-      enum: ["dark", "light", "system"],
-      default: "system",
-    },
-    language: {
-      type: String,
-      enum: LANGUAGE,
-      default: "English",
     },
     isDeleted: {
       type: Boolean,
@@ -68,6 +70,7 @@ const userSchema = new Schema<TUser>(
     },
     provider: {
       type: String,
+      default: null,
     },
   },
   {

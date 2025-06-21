@@ -33,32 +33,39 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello harmonia!");
 });
 
-export const createDefaultAdmin = async () => {
+
+export const createDefaultSuperAdmin = async () => {
   try {
-    const existingAdmin = await User.findOne({ email: "mohibullamiazi@gmail.com" });
-    const newHashedPassword = await bcrypt.hash(
-      "Admin123",
+    const existingSuperAdmin = await User.findOne({
+      email: "superadmin@adsplatform.com",
+    });
+
+    const hashedPassword = await bcrypt.hash(
+      "SuperAdmin123",
       Number(config.bcrypt_salt_rounds)
     );
 
-    if (!existingAdmin) {
+    if (!existingSuperAdmin) {
       await User.create({
-        name: "Mohebulla miazi",
-        email: "mohibullamiazi@gmail.com",
-        password: newHashedPassword, // You should hash this if your schema requires
-        role: "admin",
-        token: 0,
+        fullName: "Platform Super Admin",
+        email: "superadmin@adsplatform.com",
+        password: hashedPassword,
+        companyName: "AI Ads HQ",
+        role: "superAdmin",
+        isVerified: true,
+        credit: 999999, // optional: give high credits
+        country: "Global",
       });
-      console.log("✅ Default admin created");
+      console.log("✅ Default superAdmin created.");
     } else {
-      console.log("ℹ️ Admin already exists");
+      console.log("ℹ️ SuperAdmin already exists.");
     }
   } catch (error) {
-    console.error("❌ Error creating default admin:", error);
+    console.error("❌ Failed to create default superAdmin:", error);
   }
 };
 
-createDefaultAdmin();
+createDefaultSuperAdmin();
 
 const postConfigureIntoDB = async () => {
   try {
