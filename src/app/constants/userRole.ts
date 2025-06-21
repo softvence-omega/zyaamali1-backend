@@ -1,5 +1,4 @@
 const USER_ROLE = {
-    USER: "user",
     ADMIN: "admin",
     CREATOR: "creator",
     SUPER_ADMIN: "superAdmin",
