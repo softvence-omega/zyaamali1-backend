@@ -5,6 +5,7 @@ import { ConversationRoutes } from "../modules/conversation/conversation.routes"
 import { PricingRoutes } from "../modules/Pricing/Pricing.routes";
 import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
 import { configureRoutes } from "../modules/configure/configure.routes";
+import { connectAdsAccountRoutes } from "../modules/connectAdsAccount/connectAdsAccount.route";
 
 const router = Router();
 
@@ -12,6 +13,10 @@ const moduleRoutes = [
   {
     path: "/auth",
     route: AuthRoutes,
+  },
+  {
+    path: "/connection",
+    route: connectAdsAccountRoutes,
   },
   {
     path: "/pricing",
