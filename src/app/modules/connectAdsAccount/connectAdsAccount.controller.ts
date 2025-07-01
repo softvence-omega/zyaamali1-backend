@@ -114,6 +114,55 @@ const handleInstagramConnection = async (req: Request, res: Response) => {
 
 
 
+//  fro linkdin connection 
+
+const redirectToLinkedIn = (req: Request, res: Response) => {
+  const authURL = connectAdsAccountservice.getLinkdinAuthURL();
+  console.log('from  linkedin redirect ===================')
+  res.redirect(authURL);
+};
+
+const handleLinkedInCallback = async (req: Request, res: Response) => {
+  const code = req.query.code;
+
+  console.log('form linkedin callback ===================================> ')
+
+  try {
+    const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(code);
+    // Optionally: store accessToken in DB here
+    res.json({ access_token: accessToken });
+  } catch (error) {
+    console.error('❌ Error getting access token:', error.message);
+    res.status(500).json({ error: 'Failed to retrieve access token' });
+  }
+};
+
+
+
+
+// for google 
+
+ const getGoogleAuthURL= (req: Request, res: Response) => {
+  const authURL = connectAdsAccountservice.generateGoogleAuthURL();
+    console.log('from  google  redirect ===================')
+  res.redirect(authURL);
+};
+
+ const handleGoogleCallback = async (req: Request, res: Response) => {
+  const code = req.query.code as string;
+
+  if (!code) {
+    return res.status(400).json({ error: 'Missing authorization code' });
+  }
+
+  try {
+    const tokens = await connectAdsAccountservice.exchangeGoogleCodeForToken(code);
+    res.json(tokens);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to exchange code for token' });
+  }
+};
+
 
 
 
@@ -127,4 +176,8 @@ export const connectAdsAccountController = {
   handleFacebookCallback,
   handleInstagramConnection,
   getFacebookAdsConnection,
+  redirectToLinkedIn,
+  handleLinkedInCallback,
+  getGoogleAuthURL,
+  handleGoogleCallback
 }

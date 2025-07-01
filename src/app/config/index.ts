@@ -23,8 +23,13 @@ export default {
   google_callback_url: process.env.GOOGLE_CALLBACK_URL,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   PROJECT_NAME: process.env.PROJECT_NAME,
-   facebookAppId: process.env.FACEBOOK_APP_ID!,
+
+  facebookAppId: process.env.FACEBOOK_APP_ID!,
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET!,
   facebookRedirectUri: process.env.FACEBOOK_REDIRECT_URI!,
+
+  linkdinClientId: process.env.LINKEDIN_CLIENT_ID,
+  linkdinClientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+  linkdinRedirectUrl: process.env.LINKEDIN_REDIRECT_URI,
 
 };

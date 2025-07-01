@@ -15,7 +15,7 @@ const moduleRoutes = [
     route: AuthRoutes,
   },
   {
-    path: "/connection",
+    path: "/connect",
     route: connectAdsAccountRoutes,
   },
   {
