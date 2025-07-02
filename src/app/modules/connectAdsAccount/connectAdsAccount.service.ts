@@ -148,6 +148,39 @@ const getlinkedinAdAccounts = async (accessToken) => {
 
 
 
+// for tiktok connection 
+
+const getTiktokAuthUrl = () => {
+  console.log('from redirect url tiktok ')
+  const base = 'https://ads.tiktok.com/marketing_api/auth';
+  const params = new URLSearchParams({
+    app_id: process.env.TIKTOK_CLIENT_ID as string,
+    redirect_uri: process.env.TIKTOK_REDIRECT_URI  as string,
+    response_type: 'code',
+    state: 'custom_state_token',
+    scope: 'user.info.basic,ad.account.list'
+  });
+
+  return `${base}?${params.toString()}`;
+};
+
+const exchangeTiktokCodeForToken = async (code) => {
+  console.log('from callback form tiktok ')
+  const response = await axios.post('https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/', {
+    app_id: process.env.TIKTOK_CLIENT_ID,
+    secret: process.env.TIKTOK_CLIENT_SECRET,
+    auth_code: code,
+    grant_type: 'authorization_code'
+  });
+
+  const { access_token, advertiser_ids } = response.data.data;
+  return {
+    accessToken: access_token,
+    advertiserIds: advertiser_ids
+  };
+};
+
+
  export const connectAdsAccountservice = {
   getFacebookAccessToken,
   getFacebookAdAccounts,
@@ -156,6 +189,8 @@ const getlinkedinAdAccounts = async (accessToken) => {
   getLinkdinAccessToken,
   getlinkedinAdAccounts,
   generateGoogleAuthURL,
-  exchangeGoogleCodeForToken
+  exchangeGoogleCodeForToken,
+  getTiktokAuthUrl,
+  exchangeTiktokCodeForToken
 
 }

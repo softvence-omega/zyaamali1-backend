@@ -26,6 +26,10 @@ router.get('/google-auth', connectAdsAccountController.getGoogleAuthURL);
 router.get('/google/callback', connectAdsAccountController.handleGoogleCallback);
 
 
+// for tiktok 
+router.get('/tiktok-auth', connectAdsAccountController.getTiktokAuthUrl);
+router.get('/tiktok/callback', connectAdsAccountController.handleTiktokCallback);
+
 
 
 
