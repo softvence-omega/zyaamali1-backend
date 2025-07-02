@@ -14,35 +14,44 @@ passport.use(
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
-        // const user = await handleGoogleAuth(profile);
         const email = profile.emails?.[0]?.value;
+        if (!email) {
+          return done(new ApiError(httpStatus.BAD_REQUEST, "Email not found in Google profile"), null!);
+        }
+
         let user = await User.findOne({ email });
+
         if (user) {
           if (user.isDeleted) {
+            return done(new ApiError(httpStatus.FORBIDDEN, "This user is deleted!"), null!);
+          }
+
+          // 🚫 User registered with password, disallow Google login
+          if (!user.provider) {
             return done(
-              new ApiError(httpStatus.FORBIDDEN, "This user is deleted!"),
+              new ApiError(httpStatus.BAD_REQUEST, "This account was created with email/password. Use regular login."),
               null!
             );
           }
+
           return done(null, {
             ...user.toObject(),
             _id: user._id.toString(),
           });
         }
 
+        // ✅ Create new user using Google
         user = await User.create({
-          name: profile.displayName,
+          fullName: profile.displayName,
           email,
+          companyName: "Your company",
           image: profile.photos?.[0]?.value,
           provider: profile.provider,
         });
 
-
-
-
         return done(null, {
           ...user.toObject(),
-          _id: user._id.toString()
+          _id: user._id.toString(),
         });
       } catch (err) {
         return done(err as any, null!);
@@ -50,3 +59,4 @@ passport.use(
     }
   )
 );
+

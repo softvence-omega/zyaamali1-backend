@@ -37,33 +37,19 @@ const userSchema = new Schema<TUser>(
         return !this.provider;
       },
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    verificationCode: {
-      type: String,
-      default: null,
-    },
-    verificationCodeExpiresAt: {
-      type: Date,
-      default: null,
-    },
-    lastVerificationSentAt: {
-      type: Date,
-      default: null,
-    },
     role: {
       type: String,
       required: true,
       enum: ["superAdmin", "admin", "creator", "viewer"],
-      default: "viewer", // ✅ fixed default to a valid enum value
+      default: "admin",
     },
     credit: {
       type: Number,
+
       required: false,
       min: 0,
       default: 0
+
     },
     isDeleted: {
       type: Boolean,
@@ -76,6 +62,7 @@ const userSchema = new Schema<TUser>(
   },
   {
     timestamps: true,
+    versionKey: false
   }
 );
 
