@@ -36,8 +36,7 @@ const getFacebookAdAccounts = async (accessToken: string) => {
   }));
 };
 
-
-// for instagram 
+// for instagram
 
 const getInstagramAccounts = async (accessToken: string, adAccountId: string) => {
   FacebookAdsApi.init(accessToken);
