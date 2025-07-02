@@ -1,1 +1,1 @@
-export const VIEWER_SEARCHABLE_FIELDS = [];
+export const VIEWER_SEARCHABLE_FIELDS = ["fullName", "email"];

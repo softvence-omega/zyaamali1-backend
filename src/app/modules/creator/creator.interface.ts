@@ -1,10 +1,10 @@
 import { Types } from "mongoose";
 
 // viewer.interface.ts
-export interface TViewer {
+export interface TCreator {
   fullName: string;
   email: string;
-  role: "viewer";  // fixed role
+  role: "creator";  // fixed role
   isDeleted?: boolean;
   isActive?: boolean;
   userId: Types.ObjectId; // reference to User model
