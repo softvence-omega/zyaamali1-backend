@@ -1,8 +1,8 @@
 // viewer.model.ts
 import { Schema, model } from "mongoose";
-import { TViewer } from "./viewer.interface";
+import { TCreator } from "./creator.interface";
 
-const viewerSchema = new Schema<TViewer>(
+const creatorSchema = new Schema<TCreator>(
     {
         fullName: {
             type: String,
@@ -32,7 +32,7 @@ const viewerSchema = new Schema<TViewer>(
         role: {
             type: String,
             required: true,
-            default: "viewer",
+            default: "creator",
         },
         userId: {
             type: Schema.Types.ObjectId,
@@ -50,4 +50,4 @@ const viewerSchema = new Schema<TViewer>(
     }
 );
 
-export const Viewer = model<TViewer>("Viewer", viewerSchema);
+export const Creator = model<TCreator>("Creator", creatorSchema);

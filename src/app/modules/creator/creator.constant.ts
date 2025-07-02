@@ -1,0 +1,1 @@
+export const CREATOR_SEARCHABLE_FIELDS = ["fullName", "email"];

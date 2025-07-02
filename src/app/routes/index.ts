@@ -7,6 +7,7 @@ import { subscriptionRoutes } from "../modules/subscription/subscription.routes"
 import { configureRoutes } from "../modules/configure/configure.routes";
 import { businessRoutes } from "../modules/business/business.route";
 import { viewerRoutes } from "../modules/viewer/viewer.routes";
+import { creatorRoutes } from "../modules/creator/creator.routes";
 
 const router = Router();
 
@@ -43,6 +44,10 @@ const moduleRoutes = [
   {
     path: "/viewer",
     route: viewerRoutes
+  },
+  {
+    path: "/creator",
+    route: creatorRoutes
   }
 ];
 

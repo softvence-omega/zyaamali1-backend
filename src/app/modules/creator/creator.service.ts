@@ -1,14 +1,18 @@
-import { Viewer } from "./viewer.model";
-import { VIEWER_SEARCHABLE_FIELDS } from "./viewer.constant";
+import { CREATOR_SEARCHABLE_FIELDS } from "./creator.constant";
 import QueryBuilder from "../../builder/QueryBuilder";
 import status from "http-status";
 import ApiError from "../../errors/ApiError";
-import { TViewer } from "./viewer.interface";
-import { User } from "../user/user.model";
 import mongoose from "mongoose";
+import { User } from "../user/user.model";
+import { Creator } from "./creator.model";
+import { TCreator } from "./creator.interface";
 
-export const viewerService = {
-  async postViewerIntoDB(data: any) {
+
+
+
+
+export const creatorService = {
+  async postCreatorIntoDB(data: any) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -19,12 +23,12 @@ export const viewerService = {
         fullName,
         email,
         password,
-        role: "viewer",
+        role: "creator",
       };
 
       const userRegister = await User.create([userData], { session });
 
-      const viewerData = {
+      const creatorData = {
         ...others,
         fullName,
         email,
@@ -34,7 +38,7 @@ export const viewerService = {
         isActive: true,
       };
 
-      const result = await Viewer.create([viewerData], { session });
+      const result = await Creator.create([creatorData], { session });
 
       await session.commitTransaction();
       await session.endSession();
@@ -45,18 +49,18 @@ export const viewerService = {
       await session.endSession();
 
       if (error instanceof Error) {
-        throw new Error(`Viewer creation failed: ${error.message}`);
+        throw new Error(`Creator creation failed: ${error.message}`);
       } else {
-        throw new Error("An unknown error occurred while creating viewer.");
+        throw new Error("An unknown error occurred while creating creator.");
       }
     }
   },
-  async getAllViewerFromDB(query: any) {
+  async getAllCreatorFromDB(query: any) {
     try {
 
 
-      const service_query = new QueryBuilder(Viewer.find({ isDeleted: false}).populate("userId").populate("createdBy", "fullName image"), query)
-        .search(VIEWER_SEARCHABLE_FIELDS)
+      const service_query = new QueryBuilder(Creator.find({ isDeleted: false }).populate("userId").populate("createdBy", "fullName image"), query)
+        .search(CREATOR_SEARCHABLE_FIELDS)
         .filter()
         .sort()
         .paginate()
@@ -77,9 +81,9 @@ export const viewerService = {
       }
     }
   },
-  async getSingleViewerFromDB(id: string) {
+  async getSingleCreatorFromDB(id: string) {
     try {
-      return await Viewer.findById(id).populate("userId").populate("createdBy", "fullName image");
+      return await Creator.findById(id).populate("userId").populate("createdBy", "fullName image");
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`${error.message}`);
@@ -88,17 +92,17 @@ export const viewerService = {
       }
     }
   },
-  async updateViewerIntoDB(id: string, data: Partial<TViewer>) {
+  async updateCreatorIntoDB(id: string, data: Partial<TCreator>) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
-      if (!isViewerExist) {
-        throw new ApiError(status.NOT_FOUND, "Viewer not found");
+      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+      if (!isCreatorExist) {
+        throw new ApiError(status.NOT_FOUND, "Creator not found");
       }
 
-      const findUser = await User.findOne({ _id: isViewerExist.userId, isDeleted: false }).session(session);
+      const findUser = await User.findOne({ _id: isCreatorExist.userId, isDeleted: false }).session(session);
       if (!findUser) {
         throw new ApiError(status.NOT_FOUND, "User not found");
       }
@@ -111,8 +115,8 @@ export const viewerService = {
       );
 
       // Update Viewer
-      const result = await Viewer.updateOne(
-        { _id: isViewerExist._id, isDeleted: false },
+      const result = await Creator.updateOne(
+        { _id: isCreatorExist._id, isDeleted: false },
         { fullName: data.fullName },
         { session }
       );
@@ -126,25 +130,25 @@ export const viewerService = {
       await session.endSession();
 
       if (error instanceof Error) {
-        throw new Error(`Viewer update failed: ${error.message}`);
+        throw new Error(`Creator update failed: ${error.message}`);
       } else {
-        throw new Error("An unknown error occurred while updating viewer.");
+        throw new Error("An unknown error occurred while updating Creator.");
       }
     }
   },
-  async deleteViewerFromDB(id: string) {
+  async deleteCreatorFromDB(id: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
       // Find the viewer within the session
-      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
-      if (!isViewerExist) {
-        throw new ApiError(status.NOT_FOUND, "Viewer not found");
+      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+      if (!isCreatorExist) {
+        throw new ApiError(status.NOT_FOUND, "Creator not found");
       }
 
       // Find the linked user within the session
-      const findUser = await User.findOne({ _id: isViewerExist.userId, isDeleted: false }).session(session);
+      const findUser = await User.findOne({ _id: isCreatorExist.userId, isDeleted: false }).session(session);
       if (!findUser) {
         throw new ApiError(status.NOT_FOUND, "User not found");
       }
@@ -157,8 +161,8 @@ export const viewerService = {
       );
 
       // Soft delete the viewer
-      const deleteViewer = await Viewer.updateOne(
-        { _id: isViewerExist._id },
+      const deleteViewer = await Creator.updateOne(
+        { _id: isCreatorExist._id },
         { isDeleted: true },
         { session }
       );
@@ -174,40 +178,38 @@ export const viewerService = {
       await session.endSession();
 
       if (error instanceof Error) {
-        throw new Error(`Viewer deletion failed: ${error.message}`);
+        throw new Error(`Creator deletion failed: ${error.message}`);
       } else {
-        throw new Error("An unknown error occurred while deleting viewer.");
+        throw new Error("An unknown error occurred while deleting creator.");
       }
     }
   },
-
-  async makeViewerActive(id: string) {
+  async makeCreatorActive(id: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
-    if (!isViewerExist) {
-      throw new ApiError(status.NOT_FOUND, "Viewer not found");
+    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+    if (!isCreatorExist) {
+      throw new ApiError(status.NOT_FOUND, "Creator not found");
     }
-    await Viewer.findByIdAndUpdate(id, { isActive: true }, { session, new: true });
+    await Creator.findByIdAndUpdate(id, { isActive: true }, { session, new: true });
     await session.commitTransaction();
     await session.endSession();
     return "";
   },
 
-  async makeViewerInactive(id: string) {
+  async makeCreatorInactive(id: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
-    if (!isViewerExist) {
-      throw new ApiError(status.NOT_FOUND, "Viewer not found");
+    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+    if (!isCreatorExist) {
+      throw new ApiError(status.NOT_FOUND, "Creator not found");
     }
 
-    await Viewer.findByIdAndUpdate(id, { isActive: false }, { session, new: true });
+    await Creator.findByIdAndUpdate(id, { isActive: false }, { session, new: true });
 
     await session.commitTransaction();
     await session.endSession();
     return "";
   }
-
 
 };
