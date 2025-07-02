@@ -13,7 +13,7 @@ router.get("/", auth(USER_ROLE.ADMIN), UserControllers.getAllUsers);
 router.get("/me", auth(USER_ROLE.USER, USER_ROLE.ADMIN), UserControllers.getMe);
 router.post(
   "/register",
-  validateRequest(UserValidations.createUserValidationSchema),
+  // validateRequest(UserValidations.createUserValidationSchema),
   UserControllers.createAUser
 );
 router.post("/verify", UserControllers.verifyEmail);

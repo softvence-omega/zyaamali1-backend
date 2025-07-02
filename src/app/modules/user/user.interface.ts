@@ -14,7 +14,7 @@ export interface TUser {
   verificationCodeExpiresAt?: Date | null;
   lastVerificationSentAt?: Date | null;
   role: "superAdmin" | "admin" | "creator" | "viewer";
-  credit: number;
+  credit?: number;
   isDeleted: boolean;
   provider?: string;
   createdAt?: Date;

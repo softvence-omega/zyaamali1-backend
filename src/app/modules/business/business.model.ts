@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { TBusiness } from "./business.interface";
 
 const busineesSchema = new mongoose.Schema<TBusiness>({
@@ -15,8 +15,13 @@ const busineesSchema = new mongoose.Schema<TBusiness>({
         required: true,
     },
     createdBy: {
-        type: String,
+        type: Schema.Types.ObjectId,
+        ref: "User",
         required: true,
+    }
+    , isDeleted: {
+        type: Boolean,
+        default: false,
     }
 
 }, { timestamps: true });

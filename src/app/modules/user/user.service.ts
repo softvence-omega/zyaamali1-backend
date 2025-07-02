@@ -55,7 +55,7 @@ const createAUserIntoDB = async (payload: TUser) => {
       throw new ApiError(httpStatus.CONFLICT, "User with this email already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(payload.password, Number(config.bcrypt_salt_rounds));
+    const hashedPassword = await bcrypt.hash(payload.password as string, Number(config.bcrypt_salt_rounds));
     const verificationCode = generateVerificationCode();
     const verificationCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const lastVerificationSentAt = new Date();
