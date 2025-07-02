@@ -70,7 +70,7 @@ const getLinkdinAuthURL = () => {
 };
 
 
-const getLinkdinAccessToken = async (code) => {
+const getLinkdinAccessToken = async (code: any) => {
   const response = await axios.post(
     'https://www.linkedin.com/oauth/v2/accessToken',
     null,
@@ -91,7 +91,7 @@ const getLinkdinAccessToken = async (code) => {
   return response.data.access_token;
 };
 
-const getlinkedinAdAccounts = async (accessToken) => {
+const getlinkedinAdAccounts = async (accessToken: any) => {
 
   const res = await axios.get(
     'https://api.linkedin.com/v2/adAccountsV2?q=search',
@@ -164,7 +164,7 @@ const getTiktokAuthUrl = () => {
   return `${base}?${params.toString()}`;
 };
 
-const exchangeTiktokCodeForToken = async (code) => {
+const exchangeTiktokCodeForToken = async (code: any) => {
   console.log('from callback form tiktok ')
   const response = await axios.post('https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/', {
     app_id: process.env.TIKTOK_CLIENT_ID,

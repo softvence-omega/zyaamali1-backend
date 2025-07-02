@@ -171,17 +171,17 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
 // for tiktok 
 
 
-const getTiktokAuthUrl = (req, res) => {
+const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
   res.redirect(url);
 };
 
-const handleTiktokCallback = async (req, res) => {
+const handleTiktokCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
   if (!code) return res.status(400).send('Missing authorization code');
 
   try {
-    const tokenData = await connectAdsAccountservice.handleTiktokCodeForToken(code);
+    const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(code);
     res.json(tokenData);
   } catch (error) {
     console.error('❌ TikTok callback error:', error.message);
