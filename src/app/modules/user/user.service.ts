@@ -74,7 +74,7 @@ const createAUserIntoDB = async (payload: TUser) => {
     const user : any = await User.create([userData], { session });
 
     // Send email after DB is guaranteed to be successful
-    await sendVerificationEmail(payload.email, verificationCode);
+    // await sendVerificationEmail(payload.email, verificationCode);
 
     // Commit transaction
     await session.commitTransaction();

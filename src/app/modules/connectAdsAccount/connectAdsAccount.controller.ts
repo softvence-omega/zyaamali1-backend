@@ -144,7 +144,7 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
 
  const getGoogleAuthURL= (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.generateGoogleAuthURL();
-    console.log('from  google  redirect ===================')
+    
   res.redirect(authURL);
 };
 

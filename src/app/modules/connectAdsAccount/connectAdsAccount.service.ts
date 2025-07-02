@@ -36,6 +36,9 @@ const getFacebookAdAccounts = async (accessToken: string) => {
   }));
 };
 
+
+// for instagram 
+
 const getInstagramAccounts = async (accessToken: string, adAccountId: string) => {
   FacebookAdsApi.init(accessToken);
   const adAccount = new AdAccount(adAccountId);
@@ -109,6 +112,7 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
 // for google 
 
  const generateGoogleAuthURL= () => {
+
   const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID!,
@@ -128,7 +132,7 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
 
  const exchangeGoogleCodeForToken= async (code: string) => {
 
-  console.log('from google accessToken code ===================================>')
+  console.log('from google accessToken code ===================================>inside sercice ')
   const response = await axios.post('https://oauth2.googleapis.com/token', {
     code,
     client_id: GOOGLE_CLIENT_ID,
