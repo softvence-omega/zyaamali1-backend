@@ -45,8 +45,11 @@ const userSchema = new Schema<TUser>(
     },
     credit: {
       type: Number,
-      required: true,
-      default: 0,
+
+      required: false,
+      min: 0,
+      default: 0
+
     },
     isDeleted: {
       type: Boolean,

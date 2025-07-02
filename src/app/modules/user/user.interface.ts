@@ -10,7 +10,7 @@ export interface TUser {
   email: string;
   password?: string;
   role: "superAdmin" | "admin" | "creator" | "viewer";
-  credit: number;
+  credit?: number;
   isDeleted: boolean;
   provider?: string;
   createdAt?: Date;

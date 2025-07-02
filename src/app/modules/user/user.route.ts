@@ -12,7 +12,7 @@ router.get("/all-user", auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN), UserContro
 router.get("/me", auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR,  USER_ROLE.SUPER_ADMIN), UserControllers.getMe);
 router.post(
   "/register",
-  validateRequest(UserValidations.createUserValidationSchema),
+  // validateRequest(UserValidations.createUserValidationSchema),
   UserControllers.createAUser
 );
 
