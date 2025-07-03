@@ -4,6 +4,7 @@ const { FacebookAdsApi, AdAccount, Campaign, AdSet, AdCreative, Ad } = bizSdk;
 import FormData from 'form-data';
 
 
+
 const uploadImageService = async (
   accessToken: string,
   adAccountId: string,
