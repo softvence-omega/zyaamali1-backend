@@ -55,6 +55,11 @@ const userSchema = new Schema<TUser>(
       type: Boolean,
       default: false,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
     provider: {
       type: String,
       default: null,

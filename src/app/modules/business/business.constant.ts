@@ -1,0 +1,1 @@
+export const BUSINESS_SEARCHABLE_FIELDS = ["name", 'description', "goal"]

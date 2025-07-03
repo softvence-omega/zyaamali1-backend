@@ -14,19 +14,19 @@ router.get(
 
 router.post(
   "/add-business",
-  // auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN),
  businessController.postBusiness
 );
 
 router.patch(
   "/update-business/:id",
-  // auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN),
   businessController.updateBusiness
 );
 
 router.delete(
   "/delete-business/:id",
-  // auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN),
   businessController.deleteBusiness
 );
 

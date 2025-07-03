@@ -6,6 +6,7 @@ import { BusinessService } from "./business.service";
 const postBusiness = catchAsync(async (req: Request, res: Response) => {
     const result = await BusinessService.addBusiness({
         ...req.body,
+        createdBy: req.loggedInUser.userId, // Assuming req.loggedInUser is set by auth middleware
 
     });
     sendResponse(res, {
@@ -16,7 +17,7 @@ const postBusiness = catchAsync(async (req: Request, res: Response) => {
     });
 });
 const getAllBusiness = catchAsync(async (req: Request, res: Response) => {
-    const result = await BusinessService.getAllBusiness();
+    const result = await BusinessService.getAllBusiness(req.query);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -26,7 +27,11 @@ const getAllBusiness = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateBusiness = catchAsync(async (req: Request, res: Response) => {
-    const result = await BusinessService.updateBusiness(req.params.id, req.body);
+    const businessData = {
+        ...req.body,
+        createdBy: req.loggedInUser.userId, // Assuming req.loggedInUser is set by auth middleware
+    }
+    const result = await BusinessService.updateBusiness(req.params.id, businessData);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -37,7 +42,7 @@ const updateBusiness = catchAsync(async (req: Request, res: Response) => {
 
 
 const deleteBusiness = catchAsync(async (req: Request, res: Response) => {
-    const result = await BusinessService.deleteBusiness(req.params.id);
+    const result = await BusinessService.deleteBusiness(req.params.id, req.loggedInUser.userId);
     sendResponse(res, {
         statusCode: 200,
         success: true,

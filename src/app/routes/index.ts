@@ -8,6 +8,7 @@ import { configureRoutes } from "../modules/configure/configure.routes";
 import { businessRoutes } from "../modules/business/business.route";
 import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
+import { contentRoutes } from "../modules/content/content.routes";
 
 const router = Router();
 
@@ -48,6 +49,10 @@ const moduleRoutes = [
   {
     path: "/creator",
     route: creatorRoutes
+  },
+  {
+    path: "/content",
+    route: contentRoutes
   }
 ];
 

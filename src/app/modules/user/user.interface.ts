@@ -12,6 +12,7 @@ export interface TUser {
   role: "superAdmin" | "admin" | "creator" | "viewer";
   credit?: number;
   isDeleted: boolean;
+  isActive?: boolean;
   provider?: string;
   createdAt?: Date;
   updatedAt?: Date;

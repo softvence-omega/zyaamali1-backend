@@ -75,9 +75,9 @@ export const createAUserIntoDB = async (payload: TUser) => {
     }
 
 
-    const hashedPassword = payload.password
-      ? await bcrypt.hash(payload.password, Number(config.bcrypt_salt_rounds))
-      : undefined;
+    // const hashedPassword = payload.password
+    //   ? await bcrypt.hash(payload.password, Number(config.bcrypt_salt_rounds))
+    //   : undefined;
 
 
     const userData: Partial<TUser> = {

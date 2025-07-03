@@ -17,6 +17,11 @@ export const creatorService = {
     session.startTransaction();
 
     try {
+
+      const isCreastorExist = await Creator.findOne({ email: data.email, isDeleted: false }).session(session);
+      if (isCreastorExist) {
+        throw new ApiError(status.CONFLICT, "Creator already exists with this email");
+      }
       const { createdBy, password, fullName, email, ...others } = data;
 
       const userData = {
@@ -55,11 +60,12 @@ export const creatorService = {
       }
     }
   },
-  async getAllCreatorFromDB(query: any) {
+  async getAllCreatorFromDB(query: any, createdBy: string) {
+    console.log(createdBy);
     try {
 
 
-      const service_query = new QueryBuilder(Creator.find({ isDeleted: false }).populate("userId").populate("createdBy", "fullName image"), query)
+      const service_query = new QueryBuilder(Creator.find({ isDeleted: false, createdBy }).populate("userId").populate("createdBy", "fullName image"), query)
         .search(CREATOR_SEARCHABLE_FIELDS)
         .filter()
         .sort()
@@ -92,12 +98,12 @@ export const creatorService = {
       }
     }
   },
-  async updateCreatorIntoDB(id: string, data: Partial<TCreator>) {
+  async updateCreatorIntoDB(id: string, data: Partial<TCreator>, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false ,createdBy}).session(session);
       if (!isCreatorExist) {
         throw new ApiError(status.NOT_FOUND, "Creator not found");
       }
@@ -136,13 +142,13 @@ export const creatorService = {
       }
     }
   },
-  async deleteCreatorFromDB(id: string) {
+  async deleteCreatorFromDB(id: string, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
       // Find the viewer within the session
-      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false , createdBy}).session(session);
       if (!isCreatorExist) {
         throw new ApiError(status.NOT_FOUND, "Creator not found");
       }
@@ -184,28 +190,52 @@ export const creatorService = {
       }
     }
   },
-  async makeCreatorActive(id: string) {
+  async makeCreatorActive(id: string, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
     if (!isCreatorExist) {
       throw new ApiError(status.NOT_FOUND, "Creator not found");
     }
+
+    const findUser = await User.findOne({ _id: isCreatorExist.userId, isDeleted: false }).session(session);
+    if (!findUser) {
+      throw new ApiError(status.NOT_FOUND, "User not found");
+    }
+    // console.log(findUser); 
+    await User.updateOne(
+      { _id: findUser._id },
+      { isActive: true },
+      { session }
+    );
     await Creator.findByIdAndUpdate(id, { isActive: true }, { session, new: true });
     await session.commitTransaction();
     await session.endSession();
     return "";
   },
 
-  async makeCreatorInactive(id: string) {
+  async makeCreatorInactive(id: string, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false }).session(session);
+    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false , createdBy}).session(session);
     if (!isCreatorExist) {
       throw new ApiError(status.NOT_FOUND, "Creator not found");
     }
 
+
+    const findUser = await User.findOne({ _id: isCreatorExist.userId, isDeleted: false }).session(session);
+    if (!findUser) {
+      throw new ApiError(status.NOT_FOUND, "User not found");
+    }
+    // console.log(findUser);
+
     await Creator.findByIdAndUpdate(id, { isActive: false }, { session, new: true });
+
+    await User.updateOne(
+      { _id: findUser._id },
+      { isActive: false },
+      { session }
+    );
 
     await session.commitTransaction();
     await session.endSession();
