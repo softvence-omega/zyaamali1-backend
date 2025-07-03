@@ -9,13 +9,10 @@ export interface TUser {
   country?: string | null;
   email: string;
   password?: string;
-  isVerified: boolean;
-  verificationCode?: string | null;
-  verificationCodeExpiresAt?: Date | null;
-  lastVerificationSentAt?: Date | null;
   role: "superAdmin" | "admin" | "creator" | "viewer";
-  credit: number;
+  credit?: number;
   isDeleted: boolean;
+  isActive?: boolean;
   provider?: string;
   createdAt?: Date;
   updatedAt?: Date;

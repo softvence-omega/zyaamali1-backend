@@ -8,64 +8,64 @@ import { createToken, verifyToken } from "./auth.utils";
 import { sendEmail } from "../../utils/sendEmail";
 
 const loginUser = async (payload: TLoginUser) => {
-  const user: any = await User.findOne({
-    email: payload?.email,
-    // role: USER_ROLE.USER,
-  }).select("+password");
+  const user: any = await User.findOne({ email: payload?.email }).select("+password");
 
   // Check if user exists
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found!");
   }
-  if (user.isVerified === false) {
-    throw new ApiError(httpStatus.FORBIDDEN, "Please verify your email first!")
-  }
 
-  // Check if user is deleted
-  const isUserDeleted = user?.isDeleted;
-  if (isUserDeleted) {
+  // Block deleted users
+  if (user.isDeleted) {
     throw new ApiError(httpStatus.FORBIDDEN, "User is deleted!");
   }
 
-  // check if user is registerd with google or facebook
-
-  if (!user.password && user?.provider) {
+  //  Disallow login if registered with Google or Facebook
+  if (!user.password && user.provider) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
-      `You are registered with ${user.provider}. Please login with ${user.provider} instead!`
+      `You registered using ${user.provider}. Please log in with ${user.provider}.`
     );
   }
 
-  // Check if password is correct
-  if (!(await bcrypt.compare(payload?.password, user?.password))) {
+  //  Disallow login if somehow a provider user has a password field
+  if (user.provider) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      `You signed up using ${user.provider}. Please use that method to log in.`
+    );
+  }
+
+  //  Check password
+  const isPasswordMatched = await bcrypt.compare(payload.password, user.password);
+  if (!isPasswordMatched) {
     throw new ApiError(httpStatus.FORBIDDEN, "Password did not match!");
   }
 
-  //----------------Create jsonwebtoken and send to the client-----------------
+  //  Create Tokens
   const jwtPayload = {
     userId: user._id.toString(),
     role: user.role,
   };
 
-  //++++++++++++++++   ACCESS TOKEN   ++++++++++++++++
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
     parseInt(config.jwt_access_expires_in as string)
   );
-  //++++++++++++++++   Refresh TOKEN   ++++++++++++++++
+
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
     parseInt(config.jwt_refresh_expires_in as string)
   );
+
   return {
     accessToken,
     refreshToken,
-    isVerified: user.isVerified,
-    isVerificationExpired: user.verificationCodeExpiresAt < new Date(),
   };
 };
+
 
 const changePassword = async (
   userData: any,
@@ -85,7 +85,7 @@ const changePassword = async (
   }
 
   // Check if password is correct
-  if (!(await bcrypt.compare(payload?.oldPassword, user?.password))) {
+  if (!(await bcrypt.compare(payload?.oldPassword, user?.password as string))) {
     throw new ApiError(httpStatus.FORBIDDEN, "Password did not match!");
   }
 

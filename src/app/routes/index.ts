@@ -7,6 +7,11 @@ import { subscriptionRoutes } from "../modules/subscription/subscription.routes"
 import { configureRoutes } from "../modules/configure/configure.routes";
 import { connectAdsAccountRoutes } from "../modules/connectAdsAccount/connectAdsAccount.route";
 import { createCampaignRoute } from "../modules/createCampaign/createCampaign.route";
+import { businessRoutes } from "../modules/business/business.route";
+import { viewerRoutes } from "../modules/viewer/viewer.routes";
+import { creatorRoutes } from "../modules/creator/creator.routes";
+import { contentRoutes } from "../modules/content/content.routes";
+
 
 const router = Router();
 
@@ -29,7 +34,7 @@ const moduleRoutes = [
   },
 
   {
-    path: "/users",
+    path: "/user",
     route: UserRoutes,
   },
   {
@@ -44,6 +49,21 @@ const moduleRoutes = [
     path: "/ads",
     route: createCampaignRoute,
   },
+    path: "/business",
+    route: businessRoutes,
+  },
+  {
+    path: "/viewer",
+    route: viewerRoutes
+  },
+  {
+    path: "/creator",
+    route: creatorRoutes
+  },
+  {
+    path: "/content",
+    route: contentRoutes
+  }
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
