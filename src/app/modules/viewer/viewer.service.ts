@@ -9,10 +9,18 @@ import mongoose from "mongoose";
 
 export const viewerService = {
   async postViewerIntoDB(data: any) {
+    // console.log(data);
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
+      const isViewerExist = await Viewer.findOne({
+        email: data.email,
+        isDeleted: false,
+      }).session(session);
+      if (isViewerExist) {
+        throw new ApiError(status.CONFLICT, "Viewer already exists with this email");
+      }
       const { createdBy, password, fullName, email, ...others } = data;
 
       const userData = {
@@ -39,7 +47,7 @@ export const viewerService = {
       await session.commitTransaction();
       await session.endSession();
 
-      return result[0]; // Return the created viewer
+      // return result[0]; // Return the created viewer
     } catch (error: unknown) {
       await session.abortTransaction();
       await session.endSession();
@@ -51,11 +59,11 @@ export const viewerService = {
       }
     }
   },
-  async getAllViewerFromDB(query: any) {
+  async getAllViewerFromDB(query: any, createdBy: string) {
     try {
 
 
-      const service_query = new QueryBuilder(Viewer.find({ isDeleted: false}).populate("userId").populate("createdBy", "fullName image"), query)
+      const service_query = new QueryBuilder(Viewer.find({ isDeleted: false, createdBy }).populate("userId").populate("createdBy", "fullName image"), query)
         .search(VIEWER_SEARCHABLE_FIELDS)
         .filter()
         .sort()
@@ -77,9 +85,17 @@ export const viewerService = {
       }
     }
   },
-  async getSingleViewerFromDB(id: string) {
+  async getSingleViewerFromDB(id: string, createdBy: string) {
+    // console.log({id, createdBy});
     try {
-      return await Viewer.findById(id).populate("userId").populate("createdBy", "fullName image");
+      const result = await Viewer.findOne({ _id: id, createdBy }).populate("userId").populate("createdBy", "fullName image");
+
+      // console.log(result);
+
+      if (!result) {
+        throw new ApiError(status.NOT_FOUND, "Viewer not found");
+      }
+      return result;
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`${error.message}`);
@@ -88,15 +104,19 @@ export const viewerService = {
       }
     }
   },
-  async updateViewerIntoDB(id: string, data: Partial<TViewer>) {
+  async updateViewerIntoDB(id: string, data: Partial<TViewer>, createdBy: string) {
+    // console.log(data);
+
+    // console.log(createdBy);
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
+      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
       if (!isViewerExist) {
         throw new ApiError(status.NOT_FOUND, "Viewer not found");
       }
+      console.log(isViewerExist);
 
       const findUser = await User.findOne({ _id: isViewerExist.userId, isDeleted: false }).session(session);
       if (!findUser) {
@@ -120,7 +140,7 @@ export const viewerService = {
       await session.commitTransaction();
       await session.endSession();
 
-      return result;
+      // return result;
     } catch (error: unknown) {
       await session.abortTransaction();
       await session.endSession();
@@ -132,16 +152,19 @@ export const viewerService = {
       }
     }
   },
-  async deleteViewerFromDB(id: string) {
+  async deleteViewerFromDB(id: string, createdBy: string) {
+    // console.log(createdBy);
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
       // Find the viewer within the session
-      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
+      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false ,createdBy}).session(session);
       if (!isViewerExist) {
         throw new ApiError(status.NOT_FOUND, "Viewer not found");
       }
+
+      console.log(isViewerExist);
 
       // Find the linked user within the session
       const findUser = await User.findOne({ _id: isViewerExist.userId, isDeleted: false }).session(session);
@@ -149,7 +172,7 @@ export const viewerService = {
         throw new ApiError(status.NOT_FOUND, "User not found");
       }
 
-      // Soft delete the user
+      // // Soft delete the user
       await User.updateOne(
         { _id: findUser._id },
         { isDeleted: true },
@@ -181,27 +204,46 @@ export const viewerService = {
     }
   },
 
-  async makeViewerActive(id: string) {
+  async makeViewerActive(id: string, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
+    const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
     if (!isViewerExist) {
       throw new ApiError(status.NOT_FOUND, "Viewer not found");
     }
+
+    const findUser = await User.findOne({ _id: isViewerExist.userId, isDeleted: false }).session(session);
+    if (!findUser) {
+      throw new ApiError(status.NOT_FOUND, "User not found");
+    }
+    await User.updateOne(
+      { _id: findUser._id },
+      { isActive: true },
+      { session }
+    );
     await Viewer.findByIdAndUpdate(id, { isActive: true }, { session, new: true });
     await session.commitTransaction();
     await session.endSession();
     return "";
   },
 
-  async makeViewerInactive(id: string) {
+  async makeViewerInactive(id: string, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false }).session(session);
+    const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
     if (!isViewerExist) {
       throw new ApiError(status.NOT_FOUND, "Viewer not found");
     }
 
+    const findUser = await User.findOne({ _id: isViewerExist.userId, isDeleted: false }).session(session);
+    if (!findUser) {
+      throw new ApiError(status.NOT_FOUND, "User not found");
+    }
+    await User.updateOne(
+      { _id: findUser._id },
+      { isActive: false },
+      { session }
+    );
     await Viewer.findByIdAndUpdate(id, { isActive: false }, { session, new: true });
 
     await session.commitTransaction();

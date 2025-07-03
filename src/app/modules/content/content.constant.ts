@@ -1,0 +1,1 @@
+export const CONTENT_SEARCHABLE_FIELDS = ["title"];
