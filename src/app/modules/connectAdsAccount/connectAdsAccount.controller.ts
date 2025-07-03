@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 import config from '../../config';
-import {  connectAdsAccountservice } from './connectAdsAccount.service';
+import { connectAdsAccountservice } from './connectAdsAccount.service';
 import { FacebookAdsApi, User, AdAccount } from 'facebook-nodejs-business-sdk';
 
 
@@ -39,7 +39,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
   }
 };
 
- const getFacebookAdsConnection = async (req: Request, res: Response) => {
+const getFacebookAdsConnection = async (req: Request, res: Response) => {
   const userId = req.query.userId as string;
 
   // Example: fetch user's stored token from DB (replace with real DB call)
@@ -118,20 +118,19 @@ const handleInstagramConnection = async (req: Request, res: Response) => {
 
 const redirectToLinkedIn = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.getLinkdinAuthURL();
-  console.log('from  linkedin redirect ===================')
+console.log(authURL)
   res.redirect(authURL);
 };
 
 const handleLinkedInCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
 
-  console.log('form linkedin callback ===================================> ')
-
+   console.log('✅linkdin  Callback route hit');
   try {
     const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(code);
     // Optionally: store accessToken in DB here
     res.json({ access_token: accessToken });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error getting access token:', error.message);
     res.status(500).json({ error: 'Failed to retrieve access token' });
   }
@@ -140,15 +139,16 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
 
 
 
+
 // for google 
 
- const getGoogleAuthURL= (req: Request, res: Response) => {
+const getGoogleAuthURL = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.generateGoogleAuthURL();
-    
+
   res.redirect(authURL);
 };
 
- const handleGoogleCallback = async (req: Request, res: Response) => {
+const handleGoogleCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
 
   if (!code) {
@@ -183,7 +183,7 @@ const handleTiktokCallback = async (req: Request, res: Response) => {
   try {
     const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(code);
     res.json(tokenData);
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ TikTok callback error:', error.message);
     res.status(500).send('TikTok OAuth failed');
   }
