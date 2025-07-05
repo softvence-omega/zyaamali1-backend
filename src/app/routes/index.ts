@@ -48,7 +48,7 @@ const moduleRoutes = [
   {
     path: "/ads",
     route: createCampaignRoute,
-  },
+  }, {
     path: "/business",
     route: businessRoutes,
   },
