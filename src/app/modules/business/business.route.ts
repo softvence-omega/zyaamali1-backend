@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get(
   "/get-all-business",
-  // auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN),
   businessController.getAllBusiness
 );
 

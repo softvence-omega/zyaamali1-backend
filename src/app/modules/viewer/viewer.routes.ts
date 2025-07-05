@@ -8,17 +8,17 @@ import USER_ROLE from "../../constants/userRole";
 
 const router = express.Router();
 
-router.post("/post_viewer",auth(USER_ROLE.ADMIN), viewerController.postViewer);
-router.get("/get_all_viewer",auth(USER_ROLE.ADMIN), viewerController.getAllViewer);
-router.get("/get_single_viewer/:id",auth(USER_ROLE.ADMIN), viewerController.getSingleViewer);
+router.post("/post-viewer",auth(USER_ROLE.ADMIN), viewerController.postViewer);
+router.get("/get-all-viewer",auth(USER_ROLE.ADMIN), viewerController.getAllViewer);
+router.get("/get-single-viewer/:id",auth(USER_ROLE.ADMIN), viewerController.getSingleViewer);
 router.patch(
-    "/update_viewer/:id",
+    "/update-viewer/:id",
     auth(USER_ROLE.ADMIN),
     validateRequest(viewerUpdateValidation),
     viewerController.updateViewer
 );
-router.delete("/delete_viewer/:id",auth(USER_ROLE.ADMIN), viewerController.deleteViewer);
-router.patch("/make_viewer_active/:id", auth(USER_ROLE.ADMIN), viewerController.makeViewerActive);
-router.patch("/make_viewer_inactive/:id",auth(USER_ROLE.ADMIN), viewerController.makeViewerInactive);
+router.delete("/delete-viewer/:id",auth(USER_ROLE.ADMIN), viewerController.deleteViewer);
+router.patch("/make-viewer-active/:id", auth(USER_ROLE.ADMIN), viewerController.makeViewerActive);
+router.patch("/make-viewer-inactive/:id",auth(USER_ROLE.ADMIN), viewerController.makeViewerInactive);
 
 export const viewerRoutes = router;

@@ -121,9 +121,9 @@ export const creatorService = {
       }
     }
   },
-  async getSingleCreatorFromDB(id: string) {
+  async getSingleCreatorFromDB(id: string, createdBy: string) {
     try {
-      return await Creator.findById(id).populate("userId").populate("createdBy", "fullName image");
+      return await Creator.findById(id, createdBy).populate("userId").populate("createdBy", "fullName image");
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`${error.message}`);
