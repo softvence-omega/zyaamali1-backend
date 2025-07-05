@@ -1,4 +1,3 @@
-// ───────────────────────────────────────────────
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import config from '../config';
@@ -17,7 +16,7 @@ export const sendTeamInviteEmail = async (email: string, html: any) => {
   });
 
   const info = await transporter.sendMail({
-    from: `"${config.PROJECT_NAME || 'Your App'}" <${config.smtp_auth_user}>`,
+    from: `"${'Adelo Ai | Your Ai Solution'}" <${config.smtp_auth_user}>`,
     to: email,
     subject: 'Your Team Invitation & Login Credentials',
     text: 'Hello world?',
@@ -25,5 +24,5 @@ export const sendTeamInviteEmail = async (email: string, html: any) => {
   });
 
   console.log('Message sent:', info.messageId);
-  return info;               // Promise রিটার্ন, চাইলে await করা যাবে
+  return info;
 };
