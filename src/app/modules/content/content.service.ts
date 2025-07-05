@@ -4,52 +4,78 @@ import status from "http-status";
 import ApiError from "../../errors/ApiError";
 import { ContentModel } from "./content.model";
 import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
+import { v4 as uuid } from "uuid";
+import { UploadApiResponse } from "cloudinary";
 
+import fs from "fs";
 
 
 
 
 export const contentService = {
-  async postPremadeContentIntoDB(data: any, file: any) {
-    try {
-      const imageName = `$content-${Date.now()}`;
-      const cloudinary_response = (await sendFileToCloudinary(
-        imageName,
-        file?.path,
-        "image"
-      )) as { secure_url: string };
+  async postPremadeContentIntoDB(
+  data: any,
+  file?: Express.Multer.File
+) {
+  if (!file) {
+    throw new ApiError(status.BAD_REQUEST, "A file is required.");
+  }
 
-      // console.log(cloudinary_response, "cloudinary_response");
+  // Automatically detect if the file is an image, video, or other
+  const resourceType = file.mimetype.startsWith("video/")
+    ? "video"
+    : file.mimetype.startsWith("image/")
+    ? "image"
+    : "raw";
 
-      const contentData = {
-        ...data,
-        source: "premade",
-        link: cloudinary_response.secure_url,
-      };
+  const fileName = `content-${uuid()}`;
 
-      // console.log(contentData, "contentData");
+  let secure_url: string;
 
-      const isContextAlreadyExists = await ContentModel.findOne({
-        title: contentData.title,
-        platform: contentData.platform,
-      });
-      if (isContextAlreadyExists) {
-        throw new ApiError(
-          status.BAD_REQUEST,
-          "Content with this title and platform already exists."
-        );
-      }
-      const result = await ContentModel.create(contentData);
-      return result;
+  try {
+    // Upload the file to Cloudinary
+    const cloudinaryResult = (await sendFileToCloudinary(
+      fileName,
+      file.path,
+      resourceType
+    )) as UploadApiResponse;
 
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`${error.message}`);
-      } else {
-        throw new Error("An unknown error occurred while fetching by ID.");
-      }
+    secure_url = cloudinaryResult.secure_url;
+
+    const contentData = {
+      ...data,
+      source: "premade",
+      link: secure_url,
+    };
+
+    // Check if content with same title & platform already exists
+    const exists = await ContentModel.exists({
+      title: contentData.title,
+      platform: contentData.platform,
+    });
+
+    if (exists) {
+      throw new ApiError(
+        status.BAD_REQUEST,
+        "Content with this title and platform already exists."
+      );
     }
-  },
+
+    // Save to DB
+    return await ContentModel.create(contentData);
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+
+    console.error(err);
+    throw new ApiError(
+      status.INTERNAL_SERVER_ERROR,
+      "Something went wrong while saving the content."
+    );
+  } finally {
+    // Clean up the temporary uploaded file
+    fs.unlink(file.path, () => {});
+  }
+},
   async getAllPremadeContentFromDB(query: any) {
     try {
 
