@@ -182,6 +182,74 @@ const updateProfile = async (id: string, payload: Partial<TUser>) => {
 
 
 
+const deleteProfile = async (id: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const isUserExist = await User.findOne({ _id: id, isDeleted: false }).session(session);
+    if (!isUserExist) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+    if (isUserExist.role === "admin") {
+      await Viewer.updateMany(
+        { createdBy: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+      await Creator.updateMany(
+        { createdBy: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+      await User.findOneAndUpdate(
+        { _id: id },
+        { isDeleted: true },
+        { new: true, runValidators: true, session }
+      );
+
+    } else if (isUserExist.role === "viewer") {
+      await User.findOneAndUpdate(
+        { _id: id },
+        { isDeleted: true },
+        { new: true, runValidators: true, session }
+      );
+      await Viewer.updateOne(
+        { userId: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+
+    } else if (isUserExist.role === "creator") {
+      await User.findOneAndUpdate(
+        { _id: id },
+        { isDeleted: true },
+        { new: true, runValidators: true, session }
+      );
+      await Creator.updateOne(
+        { userId: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return null;
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    if (error instanceof Error) {
+      throw new Error(`User deletion failed: ${error.message}`);
+    } else {
+      throw new Error("An unknown error occurred while deleting profile.");
+    }
+  }
+};
+
+
 
 export const UserServices = {
   getSingleUserFromDB,
@@ -189,5 +257,5 @@ export const UserServices = {
   getAllUsersFromDB,
   createAUserIntoDB,
   uploadImageIntoDB,
-  updateProfile
+  updateProfile, deleteProfile
 };

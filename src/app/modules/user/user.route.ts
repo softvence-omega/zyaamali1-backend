@@ -29,6 +29,12 @@ router.patch(
   UserControllers.updateProfile
 );
 
+router.delete(
+  "/delete-profile",
+  auth(USER_ROLE.ADMIN),
+  UserControllers.deleteProfile
+);
+
 
 
 
