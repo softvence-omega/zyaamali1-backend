@@ -1,9 +1,9 @@
 
 import express from "express";
 import { contentController } from "./content.controller";
-import { upload } from "../../utils/sendFileToCloudinary";
 import auth from "../../middleWear/auth";
 import USER_ROLE from "../../constants/userRole";
+import { upload } from "../../utils/sendFileToCloudinary";
 
 const router = express.Router();
 

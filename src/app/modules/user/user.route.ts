@@ -9,7 +9,7 @@ import { upload } from "../../utils/sendFileToCloudinary";
 const router = express.Router();
 
 router.get("/all-user", auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN), UserControllers.getAllUsers);
-router.get("/me", auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR,  USER_ROLE.SUPER_ADMIN), UserControllers.getMe);
+router.get("/me", auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN), UserControllers.getMe);
 router.post(
   "/register",
   // validateRequest(UserValidations.createUserValidationSchema),
@@ -18,9 +18,15 @@ router.post(
 
 router.post(
   "/upload-image",
-  auth( USER_ROLE.ADMIN, USER_ROLE.VIEWER, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN),
+  auth(USER_ROLE.ADMIN, USER_ROLE.VIEWER, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN),
   upload.single("file"),
   UserControllers.uploadImage
+);
+
+router.patch(
+  "/update-profile",
+  auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN),
+  UserControllers.updateProfile
 );
 
 

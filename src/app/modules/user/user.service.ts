@@ -8,6 +8,9 @@ import httpStatus from "http-status";
 import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
 import mongoose from "mongoose";
 import QueryBuilder from "../../builder/QueryBuilder";
+import { Viewer } from "../viewer/viewer.model";
+import e from "express";
+import { Creator } from "../creator/creator.model";
 
 
 export const generateVerificationCode = () => {
@@ -51,6 +54,9 @@ const getMeFromDB = async (user: JwtPayload) => {
 
   return existingUser;
 };
+
+
+
 
 
 
@@ -131,6 +137,49 @@ const uploadImageIntoDB = async (userData: any, file: any) => {
 
 
 
+const updateProfile = async (id: string, payload: Partial<TUser>) => {
+
+  const isUserExist = await User.findOne({
+    _id: id,
+    isDeleted: false,
+  });
+  if (!isUserExist) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  let result;
+  if (isUserExist.role === "admin") {
+    result = await User.findOneAndUpdate(
+      { _id: id },
+      { ...payload },
+      { new: true, runValidators: true }
+    );
+  }
+
+  if (isUserExist.role === "viewer") {
+    result = await User.findOneAndUpdate(
+      { _id: id },
+      { fullName: payload.fullName },
+      { new: true, runValidators: true }
+    );
+    await Viewer.updateOne(
+      { userId: id },
+      { fullName: payload.fullName },
+      { runValidators: true }
+    );
+  } else if (isUserExist.role === "creator") {
+    result = await User.findOneAndUpdate(
+      { _id: id },
+      { fullName: payload.fullName },
+      { new: true, runValidators: true }
+    );
+    await Creator.updateOne(
+      { userId: id },
+      { fullName: payload.fullName },
+      { runValidators: true }
+    );
+  }
+
+  return result
+}
+
 
 
 
@@ -140,5 +189,5 @@ export const UserServices = {
   getAllUsersFromDB,
   createAUserIntoDB,
   uploadImageIntoDB,
-
+  updateProfile
 };
