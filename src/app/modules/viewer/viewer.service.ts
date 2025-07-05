@@ -6,7 +6,10 @@ import ApiError from "../../errors/ApiError";
 import { TViewer } from "./viewer.interface";
 import { User } from "../user/user.model";
 import mongoose from "mongoose";
-
+import bcrypt from "bcrypt";
+import config from "../../config";
+import nodemailer from "nodemailer";
+import { sendTeamInviteEmail } from "../../utils/sendTeamInviteEmail";
 export const viewerService = {
   async postViewerIntoDB(data: any) {
     // console.log(data);
@@ -21,12 +24,19 @@ export const viewerService = {
       if (isViewerExist) {
         throw new ApiError(status.CONFLICT, "Viewer already exists with this email");
       }
+
+
       const { createdBy, password, fullName, email, ...others } = data;
 
+      const isUserExist = await User.findOne({ email, isDeleted: false }).session(session);
+      if (isUserExist) {
+        throw new ApiError(status.CONFLICT, "User already exists with this email");
+      }
+      const hashedPassword = await bcrypt.hash(password as string, Number(config.bcrypt_salt_rounds));
       const userData = {
         fullName,
         email,
-        password,
+        password: hashedPassword,
         role: "viewer",
       };
 
@@ -44,10 +54,42 @@ export const viewerService = {
 
       const result = await Viewer.create([viewerData], { session });
 
+     
+
+
+      sendTeamInviteEmail(data.email, `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f9f9f9; border-radius: 8px; color: #333;">
+      <h2 style="color: #0052cc; text-align: center;">Team Invitation</h2>
+      <p style="font-size: 16px;">Hi <strong>${data.fullName}</strong>,</p>
+      <p style="font-size: 16px;">
+        You have been invited to join our team as a <span style="color: #0070f3; font-weight: bold;">Viewer</span>.
+      </p>
+      <p style="font-size: 16px;">
+        Here are your login credentials:
+      </p>
+      <p style="font-size: 16px; background: #e1f0ff; padding: 12px; border-radius: 5px;">
+        <strong>Email:</strong> ${data.email}<br>
+        <strong>Password:</strong> ${data.password}
+      </p>
+      <p style="font-size: 16px;">
+        Please keep this information safe and do not share it with others.
+      </p>
+      <p style="font-size: 16px;">
+        Best regards,<br>
+        The Team
+      </p>
+      <hr style="border:none; border-top: 1px solid #ddd; margin-top: 40px;">
+      <p style="font-size: 12px; color: #777; text-align: center;">
+        If you did not expect this email, you can safely ignore it.
+      </p>
+    </div>
+  `  );
+
+
       await session.commitTransaction();
       await session.endSession();
 
-      // return result[0]; // Return the created viewer
+      return result[0]; // Return the created viewer
     } catch (error: unknown) {
       await session.abortTransaction();
       await session.endSession();
@@ -159,7 +201,7 @@ export const viewerService = {
 
     try {
       // Find the viewer within the session
-      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false ,createdBy}).session(session);
+      const isViewerExist = await Viewer.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
       if (!isViewerExist) {
         throw new ApiError(status.NOT_FOUND, "Viewer not found");
       }

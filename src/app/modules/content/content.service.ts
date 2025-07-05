@@ -14,68 +14,77 @@ import fs from "fs";
 
 export const contentService = {
   async postPremadeContentIntoDB(
-  data: any,
-  file?: Express.Multer.File
-) {
-  if (!file) {
-    throw new ApiError(status.BAD_REQUEST, "A file is required.");
-  }
-
-  // Automatically detect if the file is an image, video, or other
-  const resourceType = file.mimetype.startsWith("video/")
-    ? "video"
-    : file.mimetype.startsWith("image/")
-    ? "image"
-    : "raw";
-
-  const fileName = `content-${uuid()}`;
-
-  let secure_url: string;
-
-  try {
-    // Upload the file to Cloudinary
-    const cloudinaryResult = (await sendFileToCloudinary(
-      fileName,
-      file.path,
-      resourceType
-    )) as UploadApiResponse;
-
-    secure_url = cloudinaryResult.secure_url;
-
-    const contentData = {
-      ...data,
-      source: "premade",
-      link: secure_url,
-    };
-
-    // Check if content with same title & platform already exists
-    const exists = await ContentModel.exists({
-      title: contentData.title,
-      platform: contentData.platform,
-    });
-
-    if (exists) {
-      throw new ApiError(
-        status.BAD_REQUEST,
-        "Content with this title and platform already exists."
-      );
+    data: any,
+    file?: Express.Multer.File
+  ) {
+    if (!file) {
+      throw new ApiError(status.BAD_REQUEST, "A file is required.");
     }
 
-    // Save to DB
-    return await ContentModel.create(contentData);
-  } catch (err) {
-    if (err instanceof ApiError) throw err;
+    // Automatically detect if the file is an image, video, or other
+    const resourceType = file.mimetype.startsWith("video/")
+      ? "video"
+      : file.mimetype.startsWith("image/")
+        ? "image"
+        : "raw";
 
-    console.error(err);
-    throw new ApiError(
-      status.INTERNAL_SERVER_ERROR,
-      "Something went wrong while saving the content."
-    );
-  } finally {
-    // Clean up the temporary uploaded file
-    fs.unlink(file.path, () => {});
-  }
-},
+    const fileName = `content-${uuid()}`;
+
+    let secure_url: string;
+
+    try {
+      // Upload the file to Cloudinary
+      const cloudinaryResult = (await sendFileToCloudinary(
+        fileName,
+        file.path,
+        resourceType
+      )) as UploadApiResponse;
+
+      secure_url = cloudinaryResult.secure_url;
+
+      // console.log(secure_url);
+      const contentType = file.mimetype.split("/")[0];
+
+
+      const contentData = {
+        ...data,
+        type: contentType,
+        source: "premade",
+        link: secure_url,
+      };
+
+
+      // Check if content with same title & platform already exists
+      const exists = await ContentModel.exists({
+        title: contentData.title,
+        platform: contentData.platform,
+        type: contentData.type,
+      });
+
+      if (exists) {
+        throw new ApiError(
+          status.BAD_REQUEST,
+          `A content of type '${contentData.type}' with the title '${contentData.title}' already exists on the '${contentData.platform}' platform.`
+        );
+      }
+
+
+
+      // Save to DB
+      return await ContentModel.create(contentData);
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+
+      console.error(err);
+      throw new ApiError(
+        status.INTERNAL_SERVER_ERROR,
+        "Something went wrong while saving the content."
+      );
+    } finally {
+      // Clean up the temporary uploaded file
+      fs.unlink(file.path, () => { });
+    }
+  },
   async getAllPremadeContentFromDB(query: any) {
     try {
 

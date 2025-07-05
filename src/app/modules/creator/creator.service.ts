@@ -6,10 +6,9 @@ import mongoose from "mongoose";
 import { User } from "../user/user.model";
 import { Creator } from "./creator.model";
 import { TCreator } from "./creator.interface";
-
-
-
-
+import bcrypt from "bcrypt";
+import config from "../../config";
+import { sendTeamInviteEmail } from "../../utils/sendTeamInviteEmail";
 
 export const creatorService = {
   async postCreatorIntoDB(data: any) {
@@ -23,11 +22,20 @@ export const creatorService = {
         throw new ApiError(status.CONFLICT, "Creator already exists with this email");
       }
       const { createdBy, password, fullName, email, ...others } = data;
+      const hashedPassword = await bcrypt.hash(password as string, Number(config.bcrypt_salt_rounds));
+
+      const isUserExist = await User.findOne({ email, isDeleted: false }).session(session);
+      if (isUserExist) {
+        throw new ApiError(status.CONFLICT, "User already exists with this email");
+      }
+
+
+
 
       const userData = {
         fullName,
         email,
-        password,
+        password: hashedPassword,
         role: "creator",
       };
 
@@ -44,7 +52,33 @@ export const creatorService = {
       };
 
       const result = await Creator.create([creatorData], { session });
-
+      sendTeamInviteEmail(data.email, `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f9f9f9; border-radius: 8px; color: #333;">
+      <h2 style="color: #0052cc; text-align: center;">Team Invitation</h2>
+      <p style="font-size: 16px;">Hi <strong>${data.fullName}</strong>,</p>
+      <p style="font-size: 16px;">
+        You have been invited to join our team as a <span style="color: #0070f3; font-weight: bold;">Creator</span>.
+      </p>
+      <p style="font-size: 16px;">
+        Here are your login credentials:
+      </p>
+      <p style="font-size: 16px; background: #e1f0ff; padding: 12px; border-radius: 5px;">
+        <strong>Email:</strong> ${data.email}<br>
+        <strong>Password:</strong> ${data.password}
+      </p>
+      <p style="font-size: 16px;">
+        Please keep this information safe and do not share it with others.
+      </p>
+      <p style="font-size: 16px;">
+        Best regards,<br>
+        The Team
+      </p>
+      <hr style="border:none; border-top: 1px solid #ddd; margin-top: 40px;">
+      <p style="font-size: 12px; color: #777; text-align: center;">
+        If you did not expect this email, you can safely ignore it.
+      </p>
+    </div>
+  `  );
       await session.commitTransaction();
       await session.endSession();
 
@@ -65,7 +99,7 @@ export const creatorService = {
     try {
 
 
-      const service_query = new QueryBuilder(Creator.find({ isDeleted: false, createdBy }).populate("userId").populate("createdBy", "fullName image"), query)
+      const service_query = new QueryBuilder(Creator.find({ isDeleted: false, createdBy }).populate("userId").populate("createdBy"), query)
         .search(CREATOR_SEARCHABLE_FIELDS)
         .filter()
         .sort()
@@ -103,7 +137,7 @@ export const creatorService = {
     session.startTransaction();
 
     try {
-      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false ,createdBy}).session(session);
+      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
       if (!isCreatorExist) {
         throw new ApiError(status.NOT_FOUND, "Creator not found");
       }
@@ -148,7 +182,7 @@ export const creatorService = {
 
     try {
       // Find the viewer within the session
-      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false , createdBy}).session(session);
+      const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
       if (!isCreatorExist) {
         throw new ApiError(status.NOT_FOUND, "Creator not found");
       }
@@ -217,7 +251,7 @@ export const creatorService = {
   async makeCreatorInactive(id: string, createdBy: string) {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false , createdBy}).session(session);
+    const isCreatorExist = await Creator.findOne({ _id: id, isDeleted: false, createdBy }).session(session);
     if (!isCreatorExist) {
       throw new ApiError(status.NOT_FOUND, "Creator not found");
     }
