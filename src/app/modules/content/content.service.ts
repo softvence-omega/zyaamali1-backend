@@ -12,8 +12,14 @@ import { IContent } from "./content.interface";
 import { User } from "../user/user.model";
 import { Creator } from "../creator/creator.model";
 import { Viewer } from "../viewer/viewer.model";
+import { TUser } from "../user/user.interface";
+import mongoose from "mongoose";
 
-
+type TContent = {
+  title: string;
+  platform: string;
+  ratio: string
+}
 
 
 export const contentService = {
@@ -123,7 +129,7 @@ export const contentService = {
 
     if (findUser.role === "superAdmin") {
       // সব content দেখতে পারবে
-      const service_query = new QueryBuilder(ContentModel.find(), query)
+      const service_query = new QueryBuilder(ContentModel.find({ isDeleted: false }), query)
         .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
@@ -131,7 +137,7 @@ export const contentService = {
         .fields();
 
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -149,15 +155,19 @@ export const contentService = {
         ]
       };
 
-      const service_query = new QueryBuilder(ContentModel.find(filterCondition), query)
+      const service_query = new QueryBuilder(
+        ContentModel.find({ ...filterCondition, isDeleted: false }),
+        query
+      )
         .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
         .paginate()
         .fields();
 
+
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -174,15 +184,19 @@ export const contentService = {
         ]
       };
 
-      const service_query = new QueryBuilder(ContentModel.find(filterCondition), query)
+      const service_query = new QueryBuilder(
+        ContentModel.find({ ...filterCondition, isDeleted: false }),
+        query
+      )
         .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
         .paginate()
         .fields();
 
+
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -200,15 +214,19 @@ export const contentService = {
         ]
       };
 
-      const service_query = new QueryBuilder(ContentModel.find(filterCondition), query)
+      const service_query = new QueryBuilder(
+        ContentModel.find({ ...filterCondition, isDeleted: false }),
+        query
+      )
         .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
         .paginate()
         .fields();
 
+
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -226,11 +244,11 @@ export const contentService = {
     const findUser = await User.findById(userId);
     if (!findUser) {
       throw new ApiError(status.NOT_FOUND, "User not found");
-    } 
+    }
     let filterCondition: any = {};
     if (findUser.role === "superAdmin") {
       // সব content দেখতে পারবে
-      return await ContentModel.findById(id);
+      return await ContentModel.findOne({ _id: id, isDeleted: false });
     }
     if (findUser.role === "admin") {
       // premade → সবই দেখতে পারবে
@@ -241,7 +259,7 @@ export const contentService = {
           { source: "user", owner: findUser._id }
         ]
       };
-      return await ContentModel.findOne({ _id: id, ...filterCondition });
+      return await ContentModel.findOne({ _id: id, isDeleted: false, ...filterCondition });
     }
     if (findUser.role === "creator") {
       const findCreator = await Creator.findOne({ userId: findUser._id });
@@ -251,7 +269,7 @@ export const contentService = {
           { source: "user", owner: findCreator?.createdBy }
         ]
       };
-      return await ContentModel.findOne({ _id: id, ...filterCondition });
+      return await ContentModel.findOne({ _id: id, isDeleted: false, ...filterCondition });
     }
     if (findUser.role === "viewer") {
       const findViewer = await Viewer.findOne({ userId: findUser._id });
@@ -261,10 +279,123 @@ export const contentService = {
           { source: "user", owner: findViewer?.createdBy }
         ]
       };
-      return await ContentModel.findOne({ _id: id, ...filterCondition });
+      return await ContentModel.findOne({ _id: id, isDeleted: false, ...filterCondition });
     }
     throw new ApiError(status.FORBIDDEN, "You do not have permission to access this content.");
   },
+
+
+  async updateContentIntoDB(id: string, data: Partial<TContent>, userId: string) {
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      // 1. Check if user exists
+      const isUserExist = await User.findById(userId).session(session);
+      if (!isUserExist) {
+        throw new ApiError(status.NOT_FOUND, 'User not found');
+      }
+
+      // 2. Check if content exists
+      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false }).session(session);
+      if (!isContentExist) {
+        throw new ApiError(status.NOT_FOUND, 'Content not found');
+      }
+
+      // 3. Permission check based on role
+      if (isUserExist.role === 'admin') {
+        if (isContentExist.source !== 'user') {
+          throw new ApiError(status.FORBIDDEN, 'Admin can only update user source content');
+        }
+        if (!isContentExist.owner || !isContentExist.owner.equals(isUserExist._id)) {
+          throw new ApiError(status.FORBIDDEN, 'You do not have permission to update this content');
+        }
+      } else if (isUserExist.role === 'superAdmin') {
+        if (isContentExist.source !== 'premade') {
+          throw new ApiError(status.FORBIDDEN, 'SuperAdmin can only update premade source content');
+        }
+      } else {
+        throw new ApiError(status.FORBIDDEN, 'You do not have permission to update this content');
+      }
+
+      // 4. Update content with validation and session
+      const updatedContent = await ContentModel.findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+        session,
+      });
+
+      // 5. Commit transaction
+      await session.commitTransaction();
+      return updatedContent;
+    } catch (error) {
+      // Abort transaction on error
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+  ,
+
+  async softDeleteContentFromDB(id: string, userId: string) {
+    const session = await mongoose.startSession()
+
+    try {
+      session.startTransaction();
+
+      // 1. Check if user exists
+      const isUserExist = await User.findById(userId).session(session);
+      if (!isUserExist) {
+        throw new ApiError(status.NOT_FOUND, 'User not found');
+      }
+
+      // 2. Check if content exists
+      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false }).session(session);
+      if (!isContentExist) {
+        throw new ApiError(status.NOT_FOUND, 'Content not found');
+      }
+
+      // 3. Permission check
+      if (isUserExist.role === 'admin') {
+        if (isContentExist.source !== 'user') {
+          throw new ApiError(status.FORBIDDEN, 'Admin can only delete user source content');
+        }
+        if (!isContentExist.owner || !isContentExist.owner.equals(isUserExist._id)) {
+          throw new ApiError(status.FORBIDDEN, 'You do not have permission to delete this content');
+        }
+      } else if (isUserExist.role === 'superAdmin') {
+        if (isContentExist.source !== 'premade') {
+          throw new ApiError(status.FORBIDDEN, 'SuperAdmin can only delete premade source content');
+        }
+      } else {
+        throw new ApiError(status.FORBIDDEN, 'You do not have permission to delete this content');
+      }
+
+      // 4. Perform soft delete (set isDeleted: true)
+      await ContentModel.findByIdAndUpdate(
+        id,
+        { isDeleted: true },
+        {
+          new: true,
+          runValidators: true,
+          session,
+        }
+      );
+
+      // 5. Commit transaction
+      await session.commitTransaction();
+      return null;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  },
+
+
 
   async getAllPremadeContentFromDB(query: any) {
     try {
