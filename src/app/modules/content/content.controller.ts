@@ -27,6 +27,22 @@ const getAllContent = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
 });
 
+const getSingleContent = catchAsync(async (req: Request, res: Response) => {
+  const result = await contentService.getSingleContentFromDB(req.params.id, req.loggedInUser.userId);
+  sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
+});
+
+const updateContent = catchAsync(async (req: Request, res: Response) => {
+  const result = await contentService.updateContentIntoDB(req.params.id, req.body, req.loggedInUser.userId);
+  sendResponse(res, { statusCode: status.OK, success: true, message: "Updated successfully", data: result });
+});
+const deleteContent = catchAsync(async (req: Request, res: Response) => {
+  const result = await contentService.softDeleteContentFromDB(req.params.id, req.loggedInUser.userId);
+  sendResponse(res, { statusCode: status.OK, success: true, message: "Deleted successfully", data: result });
+});
+
+
+
 const getAllPremadeContent = catchAsync(async (req: Request, res: Response) => {
   const result = await contentService.getAllPremadeContentFromDB(req.query);
   sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
@@ -39,4 +55,4 @@ const getSinglePremadeContent = catchAsync(async (req: Request, res: Response) =
 
 
 
-export const contentController = { postPremadeContent, getAllPremadeContent, getSinglePremadeContent, postGenaratedContent ,getAllContent};
+export const contentController = { postPremadeContent, getAllPremadeContent, getSinglePremadeContent, postGenaratedContent, getAllContent, getSingleContent, updateContent ,deleteContent};
