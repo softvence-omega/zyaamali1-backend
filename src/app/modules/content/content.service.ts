@@ -8,6 +8,10 @@ import { v4 as uuid } from "uuid";
 import { UploadApiResponse } from "cloudinary";
 
 import fs from "fs";
+import { IContent } from "./content.interface";
+import { User } from "../user/user.model";
+import { Creator } from "../creator/creator.model";
+import { Viewer } from "../viewer/viewer.model";
 
 
 
@@ -85,6 +89,139 @@ export const contentService = {
       fs.unlink(file.path, () => { });
     }
   },
+
+  async postGenaratedContentIntoDB(data: IContent) {
+    // console.log(data);
+
+    const isContentExists = await ContentModel.exists({
+      title: data.title,
+      platform: data.platform,
+      type: data.type,
+      owner: data.owner,
+    });
+
+    if (isContentExists) {
+      throw new ApiError(
+        status.BAD_REQUEST,
+        `A content of type '${data.type}' with the title '${data.title}' already exists on the '${data.platform}' platform.`
+      );
+    }
+
+    const result = await ContentModel.create(data);
+    return result
+
+  },
+
+  async getAllContentFromDB(query: any, userId: string) {
+    const findUser = await User.findById(userId);
+    console.log(findUser, "findUser");
+    if (!findUser) {
+      throw new ApiError(status.NOT_FOUND, "User not found");
+    }
+
+    let filterCondition: any = {};
+
+    if (findUser.role === "superAdmin") {
+      // সব content দেখতে পারবে
+      const service_query = new QueryBuilder(ContentModel.find(), query)
+        .search(CONTENT_SEARCHABLE_FIELDS)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+
+      const result = await service_query.modelQuery;
+       const meta = await service_query.countTotal();
+      return {
+        result,
+        meta,
+      };
+
+    }
+
+    if (findUser.role === "admin") {
+      // premade → সবই দেখতে পারবে
+      // user → owner নিজের হলে দেখতে পারবে
+      filterCondition = {
+        $or: [
+          { source: "premade" },
+          { source: "user", owner: findUser._id }
+        ]
+      };
+
+      const service_query = new QueryBuilder(ContentModel.find(filterCondition), query)
+        .search(CONTENT_SEARCHABLE_FIELDS)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+
+      const result = await service_query.modelQuery;
+       const meta = await service_query.countTotal();
+      return {
+        result,
+        meta,
+      };
+
+    }
+
+    if (findUser.role === "creator") {
+      const findCreator = await Creator.findOne({ userId: findUser._id });
+      filterCondition = {
+        $or: [
+          { source: "premade" },
+          { source: "user", owner: findCreator?.createdBy }
+        ]
+      };
+
+      const service_query = new QueryBuilder(ContentModel.find(filterCondition), query)
+        .search(CONTENT_SEARCHABLE_FIELDS)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+
+      const result = await service_query.modelQuery;
+       const meta = await service_query.countTotal();
+      return {
+        result,
+        meta,
+      };
+
+
+
+    }
+    if (findUser.role === "viewer") {
+      const findViewer = await Viewer.findOne({ userId: findUser._id });
+      filterCondition = {
+        $or: [
+          { source: "premade" },
+          { source: "user", owner: findViewer?.createdBy }
+        ]
+      };
+
+      const service_query = new QueryBuilder(ContentModel.find(filterCondition), query)
+        .search(CONTENT_SEARCHABLE_FIELDS)
+        .filter()
+        .sort()
+        .paginate()
+        .fields();
+
+      const result = await service_query.modelQuery;
+       const meta = await service_query.countTotal();
+      return {
+        result,
+        meta,
+      };
+
+
+
+    }
+
+
+  }
+  ,
+
   async getAllPremadeContentFromDB(query: any) {
     try {
 

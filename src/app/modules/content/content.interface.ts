@@ -9,7 +9,7 @@ export interface IContent {
   source?: "premade" | "user";
   owner?: Types.ObjectId;
   prompt?: string;
-  title?: string;
+  title: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
