@@ -222,6 +222,50 @@ export const contentService = {
   }
   ,
 
+  async getSingleContentFromDB(id: string, userId: string) {
+    const findUser = await User.findById(userId);
+    if (!findUser) {
+      throw new ApiError(status.NOT_FOUND, "User not found");
+    } 
+    let filterCondition: any = {};
+    if (findUser.role === "superAdmin") {
+      // সব content দেখতে পারবে
+      return await ContentModel.findById(id);
+    }
+    if (findUser.role === "admin") {
+      // premade → সবই দেখতে পারবে
+      // user → owner নিজের হলে দেখতে পারবে
+      filterCondition = {
+        $or: [
+          { source: "premade" },
+          { source: "user", owner: findUser._id }
+        ]
+      };
+      return await ContentModel.findOne({ _id: id, ...filterCondition });
+    }
+    if (findUser.role === "creator") {
+      const findCreator = await Creator.findOne({ userId: findUser._id });
+      filterCondition = {
+        $or: [
+          { source: "premade" },
+          { source: "user", owner: findCreator?.createdBy }
+        ]
+      };
+      return await ContentModel.findOne({ _id: id, ...filterCondition });
+    }
+    if (findUser.role === "viewer") {
+      const findViewer = await Viewer.findOne({ userId: findUser._id });
+      filterCondition = {
+        $or: [
+          { source: "premade" },
+          { source: "user", owner: findViewer?.createdBy }
+        ]
+      };
+      return await ContentModel.findOne({ _id: id, ...filterCondition });
+    }
+    throw new ApiError(status.FORBIDDEN, "You do not have permission to access this content.");
+  },
+
   async getAllPremadeContentFromDB(query: any) {
     try {
 
