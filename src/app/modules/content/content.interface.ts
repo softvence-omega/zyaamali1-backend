@@ -10,6 +10,7 @@ export interface IContent {
   owner?: Types.ObjectId;
   prompt?: string;
   title: string;
+  isDeleted:boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -3,6 +3,7 @@ import USER_ROLE from "../../constants/userRole";
 
 
 export interface TUser {
+  _id:string;
   fullName: string;
   companyName: string;
   image?: string | null;
