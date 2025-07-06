@@ -57,6 +57,12 @@ const AdCampaignSchema = new Schema<IAdCampaign>(
       prompt: { type: String },
       generatedText: { type: String },
     },
+    
+    isDeleted: {
+      type: Boolean,
+      default: false
+
+    },
 
     mediaFiles: { type: [String], default: [] },  // direct URLs / IDs
     externalAdId: { type: String },
@@ -80,4 +86,4 @@ const AdCampaignSchema = new Schema<IAdCampaign>(
 /* ------------------------------------------------------------------ */
 /*                               Model                                */
 /* ------------------------------------------------------------------ */
-export const AdCampaign = model<IAdCampaign>('AdCampaign', AdCampaignSchema);
+export const adCampainModel = model<IAdCampaign>('AdCampaign', AdCampaignSchema);

@@ -38,6 +38,7 @@ export enum Gender {
 export interface IAdCampaign {
   business: Types.ObjectId;
   createdBy: Types.ObjectId;
+  isDeleted?: boolean;
   title: string;
   objective: AdObjective;
   platform: Platform;

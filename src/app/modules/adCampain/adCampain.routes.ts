@@ -1,15 +1,15 @@
 
-    import express from "express";
-    import { validateRequest } from "../../middlewares/validateRequest";
-    import { adCampainController } from "./adCampain.controller";
-    import { adCampainPostValidation,adCampainUpdateValidation } from "./adCampain.validation";
+import express from "express";
+import { adCampainController } from "./adCampain.controller";
+import { adCampainPostValidation, adCampainUpdateValidation } from "./adCampain.validation";
+import { validateRequest } from "../../middleWear/validateRequest";
 
-    const router = express.Router();
-    
-    router.post("/post_adCampain", validateRequest(adCampainPostValidation), adCampainController.postAdCampain);
-    router.get("/get_all_adCampain", adCampainController.getAllAdCampain);
-    router.get("/get_single_adCampain/:id", adCampainController.getSingleAdCampain);
-    router.put("/update_adCampain/:id", validateRequest(adCampainUpdateValidation), adCampainController.updateAdCampain);
-    router.delete("/delete_adCampain/:id", adCampainController.deleteAdCampain);
-    
-    export const adCampainRoutes = router;
+const router = express.Router();
+
+router.post("/post-ads-campaign", adCampainController.postAdCampain);
+router.get("/get-all-ads-campaign", adCampainController.getAllAdCampain);
+router.get("/get-single-ads-campaign/:id", adCampainController.getSingleAdCampain);
+router.put("/update-ads-campaign/:id",  adCampainController.updateAdCampain);
+router.delete("/delete-ads-campaign/:id", adCampainController.deleteAdCampain);
+
+export const adCampainRoutes = router;

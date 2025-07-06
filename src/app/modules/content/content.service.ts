@@ -131,7 +131,7 @@ export const contentService = {
         .fields();
 
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -157,7 +157,7 @@ export const contentService = {
         .fields();
 
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -182,7 +182,7 @@ export const contentService = {
         .fields();
 
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -208,7 +208,7 @@ export const contentService = {
         .fields();
 
       const result = await service_query.modelQuery;
-       const meta = await service_query.countTotal();
+      const meta = await service_query.countTotal();
       return {
         result,
         meta,
@@ -226,7 +226,7 @@ export const contentService = {
     const findUser = await User.findById(userId);
     if (!findUser) {
       throw new ApiError(status.NOT_FOUND, "User not found");
-    } 
+    }
     let filterCondition: any = {};
     if (findUser.role === "superAdmin") {
       // সব content দেখতে পারবে
