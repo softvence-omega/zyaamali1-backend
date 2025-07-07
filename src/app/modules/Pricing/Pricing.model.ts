@@ -71,6 +71,7 @@ const PricingPlanSchema = new mongoose.Schema({
     type: FeaturePricingSchema,
     required: true,
   },
+  
 
   isDeleted: {
     type: Boolean,
