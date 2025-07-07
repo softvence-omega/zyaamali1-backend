@@ -60,6 +60,20 @@ const userSchema = new Schema<TUser>(
       default: true,
     },
 
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    teamMembers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: [],
+      },
+    ],
+
+
     provider: {
       type: String,
       default: null,

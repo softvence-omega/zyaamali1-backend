@@ -118,140 +118,96 @@ export const contentService = {
 
   },
 
-  // async getAllContentFromDB(query: any, userId: string) {
+
+
+  //   // Step 1: Check if user exists
   //   const findUser = await User.findById(userId);
-  //   console.log(findUser, "findUser");
   //   if (!findUser) {
   //     throw new ApiError(status.NOT_FOUND, "User not found");
   //   }
 
-  //   let filterCondition: any = {};
-
+  //   // Step 2: If user is superAdmin → see all content
   //   if (findUser.role === "superAdmin") {
-  //     // সব content দেখতে পারবে
-  //     const service_query = new QueryBuilder(ContentModel.find({ isDeleted: false }), query)
+  //     const serviceQuery = new QueryBuilder(
+  //       ContentModel.find({ isDeleted: false }),
+  //       query
+  //     )
   //       .search(CONTENT_SEARCHABLE_FIELDS)
   //       .filter()
   //       .sort()
   //       .paginate()
   //       .fields();
 
-  //     const result = await service_query.modelQuery;
-  //     const meta = await service_query.countTotal();
-  //     return {
-  //       result,
-  //       meta,
-  //     };
+  //     const result = await serviceQuery.modelQuery;
+  //     const meta = await serviceQuery.countTotal();
 
+  //     return { result, meta };
   //   }
+
+  //   // Step 3: Find the team admin (_id)
+  //   let createdById: string | null = null;
 
   //   if (findUser.role === "admin") {
-  //     // premade → সবই দেখতে পারবে
-  //     // user → owner নিজের হলে দেখতে পারবে
-  //     filterCondition = {
-  //       $or: [
-  //         { source: "premade" },
-  //         { source: "user", owner: findUser._id }
-  //       ]
-  //     };
-
-  //     const service_query = new QueryBuilder(
-  //       ContentModel.find({ ...filterCondition, isDeleted: false }),
-  //       query
-  //     )
-  //       .search(CONTENT_SEARCHABLE_FIELDS)
-  //       .filter()
-  //       .sort()
-  //       .paginate()
-  //       .fields();
-
-
-  //     const result = await service_query.modelQuery;
-  //     const meta = await service_query.countTotal();
-  //     return {
-  //       result,
-  //       meta,
-  //     };
-
+  //     // If current user is admin → team admin is himself
+  //     createdById = findUser._id.toString();
+  //   } else if (findUser.role === "creator") {
+  //     const creator = await User.findOne({ createdBy: findUser._id });
+  //     createdById = creator?.createdBy?.toString() || null;
+  //   } else if (findUser.role === "viewer") {
+  //     const viewer = await User.findOne({ createdBy: findUser._id });
+  //     createdById = viewer?.createdBy?.toString() || null;
   //   }
 
-  //   if (findUser.role === "creator") {
-  //     const findCreator = await Creator.findOne({ userId: findUser._id });
-  //     filterCondition = {
-  //       $or: [
-  //         { source: "premade" },
-  //         { source: "user", owner: findCreator?.createdBy }
-  //       ]
-  //     };
-
-  //     const service_query = new QueryBuilder(
-  //       ContentModel.find({ ...filterCondition, isDeleted: false }),
-  //       query
-  //     )
-  //       .search(CONTENT_SEARCHABLE_FIELDS)
-  //       .filter()
-  //       .sort()
-  //       .paginate()
-  //       .fields();
-
-
-  //     const result = await service_query.modelQuery;
-  //     const meta = await service_query.countTotal();
-  //     return {
-  //       result,
-  //       meta,
-  //     };
-
-
-
-  //   }
-  //   if (findUser.role === "viewer") {
-  //     const findViewer = await Viewer.findOne({ userId: findUser._id });
-  //     filterCondition = {
-  //       $or: [
-  //         { source: "premade" },
-  //         { source: "user", owner: findViewer?.createdBy }
-  //       ]
-  //     };
-
-  //     const service_query = new QueryBuilder(
-  //       ContentModel.find({ ...filterCondition, isDeleted: false }),
-  //       query
-  //     )
-  //       .search(CONTENT_SEARCHABLE_FIELDS)
-  //       .filter()
-  //       .sort()
-  //       .paginate()
-  //       .fields();
-
-
-  //     const result = await service_query.modelQuery;
-  //     const meta = await service_query.countTotal();
-  //     return {
-  //       result,
-  //       meta,
-  //     };
-
-
-
+  //   if (!createdById) {
+  //     throw new ApiError(status.FORBIDDEN, "Team admin not found for this user");
   //   }
 
+  //   // Step 4: Find all content (with owner info)
+  //   const serviceQuery = new QueryBuilder(
+  //     ContentModel.find({ isDeleted: false }).populate("owner"),
+  //     query
+  //   )
+  //     .search(CONTENT_SEARCHABLE_FIELDS)
+  //     .filter()
+  //     .sort()
+  //     .paginate()
+  //     .fields();
 
-  // }
+  //   const allContent = await serviceQuery.modelQuery;
 
+  //   // Step 5: Manual filtering
+  //   const filteredResult = allContent.filter((content: any) => {
+  //     const owner = content.owner;
+  //     if (!owner) return false;
 
+  //     // premade → always visible
+  //     if (content.source === "premade") return true;
+
+  //     // user-generated → allow if:
+  //     return (
+  //       owner._id?.toString() === findUser._id.toString() || // নিজের content
+  //       owner._id?.toString() === createdById ||             // admin নিজে content তৈরি করেছে
+  //       owner.createdBy?.toString() === createdById          // টিম মেম্বার content তৈরি করেছে
+  //     );
+  //   });
+
+  //   const meta = {
+  //     total: filteredResult.length,
+  //   };
+
+  //   return {
+  //     result: filteredResult,
+  //     meta,
+  //   };
+  // },
   async getAllContentFromDB(query: any, userId: string) {
-    // Step 1: Check if user exists
-    const findUser = await User.findById(userId);
-    if (!findUser) {
-      throw new ApiError(status.NOT_FOUND, "User not found");
-    }
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
 
-    // Step 2: If user is superAdmin → see all content
-    if (findUser.role === "superAdmin") {
-      const serviceQuery = new QueryBuilder(
+    if (user.role === "superAdmin") {
+      const qb = new QueryBuilder(
         ContentModel.find({ isDeleted: false }),
-        query
+        query,
       )
         .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
@@ -259,34 +215,22 @@ export const contentService = {
         .paginate()
         .fields();
 
-      const result = await serviceQuery.modelQuery;
-      const meta = await serviceQuery.countTotal();
-
-      return { result, meta };
+      return { result: await qb.modelQuery, meta: await qb.countTotal() };
     }
 
-    // Step 3: Find the team admin (_id)
-    let createdById: string | null = null;
 
-    if (findUser.role === "admin") {
-      // If current user is admin → team admin is himself
-      createdById = findUser._id.toString();
-    } else if (findUser.role === "creator") {
-      const creator = await Creator.findOne({ userId: findUser._id });
-      createdById = creator?.createdBy?.toString() || null;
-    } else if (findUser.role === "viewer") {
-      const viewer = await Viewer.findOne({ userId: findUser._id });
-      createdById = viewer?.createdBy?.toString() || null;
-    }
+    const teamAdminId =
+      user.role === "admin"
+        ? user._id
+        : user.createdBy || null; 
 
-    if (!createdById) {
+    if (!teamAdminId) {
       throw new ApiError(status.FORBIDDEN, "Team admin not found for this user");
     }
 
-    // Step 4: Find all content (with owner info)
-    const serviceQuery = new QueryBuilder(
+    const qb = new QueryBuilder(
       ContentModel.find({ isDeleted: false }).populate("owner"),
-      query
+      query,
     )
       .search(CONTENT_SEARCHABLE_FIELDS)
       .filter()
@@ -294,83 +238,72 @@ export const contentService = {
       .paginate()
       .fields();
 
-    const allContent = await serviceQuery.modelQuery;
+    const contents = await qb.modelQuery;
 
-    // Step 5: Manual filtering
-    const filteredResult = allContent.filter((content: any) => {
-      const owner = content.owner;
-      if (!owner) return false;
+    /* ---------- 5. ফিল্টার (সরল লজিক) ---------- */
+    const result = contents.filter((c: any) => {
+      const owner = c.owner;
 
-      // premade → always visible
-      if (content.source === "premade") return true;
+      if (!owner) return false;             // owner ফাঁকা → বাদ দাও
+      if (c.source === "premade") return true; // premade → সবার জন্য
 
-      // user-generated → allow if:
+      // নিচের তিন শর্তে ‘টিমের’ কনটেন্ট ধরা পড়বে
       return (
-        owner._id?.toString() === findUser._id.toString() || // নিজের content
-        owner._id?.toString() === createdById ||             // admin নিজে content তৈরি করেছে
-        owner.createdBy?.toString() === createdById          // টিম মেম্বার content তৈরি করেছে
+        owner._id.equals(user._id) ||         // যে লগ‑ইন আছে তার নিজের
+        owner._id.equals(teamAdminId) ||      // টিম‑অ্যাডমিনের
+        owner.createdBy?.equals(teamAdminId)  // টিম‑মেম্বারের
       );
     });
 
-    const meta = {
-      total: filteredResult.length,
-    };
-
     return {
-      result: filteredResult,
-      meta,
+      result,
+      meta: { total: result.length },
     };
-  }
+  },
 
 
-
-
-  ,
 
   async getSingleContentFromDB(id: string, userId: string) {
     const findUser = await User.findById(userId);
     if (!findUser) {
-      throw new ApiError(status.NOT_FOUND, "User not found");
+      throw new ApiError(status.NOT_FOUND, 'User not found');
     }
-    let filterCondition: any = {};
-    if (findUser.role === "superAdmin") {
-      // সব content দেখতে পারবে
-      return await ContentModel.findOne({ _id: id, isDeleted: false });
-    }
-    if (findUser.role === "admin") {
-      // premade → সবই দেখতে পারবে
-      // user → owner নিজের হলে দেখতে পারবে
-      filterCondition = {
-        $or: [
-          { source: "premade" },
-          { source: "user", owner: findUser._id }
-        ]
-      };
-      return await ContentModel.findOne({ _id: id, isDeleted: false, ...filterCondition });
-    }
-    if (findUser.role === "creator") {
-      const findCreator = await Creator.findOne({ userId: findUser._id });
-      filterCondition = {
-        $or: [
-          { source: "premade" },
-          { source: "user", owner: findCreator?.createdBy }
-        ]
-      };
-      return await ContentModel.findOne({ _id: id, isDeleted: false, ...filterCondition });
-    }
-    if (findUser.role === "viewer") {
-      const findViewer = await Viewer.findOne({ userId: findUser._id });
-      filterCondition = {
-        $or: [
-          { source: "premade" },
-          { source: "user", owner: findViewer?.createdBy }
-        ]
-      };
-      return await ContentModel.findOne({ _id: id, isDeleted: false, ...filterCondition });
-    }
-    throw new ApiError(status.FORBIDDEN, "You do not have permission to access this content.");
-  },
 
+    const baseFilter = { _id: id, isDeleted: false };
+
+    if (findUser.role === 'superAdmin') {
+      return await ContentModel.findOne(baseFilter).populate('owner');
+    }
+
+    if (findUser.role === 'admin') {
+      const filterCondition = {
+        $or: [
+          { source: 'premade' },
+          { source: 'user', owner: findUser._id }, 
+        ],
+      };
+      return await ContentModel.findOne({ ...baseFilter, ...filterCondition }).populate('owner');
+    }
+
+    if (findUser.role === 'creator' || findUser.role === 'viewer') {
+      if (!findUser.createdBy) {
+        throw new ApiError(status.FORBIDDEN, 'CreatedBy (admin) not found for this user');
+      }
+
+      const filterCondition = {
+        $or: [
+          { source: 'premade' },
+          { source: 'user', owner: findUser.createdBy }, // নিজের admin এর content
+        ],
+      };
+
+      return await ContentModel.findOne({ ...baseFilter, ...filterCondition }).populate('owner');
+    }
+
+    throw new ApiError(status.FORBIDDEN, 'You do not have permission to access this content.');
+  }
+
+  ,
 
   async updateContentIntoDB(id: string, data: Partial<TContent>, userId: string) {
     const session = await mongoose.startSession();
@@ -379,32 +312,14 @@ export const contentService = {
       session.startTransaction();
 
       // 1. Check if user exists
-      const isUserExist = await User.findById(userId).session(session);
-      if (!isUserExist) {
-        throw new ApiError(status.NOT_FOUND, 'User not found');
-      }
 
-      // 2. Check if content exists
-      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false }).session(session);
+      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false, owner: userId });
+      // console.log(isContentExist);
+
       if (!isContentExist) {
-        throw new ApiError(status.NOT_FOUND, 'Content not found');
+        throw new ApiError(status.NOT_FOUND, 'Content not found!')
       }
 
-      // 3. Permission check based on role
-      if (isUserExist.role === 'admin') {
-        if (isContentExist.source !== 'user') {
-          throw new ApiError(status.FORBIDDEN, 'Admin can only update user source content');
-        }
-        if (!isContentExist.owner || !isContentExist.owner.equals(isUserExist._id)) {
-          throw new ApiError(status.FORBIDDEN, 'You do not have permission to update this content');
-        }
-      } else if (isUserExist.role === 'superAdmin') {
-        if (isContentExist.source !== 'premade') {
-          throw new ApiError(status.FORBIDDEN, 'SuperAdmin can only update premade source content');
-        }
-      } else {
-        throw new ApiError(status.FORBIDDEN, 'You do not have permission to update this content');
-      }
 
       // 4. Update content with validation and session
       const updatedContent = await ContentModel.findByIdAndUpdate(id, data, {
@@ -427,54 +342,33 @@ export const contentService = {
   ,
 
   async softDeleteContentFromDB(id: string, userId: string) {
-    const session = await mongoose.startSession()
+    const session = await mongoose.startSession();
 
     try {
       session.startTransaction();
 
       // 1. Check if user exists
-      const isUserExist = await User.findById(userId).session(session);
-      if (!isUserExist) {
-        throw new ApiError(status.NOT_FOUND, 'User not found');
-      }
 
-      // 2. Check if content exists
-      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false }).session(session);
+      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false, owner: userId });
+      // console.log(isContentExist);
+
       if (!isContentExist) {
-        throw new ApiError(status.NOT_FOUND, 'Content not found');
+        throw new ApiError(status.NOT_FOUND, 'Content not found!')
       }
 
-      // 3. Permission check
-      if (isUserExist.role === 'admin') {
-        if (isContentExist.source !== 'user') {
-          throw new ApiError(status.FORBIDDEN, 'Admin can only delete user source content');
-        }
-        if (!isContentExist.owner || !isContentExist.owner.equals(isUserExist._id)) {
-          throw new ApiError(status.FORBIDDEN, 'You do not have permission to delete this content');
-        }
-      } else if (isUserExist.role === 'superAdmin') {
-        if (isContentExist.source !== 'premade') {
-          throw new ApiError(status.FORBIDDEN, 'SuperAdmin can only delete premade source content');
-        }
-      } else {
-        throw new ApiError(status.FORBIDDEN, 'You do not have permission to delete this content');
-      }
 
-      // 4. Perform soft delete (set isDeleted: true)
-      await ContentModel.findByIdAndUpdate(
-        id,
-        { isDeleted: true },
-        {
-          new: true,
-          runValidators: true,
-          session,
-        }
-      );
+      // 4. Update content with validation and session
+    await ContentModel.findByIdAndUpdate(id, { isDeleted: true }, {
+        new: true,
+        runValidators: true,
+        session,
+      });
 
       // 5. Commit transaction
       await session.commitTransaction();
       return null;
     } catch (error) {
+      // Abort transaction on error
       await session.abortTransaction();
       throw error;
     } finally {
