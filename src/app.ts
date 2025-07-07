@@ -37,7 +37,7 @@ app.get("/", (req: Request, res: Response) => {
 export const createDefaultSuperAdmin = async () => {
   try {
     const existingSuperAdmin = await User.findOne({
-      email: "superadmin@adsplatform.com",
+        email: "mohibullamiazi@gmail.com",
     });
 
     const hashedPassword = await bcrypt.hash(
@@ -48,7 +48,7 @@ export const createDefaultSuperAdmin = async () => {
     if (!existingSuperAdmin) {
       await User.create({
         fullName: "Platform Super Admin",
-        email: "superadmin@adsplatform.com",
+        email: "mohibullamiazi@gmail.com",
         password: hashedPassword,
         companyName: "AI Ads HQ",
         role: "superAdmin",

@@ -4,6 +4,7 @@ import status from "http-status";
 import { adCampainModel } from "./adCampain.model";
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
+import { User } from "../user/user.model";
 
 
 
@@ -31,11 +32,41 @@ export const adCampainService = {
   },
 
 
-  async getAllAdCampainFromDB(query: any) {
+  async getAllAdCampainFromDB(query: any, createdBy: any) {
     try {
 
+    // step- 1 : Find login user:
 
-      const service_query = new QueryBuilder(adCampainModel.find(), query)
+    const loginUser = await User.findById(createdBy);
+
+
+    if(!loginUser) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+    let teamUserIds : string[] = [];
+
+    if(loginUser.role === "admin"){
+      // step 2a: admin - include all users they created + self
+      const teamMembers = await User.find({createdBy: loginUser._id});
+      teamUserIds = teamMembers.map((u) => u._id.toString())
+      teamUserIds.push(loginUser._id.toString());
+    }else{
+
+      // step 2b: creator/viewer - get their admin
+      const adminUser = await User.findById(loginUser.createdBy);
+      if(adminUser){
+        const teamMembers  = await User.find({createdBy: adminUser._id})
+        teamUserIds = teamMembers.map((u) => u._id.toString());
+        teamUserIds.push(loginUser._id.toString())
+      }
+      // else{
+      //   // Fallback : show only own campaign
+      //   teamUserIds = [loginUser._id.toString()];
+      // }
+    }
+
+
+
+      const service_query = new QueryBuilder(adCampainModel.find({createdBy: {$in: teamUserIds}, isDeleted: false}), query)
         .search(ADCAMPAIN_SEARCHABLE_FIELDS)
         .filter()
         .sort()

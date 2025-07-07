@@ -15,6 +15,7 @@ export interface TUser {
   isDeleted: boolean;
   isActive?: boolean;
   provider?: string;
+  createdBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -30,8 +30,6 @@ export const creatorService = {
       }
 
 
-
-
       const userData = {
         fullName,
         email,

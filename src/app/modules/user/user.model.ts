@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { TUser } from "./user.interface";
 
 const userSchema = new Schema<TUser>(
@@ -58,6 +58,12 @@ const userSchema = new Schema<TUser>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    // ✅ Fixed createdBy field
+    createdBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
 
     provider: {
