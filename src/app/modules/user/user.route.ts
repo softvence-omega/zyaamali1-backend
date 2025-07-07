@@ -1,7 +1,5 @@
 import express from "express";
 import { UserControllers } from "./user.controller";
-import { validateRequest } from "../../middleWear/validateRequest";
-import { UserValidations } from "./user.validation";
 import auth from "../../middleWear/auth";
 import USER_ROLE from "../../constants/userRole";
 import { upload } from "../../utils/sendFileToCloudinary";
@@ -12,7 +10,6 @@ router.get("/all-user", auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN), UserContro
 router.get("/me", auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN), UserControllers.getMe);
 router.post(
   "/register",
-  // validateRequest(UserValidations.createUserValidationSchema),
   UserControllers.createAUser
 );
 

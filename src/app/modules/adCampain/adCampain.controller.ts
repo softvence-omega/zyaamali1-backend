@@ -3,15 +3,22 @@ import { adCampainService } from "./adCampain.service";
 import sendResponse from "../../utils/sendResponse";
 import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
+import ApiError from "../../errors/ApiError";
+import httpStatus from "http-status";
 
 const postAdCampain = catchAsync(async (req: Request, res: Response) => {
 
-  const result = await adCampainService.postAdCampainIntoDB(req.body);
+  const createdBy = req.loggedInUser.userId;
+
+
+  const result = await adCampainService.postAdCampainIntoDB({ ...req.body, createdBy });
+
   sendResponse(res, { statusCode: status.CREATED, success: true, message: "Created successfully", data: result });
 });
 
 const getAllAdCampain = catchAsync(async (req: Request, res: Response) => {
-  const result = await adCampainService.getAllAdCampainFromDB(req.query);
+  const createdBy = req.loggedInUser.userId
+  const result = await adCampainService.getAllAdCampainFromDB(req.query, createdBy);
   sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
 });
 
