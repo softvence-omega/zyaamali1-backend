@@ -7,10 +7,12 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 
 const postAdCampain = catchAsync(async (req: Request, res: Response) => {
+
   const createdBy = req.loggedInUser.userId;
 
 
   const result = await adCampainService.postAdCampainIntoDB({ ...req.body, createdBy });
+
   sendResponse(res, { statusCode: status.CREATED, success: true, message: "Created successfully", data: result });
 });
 
@@ -25,6 +27,11 @@ const getSingleAdCampain = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
 });
 
+const getAdCampainsInfo = catchAsync(async (req: Request, res: Response) => {
+  const result = await adCampainService.getAdDashboardSummary(req.loggedInUser.userId)
+  sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
+})
+
 const updateAdCampain = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id
   const result = await adCampainService.updateAdCampainIntoDB(req.body, id);
@@ -37,4 +44,4 @@ const deleteAdCampain = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-export const adCampainController = { postAdCampain, getAllAdCampain, getSingleAdCampain, updateAdCampain, deleteAdCampain };
+export const adCampainController = { postAdCampain, getAllAdCampain, getSingleAdCampain, updateAdCampain, deleteAdCampain ,getAdCampainsInfo};
