@@ -91,6 +91,73 @@ export const adCampainService = {
       throw error;
     }
   },
+  // async getAdCampainsInfoFromDB(userId: string) {
+
+  //   const isUserExists = await User.findById(userId)
+  //   console.log(isUserExists);
+
+  //   if (!isUserExists) {
+  //     throw new ApiError(status.NOT_FOUND, "Users not found!")
+  //   }
+
+  //   const result = await adCampainModel.find()
+  //   return result
+
+  // },
+
+
+  async getAdDashboardSummary(userId: string) {
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
+
+    // Step 1: Get all non-deleted campaigns + createdBy
+    const allCampaigns = await adCampainModel
+      .find({ isDeleted: false })
+      .populate("createdBy");
+
+    // Step 2: Get Team Admin ID for viewer/creator
+    const teamAdminId =
+      user.role === 'admin' ? user._id : user.createdBy || null;
+
+    // Step 3: Filter Campaigns based on Role
+    const campaigns = allCampaigns.filter((campaign: any) => {
+      const owner = campaign.createdBy;
+      if (!owner) return false;
+
+      if (user.role === 'superAdmin') return true;
+
+      return (
+        owner._id.equals(user._id) ||
+        owner._id.equals(teamAdminId) ||
+        owner.createdBy?.equals(teamAdminId)
+      );
+    });
+
+    // Step 4: Summary Calculations
+    const activeCampaigns = campaigns.filter(c => c.status === 'ACTIVE');
+
+    const totalImpressions = campaigns.reduce((sum, c) => sum + (c.stats?.impressions || 0), 0);
+    const totalClicks = campaigns.reduce((sum, c) => sum + (c.stats?.clicks || 0), 0);
+    const engagementRate = totalImpressions ? (totalClicks / totalImpressions) * 100 : 0;
+
+    const totalDailyBudget = campaigns.reduce((sum, c) => sum + (c.budget?.daily || 0), 0);
+    const averageDailyBudget = campaigns.length ? totalDailyBudget / campaigns.length : 0;
+
+    const totalRoas = campaigns.reduce((sum, c) => sum + (c.stats?.roas || 0), 0);
+    const roi = campaigns.length ? totalRoas / campaigns.length : 0;
+
+    return {
+      activeCampaignsCount: activeCampaigns.length,
+      totalImpressions,
+      engagementRate: parseFloat(engagementRate.toFixed(2)),
+      averageDailyBudget: parseFloat(averageDailyBudget.toFixed(2)),
+      roi: parseFloat(roi.toFixed(2))
+    };
+  }
+
+
+
+  ,
 
   async updateAdCampainIntoDB(payload: any, id: any) {
     try {
@@ -115,27 +182,27 @@ export const adCampainService = {
       throw error;
     }
   },
-  async deleteAdCampaignFromDB(id: string) {
-    try {
-      const existing = await adCampainModel.findById(id);
+    async deleteAdCampaignFromDB(id: string) {
+  try {
+    const existing = await adCampainModel.findById(id);
 
-      if (!existing) {
-        throw new ApiError(httpStatus.NOT_FOUND, 'Ad campaign not found');
-      }
-
-      if (existing.isDeleted) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Ad campaign already deleted');
-      }
-
-      const deleted = await adCampainModel.findByIdAndUpdate(
-        id,
-        { isDeleted: true },
-        { new: true }
-      );
-
-      return deleted;
-    } catch (error) {
-      throw error;
+    if (!existing) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Ad campaign not found');
     }
+
+    if (existing.isDeleted) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Ad campaign already deleted');
+    }
+
+    const deleted = await adCampainModel.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { new: true }
+    );
+
+    return deleted;
+  } catch (error) {
+    throw error;
   }
+}
 };
