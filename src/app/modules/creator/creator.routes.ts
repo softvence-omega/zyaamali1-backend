@@ -3,7 +3,6 @@ import express from "express";
 import { creatorController } from "./creator.controller";
 import auth from "../../middleWear/auth";
 import USER_ROLE from "../../constants/userRole";
-import { upload } from "../../utils/sendFileToCloudinary";
 
 const router = express.Router();
 

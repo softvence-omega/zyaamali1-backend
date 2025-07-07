@@ -19,7 +19,7 @@ const PricingSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    token: {
+    credit: {
       type: Number,
       required: true,
       min: 0,
