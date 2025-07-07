@@ -138,47 +138,78 @@ const uploadImageIntoDB = async (userData: any, file: any) => {
 
 
 const updateProfile = async (id: string, payload: Partial<TUser>) => {
-
-  const isUserExist = await User.findOne({
-    _id: id,
-    isDeleted: false,
-  });
-  if (!isUserExist) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-  let result;
-  if (isUserExist.role === "admin") {
-    result = await User.findOneAndUpdate(
-      { _id: id },
-      { ...payload },
-      { new: true, runValidators: true }
-    );
+  const user = await User.findOne({ _id: id, isDeleted: false });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  if (isUserExist.role === "viewer") {
-    result = await User.findOneAndUpdate(
-      { _id: id },
-      { fullName: payload.fullName },
-      { new: true, runValidators: true }
-    );
-    await Viewer.updateOne(
-      { userId: id },
-      { fullName: payload.fullName },
-      { runValidators: true }
-    );
-  } else if (isUserExist.role === "creator") {
-    result = await User.findOneAndUpdate(
-      { _id: id },
-      { fullName: payload.fullName },
-      { new: true, runValidators: true }
-    );
-    await Creator.updateOne(
-      { userId: id },
-      { fullName: payload.fullName },
-      { runValidators: true }
-    );
+  // === For admin role ===
+  if (user.role === "admin") {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Step 1: Filter payload to get only updatable fields
+      const updateFields: Record<string, unknown> = {};
+      if (payload.fullName) updateFields.fullName = payload.fullName;
+      if (payload.companyName) updateFields.companyName = payload.companyName;
+      if (payload.country) updateFields.country = payload.country;
+
+      // Step 2: Update the admin's own profile
+      const updatedAdmin = await User.findOneAndUpdate(
+        { _id: id },
+        { $set: updateFields },
+        { new: true, runValidators: true, session }
+      );
+
+      // Step 3: Update child users (teamMembers) if companyName or country is updated
+      const childUpdateFields: Record<string, unknown> = {};
+      if (payload.companyName) childUpdateFields.companyName = payload.companyName;
+      if (payload.country) childUpdateFields.country = payload.country;
+
+      if (Object.keys(childUpdateFields).length > 0) {
+        await User.updateMany(
+          { createdBy: user._id },
+          { $set: childUpdateFields },
+          { session }
+        );
+      }
+
+      // Step 4: Commit the transaction
+      await session.commitTransaction();
+      return updatedAdmin;
+
+    } catch (error) {
+      // Rollback if any error occurs
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
   }
 
-  return result
-}
+  // === For viewer or creator role ===
+  if (user.role === "viewer" || user.role === "creator") {
+    const updateFields: Record<string, unknown> = {};
+    if (payload.fullName) updateFields.fullName = payload.fullName;
+
+    if (Object.keys(updateFields).length === 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "No valid fields to update");
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
+
+    return updatedUser;
+  }
+
+  // === For any other role ===
+  throw new ApiError(httpStatus.FORBIDDEN, "Role is not allowed to update profile");
+};
+
 
 
 
