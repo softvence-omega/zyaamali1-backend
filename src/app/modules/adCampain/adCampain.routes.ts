@@ -13,8 +13,8 @@ router.post("/post-ads-campaign",auth(USER_ROLE.ADMIN), adCampainController.post
 router.get("/get-all-ads-campaign",auth(USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.VIEWER), adCampainController.getAllAdCampain);
 router.get("/get-single-ads-campaign/:id",auth(USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.VIEWER), adCampainController.getSingleAdCampain);
 router.get('/dashboard-summary', auth(USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.VIEWER), adCampainController.getAdCampainsInfo)
-router.put("/update-ads-campaign/:id", adCampainController.updateAdCampain);
-router.delete("/delete-ads-campaign/:id", adCampainController.deleteAdCampain);
+router.put("/update-ads-campaign/:id", auth(USER_ROLE.ADMIN),adCampainController.updateAdCampain);
+router.delete("/delete-ads-campaign/:id",auth(USER_ROLE.ADMIN), adCampainController.deleteAdCampain);
 
 
 export const adCampainRoutes = router;

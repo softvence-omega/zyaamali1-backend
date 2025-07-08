@@ -9,7 +9,7 @@ import { FacebookAdsApi, User, AdAccount } from 'facebook-nodejs-business-sdk';
 
 
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
-  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${config.facebookAppId}&redirect_uri=${config.facebookRedirectUri}&scope=ads_management,ads_read,pages_show_list`;
+  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${config.facebookAppId}&redirect_uri=${config.facebookRedirectUri}&scope=ads_management,business_management,pages_show_list,pages_read_engagement`;
   res.redirect(authUrl);
 };
 
