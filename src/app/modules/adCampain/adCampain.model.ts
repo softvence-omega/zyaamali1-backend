@@ -35,6 +35,7 @@ const AdCampaignSchema = new Schema<IAdCampaign>(
       total: { type: Number, required: true },
       startDate: { type: Date, required: true },
       endDate: { type: Date, required: true },
+      costPerClick: { type: Number, required: true },
     },
 
     /* ─────────── Lifecycle status ─────────── */
@@ -50,6 +51,9 @@ const AdCampaignSchema = new Schema<IAdCampaign>(
       clicks: { type: Number, default: 0 },
       conversions: { type: Number, default: 0 },
       roas: { type: Number, default: 0 },
+      reach: { type: Number, default: 0 },
+      revenue: { type: Number, default: 0 }
+
     },
 
     /* ─────────── Ad copy & media ─────────── */
@@ -57,7 +61,7 @@ const AdCampaignSchema = new Schema<IAdCampaign>(
       prompt: { type: String },
       generatedText: { type: String },
     },
-    
+
     isDeleted: {
       type: Boolean,
       default: false
@@ -67,7 +71,7 @@ const AdCampaignSchema = new Schema<IAdCampaign>(
     mediaFiles: { type: [String], default: [] },  // direct URLs / IDs
     externalAdId: { type: String },
 
-   
+
 
     mediaAssets: [
       {
