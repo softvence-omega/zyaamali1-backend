@@ -68,7 +68,26 @@ const uploadImage = catchAsync(async (req, res) => {
 });
 
 
+const updateProfile = catchAsync(async (req, res) => {
+  const result = await UserServices.updateProfile(req.loggedInUser.userId, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Profile updated successfully.",
+    data: result,
+  });
+});
 
+
+const deleteProfile = catchAsync(async (req, res) => {
+  const result = await UserServices.deleteProfile(req.loggedInUser.userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Profile deleted successfully.",
+    data: result,
+  });
+});
 
 
 
@@ -84,4 +103,5 @@ export const UserControllers = {
   getAllUsers,
   createAUser,
   uploadImage,
+  updateProfile, deleteProfile
 };

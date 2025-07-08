@@ -1,0 +1,1 @@
+export const ADCAMPAIN_SEARCHABLE_FIELDS = ["title"];

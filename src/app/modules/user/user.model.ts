@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { TUser } from "./user.interface";
 
 const userSchema = new Schema<TUser>(
@@ -59,6 +59,26 @@ const userSchema = new Schema<TUser>(
       type: Boolean,
       default: true,
     },
+    // ✅ Fixed createdBy field
+    createdBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    teamMembers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: [],
+      },
+    ],
+
 
     provider: {
       type: String,

@@ -11,6 +11,8 @@ import { businessRoutes } from "../modules/business/business.route";
 import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
+import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
+import { reportsRoutes } from "../modules/reports/reports.routes";
 
 
 const router = Router();
@@ -48,8 +50,7 @@ const moduleRoutes = [
   {
     path: "/ads",
     route: createCampaignRoute,
-  },
-  {
+  }, {
     path: "/business",
     route: businessRoutes,
   },
@@ -64,6 +65,14 @@ const moduleRoutes = [
   {
     path: "/content",
     route: contentRoutes
+  },
+  {
+    path: "/ads",
+    route: reportsRoutes
+  },
+  {
+    path: "/ads-campaign",
+    route: adCampainRoutes
   }
 ];
 
