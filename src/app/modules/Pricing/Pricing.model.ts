@@ -57,6 +57,18 @@ const PricingPlanSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  stripePriceId: {
+    type: String,
+    unique: true, 
+    sparse: true, 
+  },
+
+  billingInterval: {
+    type: String,
+    enum: ["month", "year"],
+    default: "month", // Default to monthly if not specified
+  },
+
 
   // features: {
   //   maxBusinesses: { type: Number, default: 1 },
@@ -76,6 +88,7 @@ const PricingPlanSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  
 }, { timestamps: true });
 
 export const PricingModel = mongoose.model("PricingPlan", PricingPlanSchema);
