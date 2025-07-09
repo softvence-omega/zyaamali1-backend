@@ -144,7 +144,7 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
 
 const getGoogleAuthURL = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.generateGoogleAuthURL();
-
+  console.log(authURL)
   res.redirect(authURL);
 };
 
@@ -168,11 +168,15 @@ const handleGoogleCallback = async (req: Request, res: Response) => {
 
 
 
+
+
 // for tiktok 
 
 
 const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
+   console.log('================== from tikto redirect url',url)
+
   res.redirect(url);
 };
 

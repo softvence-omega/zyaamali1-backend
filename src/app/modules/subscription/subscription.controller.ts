@@ -21,6 +21,7 @@ import httpStatus from "http-status";
 import { User } from "../user/user.model";
 import mongoose from "mongoose";
 
+
 export const createCheckoutSession = async (req: Request, res: Response) => {
   const { pricingPlanId, userId, email } = req.body;
 
@@ -111,9 +112,13 @@ export const getSubscriptionStatus = async (req: Request, res: Response) => {
   res.json({ isActive });
 };
 
+
+
 export const handleStripeWebhook = async (req: Request, res: Response) => {
+  console.log('from hanele stripe web hook ')
   const sig = req.headers['stripe-signature'] as string | undefined;
   const webhookSecret = config.STRIPE_WEBHOOK_SECRET;
+
 
   if (!sig || !webhookSecret) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Missing Stripe signature or webhook secret');
@@ -156,9 +161,9 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
           throw new ApiError(httpStatus.NOT_FOUND, 'Pricing plan not found');
         }
 
-        await User.findByIdAndUpdate(
+        await User.findByIdAndUpdate( 
           session.metadata.userId,
-          { $inc: { token: pricingPlan.token } },
+          { $inc: { token: pricingPlan.totalCredits } },
           { new: true, session: sessionDb }
         );
       }
