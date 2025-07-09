@@ -16,7 +16,7 @@ const app = express();
 
 
 app.post(
-  "/api/v1/subscriptions/webhook",
+  "/api/v1/subscription/webhook",
   express.raw({ type: "application/json" }),
   handleStripeWebhook
 );
@@ -28,6 +28,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.use("/api/v1", router);
+
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello harmonia!");

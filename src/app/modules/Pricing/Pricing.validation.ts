@@ -20,8 +20,8 @@ export const PricingPostValidation = z.object({
       })
       .nonnegative("Price cannot be negative"),
 
-    token: z.number({
-      required_error: "Token is required",
+    totalCredits: z.number({
+      required_error: "totalCredits is required",
     }),
 
   }),
