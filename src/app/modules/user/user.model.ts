@@ -51,6 +51,12 @@ const userSchema = new Schema<TUser>(
       default: 0
 
     },
+    stripeCustomerId: {
+      type: String,
+      default: null,
+      required: false,
+    },
+
     isDeleted: {
       type: Boolean,
       default: false,
@@ -66,11 +72,6 @@ const userSchema = new Schema<TUser>(
       default: null,
     },
 
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
     teamMembers: [
       {
         type: Schema.Types.ObjectId,

@@ -13,6 +13,7 @@ export interface TUser {
   password?: string;
   role: "superAdmin" | "admin" | "creator" | "viewer";
   credit?: number;
+  stripeCustomerId?: string | null; // Stripe customer ID for subscription management
   isDeleted: boolean;
   isActive?: boolean;
   provider?: string;

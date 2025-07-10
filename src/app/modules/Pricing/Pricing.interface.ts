@@ -4,5 +4,6 @@ export interface IPricing {
   price: number;
   totalCredits: number;
   stripePriceId?: string; // Stripe price ID for recurring payments
+  billingInterval: "month" | "year" | "day"; // Billing interval for the plan
   isDeleted?: boolean;
 }

@@ -20,6 +20,7 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { User } from "../user/user.model";
 import mongoose from "mongoose";
+import { getLatestSubscriptionByUser } from "../../utils/subscriptionUtils";
 
 export const createCheckoutSession = async (req: Request, res: Response,) => {
   const { pricingPlanId, userId, email, autoRenew } = req.body;
@@ -27,11 +28,26 @@ export const createCheckoutSession = async (req: Request, res: Response,) => {
   const plan = await PricingModel.findById(pricingPlanId);
   if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-  const customer = await stripe.customers.create({ email });
+
+
+  // Fetch the user document by ID
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  let customerId = user.stripeCustomerId;
+
+  // Create one-time if not exists
+  if (!customerId) {
+    const customer = await stripe.customers.create({ email });
+    customerId = customer.id;
+
+    user.stripeCustomerId = customerId;
+    await user.save();
+  }
 
   const sessionParams: any = {
     payment_method_types: ["card"],
-    customer: customer.id,
+    customer: customerId,
     line_items: [],
     success_url: `${process.env.CLIENT_URL}/subscription-success`,
     cancel_url: `${process.env.CLIENT_URL}/subscription-cancel`,
@@ -43,6 +59,19 @@ export const createCheckoutSession = async (req: Request, res: Response,) => {
   };
 
   if (autoRenew) {
+
+    // ✅ Check existing active auto-renew subscription and cancel it
+    const latestSub = await getLatestSubscriptionByUser(userId);
+
+    if (latestSub?.autoRenew && latestSub.stripeSubscriptionId) {
+      await stripe.subscriptions.update(latestSub.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+
+      latestSub.autoRenew = false;
+      await latestSub.save();
+    }
+
     sessionParams.mode = "subscription";
     sessionParams.line_items = [
       {
@@ -66,9 +95,6 @@ export const createCheckoutSession = async (req: Request, res: Response,) => {
 
   const session = await stripe.checkout.sessions.create(sessionParams);
   res.json({ url: session.url });
-
-
-
 }
 
 // export const cancelSubscription = async (req: Request, res: Response) => {
@@ -88,29 +114,77 @@ export const createCheckoutSession = async (req: Request, res: Response,) => {
 // };
 
 export const cancelSubscription = async (req: Request, res: Response) => {
-  const { subscriptionId } = req.body;
+  const userId = req.user?._id || req.body.userId;
 
-  const subscription = await subscriptionModel.findOne({ stripeSubscriptionId: subscriptionId });
+  const subscription = await getLatestSubscriptionByUser(userId);
+
   if (!subscription) {
     return res.status(404).json({ message: "Subscription not found" });
   }
 
-  await stripe.subscriptions.update(subscriptionId, {
-    cancel_at_period_end: true, // graceful cancel
+  if (!subscription.stripeSubscriptionId) {
+    return res.status(400).json({ message: "Stripe subscription ID is missing" });
+  }
+
+  await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+    cancel_at_period_end: true,
   });
 
-
-
-  subscription.status = "cancelled_auto_renew";
+  subscription.status = "cancelled";
   subscription.autoRenew = false;
   await subscription.save();
 
   res.json({ message: "Auto-renew cancelled. Will stop after current billing period." });
-
 };
 
 
+export const reactivateSubscription = async (req: Request, res: Response) => {
+  const userId = req.user?._id || req.body.userId;
 
+  const subscription = await getLatestSubscriptionByUser(userId);
+
+  if (!subscription) {
+    return res.status(404).json({ message: "Subscription not found" });
+  }
+
+  if (subscription.status !== 'cancelled') {
+    return res.status(400).json({ message: "Only cancelled subscriptions can be reactivated" });
+  }
+
+  if (!subscription.stripeSubscriptionId) {
+    return res.status(400).json({ message: "Stripe subscription ID is missing" });
+  }
+
+  const updatedStripeSub = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+    cancel_at_period_end: false,
+  });
+
+  subscription.status = 'active';
+  subscription.autoRenew = true;
+  await subscription.save();
+
+  res.json({
+    message: "Subscription auto-renew reactivated successfully",
+    stripeStatus: updatedStripeSub.status,
+  });
+};
+
+
+export const getLatestUserSubscription = async (req: Request, res: Response) => {
+  const userId = req.user?._id || req.body.userId;
+
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  const subscription = await getLatestSubscriptionByUser(userId);
+
+  if (!subscription) {
+    return res.status(404).json({ message: "No subscription found" });
+  }
+
+  res.json({ subscription });
+};
 
 
 
@@ -123,7 +197,7 @@ export const checkSubscription = async (
 
   const subscription = await subscriptionModel
     .findOne({ userId })
-    .sort({ currentPeriodEnd: -1 });
+    .sort({ paymentDate: -1 });
 
   if (
     !subscription ||
@@ -138,20 +212,67 @@ export const checkSubscription = async (
 
   next();
 };
+
 export const getSubscriptionStatus = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?._id || req.body.userId;
+
+    const subscription = await subscriptionModel
+      .findOne({ userId })
+      .sort({ paymentDate: -1 }); // latest subscription
+
+    if (!subscription || subscription.status !== "active") {
+      return res.json({ isActive: false });
+    }
+
+    res.json({ isActive: true });
+  } catch (error) {
+    console.error("Error getting subscription status:", error);
+    res.status(500).json({ isActive: false, message: "Internal server error" });
+  }
+};
+
+export const setSubscriptionStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
   const userId = req.user?._id || req.body.userId;
+  const subscription = await subscriptionModel
+    .findOne({ userId })
+    .sort({ paymentDate: -1 });
 
-  const subscription = await subscriptionModel.findOne({ userId }).sort({ currentPeriodEnd: -1 });
+  if (!subscription) return next();
 
-  if (!subscription) {
-    return res.json({ isActive: false });
+  const plan = await PricingModel.findById(subscription.pricingPlanId);
+  if (!plan) return next();
+
+  const now = new Date();
+  const paymentDate = subscription.paymentDate;
+  let expiryDate = new Date(paymentDate);
+
+  // Extend based on billing interval
+  if (plan.billingInterval === "month") {
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+  } else if (plan.billingInterval === "year") {
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
   }
 
-  const isActive =
-    subscription.status === 'active';
+  if (now > expiryDate) {
+    subscription.status = "expired";
+    await subscription.save();
 
-  res.json({ isActive });
+  } else {
+    subscription.status = "active";
+    await subscription.save();
+  }
+  res.json({ message: "Subscription status updated successfully" });
 };
+
+
+
+
 
 export const handleStripeWebhook = async (req: Request, res: Response) => {
 
@@ -192,6 +313,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         status: session.payment_status,
         amountPaid: session.amount_total,
         currency: session.currency,
+        paymentDate: new Date(session.created * 1000), // Convert to Date
         autoRenew,
       }], { session: sessionDb });
 
@@ -205,7 +327,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
         await User.findByIdAndUpdate(
           session.metadata.userId,
-          { $inc: { credit: pricingPlan.totalCredits } },
+          { credit: pricingPlan.totalCredits },
           { new: true, session: sessionDb }
         );
       }
@@ -234,9 +356,19 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       const plan = await PricingModel.findById(sub.pricingPlanId);
       if (plan) {
         await User.findByIdAndUpdate(sub.userId, {
-          $inc: { token: plan.totalCredits },
+          credit: plan.totalCredits,
         });
       }
+    }
+  }
+  // Handle subscription cancellation
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as any;
+    const sub = await subscriptionModel.findOne({ stripeSubscriptionId: subscription.id });
+    if (sub) {
+      sub.status = "canceled";
+      sub.autoRenew = false;
+      await sub.save();
     }
   }
 

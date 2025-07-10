@@ -40,7 +40,7 @@ const moduleRoutes = [
     route: UserRoutes,
   },
   {
-    path: "/subscription",
+    path: "/subscriptions",
     route: subscriptionRoutes,
   },
   {

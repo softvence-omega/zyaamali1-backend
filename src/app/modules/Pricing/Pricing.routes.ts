@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post(
   "/create-pricing",
-  auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.SUPER_ADMIN),
   validateRequest(PricingPostValidation),
   PricingController.postPricing
 );
@@ -20,11 +20,11 @@ router.get("/get-all-pricing", PricingController.getAllPricing);
 router.get("/get-single-pricing/:id", PricingController.getSinglePricing);
 router.put(
   "/update-pricing/:id",
-  auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.SUPER_ADMIN),
 
   validateRequest(PricingUpdateValidation),
   PricingController.updatePricing
 );
-router.delete("/delete-pricing/:id", auth(USER_ROLE.ADMIN), PricingController.deletePricing);
+router.delete("/delete-pricing/:id", auth(USER_ROLE.SUPER_ADMIN), PricingController.deletePricing);
 
 export const PricingRoutes = router;

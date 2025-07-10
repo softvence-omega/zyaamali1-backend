@@ -1,36 +1,41 @@
 import mongoose from "mongoose";
 
-const FeaturePricingSchema = new mongoose.Schema({
-  aiTextGeneration: {
-    perWordCredits: { type: Number, require: true }
+const FeatureCreditSchema = new mongoose.Schema({
+  aiImage: { type: Number, default: 0 },
+  aiVideo: { type: Number, default: 0 },
+  aiText: { type: Number, default: 0 },
+  publishFacebook: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  imageGeneration: {
-    perImageCredits: { type: Number, required: true },
+  publishInstagram: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  videoGeneration: {
-    perVideoCredits: { type: Number, required: true },
+  publishYouTube: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true}
   },
-  adTargetingSuggestion: {
-    perTargetingCredits: { type: Number, required: true }, // like AI targeting
+  publishLinkedIn: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  facebookAdSpend: {
-    creditPerDollar: { type: Number, required: true }, // e.g., 1 USD = 10 credits
+  publishTikTok: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  googleAdSpend: {
-    creditPerDollar: { type: Number, required: true },
+  publishGoogle: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  tiktokAdSpend: {
-    creditPerDollar: { type: Number, required: true },
+  publishTwitter: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  linkedInAdSpend: {
-    creditPerDollar: { type: Number, required: true },
+  publishSnapchat: {
+    credit: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true }
   },
-  instagramAdSpend: {
-    creditPerDollar: { type: Number, required: true },
-  },
-
-
-
 
 }, { _id: false });
 
@@ -59,13 +64,13 @@ const PricingPlanSchema = new mongoose.Schema({
   },
   stripePriceId: {
     type: String,
-    unique: true, 
-    sparse: true, 
+    unique: true,
+    sparse: true,
   },
 
   billingInterval: {
     type: String,
-    enum: ["month", "year"],
+    enum: ["month", "year", "day"], // Added "day" for daily billing
     default: "month", // Default to monthly if not specified
   },
 
@@ -80,7 +85,7 @@ const PricingPlanSchema = new mongoose.Schema({
   // },
 
   featureCosts: {
-    type: FeaturePricingSchema,
+    type: FeatureCreditSchema,
     required: true,
   },
 
@@ -88,7 +93,7 @@ const PricingPlanSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  
+
 }, { timestamps: true });
 
 export const PricingModel = mongoose.model("PricingPlan", PricingPlanSchema);
