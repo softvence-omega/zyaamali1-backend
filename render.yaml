@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: zyaamali_backend
+    env: node
+    plan: free
+    repo: https://github.com/softvence-omega/zyaamali1-backend
+    branch: soyaib
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
