@@ -1,10 +1,9 @@
 import express from "express";
 import {
   cancelSubscription,
-  checkSubscription,
-  handleStripeWebhook,
   createCheckoutSession,
   getSubscriptionStatus,
+
 } from "./subscription.controller";
 import USER_ROLE from "../../constants/userRole";
 import auth from "../../middleWear/auth";

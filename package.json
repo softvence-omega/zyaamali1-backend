@@ -35,7 +35,7 @@
     "nodemailer": "^6.9.13",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "stripe": "^18.1.0",
+    "stripe": "^18.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

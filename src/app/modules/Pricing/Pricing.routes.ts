@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post(
   "/create-pricing",
-  auth(USER_ROLE.ADMIN),
+  auth(USER_ROLE.ADMIN), 
   validateRequest(PricingPostValidation),
   PricingController.postPricing
 );

@@ -48,7 +48,7 @@ const moduleRoutes = [
     route: ConversationRoutes,
   },
   {
-    path: "/ads",
+    path: "/create-ads",
     route: createCampaignRoute,
   }, {
     path: "/business",
