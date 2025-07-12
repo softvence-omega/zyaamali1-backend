@@ -26,6 +26,7 @@
     "express-session": "^1.18.1",
     "facebook-nodejs-business-sdk": "^23.0.0",
     "form-data": "^4.0.3",
+    "google-ads-api": "^20.0.1",
     "google-auth-library": "^9.15.1",
     "http-status": "^1.7.4",
     "i": "^0.3.7",

@@ -8,8 +8,10 @@ router.post('/facebook/upload-image', createCampaignController.uploadImageContro
 router.post('/facebook-ads', createCampaignController.createAdController);
 
 
+// for google
 
-
+router.post('/create-google-ad', createCampaignController.createGoogleCampaign);
+router.get('/spend', createCampaignController.getGoogleCampaignSpend);
 
 
 
