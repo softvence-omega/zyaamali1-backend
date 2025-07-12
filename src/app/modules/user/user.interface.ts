@@ -12,13 +12,12 @@ export interface TUser {
   email: string;
   password?: string;
   role: "superAdmin" | "admin" | "creator" | "viewer";
-  credit?: number;
   stripeCustomerId?: string | null; // Stripe customer ID for subscription management
+  currentSubscriptionId?: Types.ObjectId | null; // Reference to the current subscription
   isDeleted: boolean;
-  isActive?: boolean;
   provider?: string;
   createdBy: Types.ObjectId | null;
-  teamMembers: Types.ObjectId[];      // যাদের এই user‑এর অধীনে যোগ করা হয়েছে
+  teamMembers: Types.ObjectId[]; 
 
   createdAt?: Date;
   updatedAt?: Date;

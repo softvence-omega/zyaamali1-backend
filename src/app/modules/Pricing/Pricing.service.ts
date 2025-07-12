@@ -30,7 +30,7 @@ export const PricingService = {
 
       // Create Stripe Price (recurring)
       const price = await stripe.prices.create({
-        unit_amount: data.price * 100, // cents
+        unit_amount: Math.round(data.price * 100), // centsconst amountInCents = Math.round(priceInUSD * 100);
         currency: "usd",
         recurring: { interval: data.billingInterval || "month" },// "month" or "year"
         product: product.id,
@@ -108,7 +108,7 @@ export const PricingService = {
       // Stripe prices are immutable — if amount or billingInterval changes, create a new price
       if (data.price && data.price !== existingPricing.price || data.billingInterval && data.billingInterval !== existingPricing.billingInterval) {
         const newPrice = await stripe.prices.create({
-          unit_amount: data.price * 100,
+          unit_amount: Math.round(data.price * 100),
           currency: "usd",
           recurring: {
             interval: data.billingInterval || "month"

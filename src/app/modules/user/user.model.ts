@@ -43,16 +43,15 @@ const userSchema = new Schema<TUser>(
       enum: ["superAdmin", "admin", "creator", "viewer"],
       default: "admin",
     },
-    credit: {
-      type: Number,
-
-      required: false,
-      min: 0,
-      default: 0
-
-    },
+    
     stripeCustomerId: {
       type: String,
+      default: null,
+      required: false,
+    },
+    currentSubscriptionId: {
+      type: Schema.Types.ObjectId,
+      ref: "Subscription",
       default: null,
       required: false,
     },
@@ -60,10 +59,6 @@ const userSchema = new Schema<TUser>(
     isDeleted: {
       type: Boolean,
       default: false,
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
     },
     // ✅ Fixed createdBy field
     createdBy: {
@@ -79,8 +74,6 @@ const userSchema = new Schema<TUser>(
         default: [],
       },
     ],
-
-
     provider: {
       type: String,
       default: null,
