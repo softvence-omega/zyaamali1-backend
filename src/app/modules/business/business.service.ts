@@ -6,9 +6,6 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import { BUSINESS_SEARCHABLE_FIELDS } from "./business.constant";
 
 const addBusiness = async (payload: any) => {
-    console.log(payload);
-    // console.log("Adding business with payload:", payload);
-
     // Check if a business with the same name already exists for the user
 
     const isUserExists = await User.findOne({

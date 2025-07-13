@@ -20,6 +20,8 @@ import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
 import { User } from "../user/user.model";
 import mongoose from "mongoose";
+import { sendEmail } from "../../utils/PaymentEmail";
+import { paymentSuccessTemplate } from "../../utils/templates/paymentSuccessTemplate";
 
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
@@ -140,49 +142,6 @@ export const reactivateSubscription = async (req: Request, res: Response) => {
   });
 };
 
-
-// export const getLatestUserSubscription = async (req: Request, res: Response) => {
-//   const userId = req.user?._id || req.body.userId;
-
-//   if (!userId) {
-//     return res.status(400).json({ message: "User ID is required" });
-//   }
-
-//   const subscription = await getLatestSubscriptionByUser(userId);
-
-//   if (!subscription) {
-//     return res.status(404).json({ message: "No subscription found" });
-//   }
-
-//   res.json({ subscription });
-// };
-
-
-
-// export const checkSubscription = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   const userId = req.user?._id || req.body.userId;
-
-//   const subscription = await subscriptionModel
-//     .findOne({ userId })
-//     .sort({ paymentDate: -1 });
-
-//   if (
-//     !subscription ||
-//     subscription.status !== "active"
-//   ) {
-//     return res
-//       .status(403)
-//       .json({
-//         message: "You need an active subscription to access this feature.",
-//       });
-//   }
-
-//   next();
-// };
 
 export const getSubscriptionStatus = async (req: Request, res: Response) => {
   try {
@@ -306,15 +265,22 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       user.currentSubscriptionId = createdSub[0]._id;
       await user.save({ session: sessionDb });  
 
-      
-      if (session.metadata.pricingPlanId) {
-        const pricingPlan = await PricingModel.findById(session.metadata.pricingPlanId).session(sessionDb);
-        if (!pricingPlan) {
-          throw new ApiError(httpStatus.NOT_FOUND, 'Pricing plan not found');
-        }
-      }
+
+
+      const pricingPlan = await PricingModel.findById(session.metadata.pricingPlanId).session(sessionDb);
+      if (!pricingPlan) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Pricing plan not found');
+      } 
+
 
       await sessionDb.commitTransaction();
+      await sendEmail({
+        to: user.email,
+        subject: '🎉 Payment Confirmed',
+        html: paymentSuccessTemplate(user.fullName, pricingPlan?.name, session.amount_total, session.currency, pricingPlan?.billingInterval || "month"),
+      });
+
+
     } catch (error) {
       await sessionDb.abortTransaction();
       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Stripe webhook processing failed');
@@ -369,3 +335,46 @@ if (event.type === "invoice.payment_succeeded") {
 };
 
 
+
+// export const getLatestUserSubscription = async (req: Request, res: Response) => {
+//   const userId = req.user?._id || req.body.userId;
+
+//   if (!userId) {
+//     return res.status(400).json({ message: "User ID is required" });
+//   }
+
+//   const subscription = await getLatestSubscriptionByUser(userId);
+
+//   if (!subscription) {
+//     return res.status(404).json({ message: "No subscription found" });
+//   }
+
+//   res.json({ subscription });
+// };
+
+
+
+// export const checkSubscription = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   const userId = req.user?._id || req.body.userId;
+
+//   const subscription = await subscriptionModel
+//     .findOne({ userId })
+//     .sort({ paymentDate: -1 });
+
+//   if (
+//     !subscription ||
+//     subscription.status !== "active"
+//   ) {
+//     return res
+//       .status(403)
+//       .json({
+//         message: "You need an active subscription to access this feature.",
+//       });
+//   }
+
+//   next();
+// };

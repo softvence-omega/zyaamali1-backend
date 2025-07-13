@@ -13,5 +13,8 @@ const subscriptionSchema = new Schema({
   autoRenew: { type: Boolean, default: false },
   paymentDate: { type: Date, default: Date.now },
 });
+subscriptionSchema.index({ userId: 1 });
+subscriptionSchema.index({ autoRenew: 1 });
+subscriptionSchema.index({ paymentDate: 1 });
 
 export const subscriptionModel = mongoose.model("Subscription", subscriptionSchema);
