@@ -303,10 +303,12 @@ if (event.type === "invoice.payment_succeeded") {
   if (sub && sub.autoRenew) {
     sub.amountPaid = invoice.amount_paid;
     sub.status = "paid";
-    sub.paymentDate = new Date(invoice.created * 1000); // safer
+    sub.paymentDate = new Date(); // Set to current date
     await sub.save();
   } else {
+    console.warn("⚠️ Subscription ID:", subscriptionId, "not found or auto-renew is disabled");
     console.warn("⚠️ Subscription not found for invoice:", invoice.id);
+    console.warn("⚠️ Customer ID:", customerId);
   }
 }
 
