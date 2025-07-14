@@ -121,7 +121,6 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
     prompt: 'consent',
     scope: [
       'https://www.googleapis.com/auth/adwords',
-      'https://www.googleapis.com/auth/userinfo.email',
     ].join(' '),
   });
 
