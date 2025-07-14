@@ -9,7 +9,7 @@ import { FacebookAdsApi, User, AdAccount } from 'facebook-nodejs-business-sdk';
 
 
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
-  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${config.facebookAppId}&redirect_uri=${config.facebookRedirectUri}&scope=ads_management,ads_read,pages_show_list`;
+  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${config.facebookAppId}&redirect_uri=${config.facebookRedirectUri}&scope=ads_management,business_management,pages_show_list,pages_read_engagement`;
   res.redirect(authUrl);
 };
 
@@ -144,7 +144,7 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
 
 const getGoogleAuthURL = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.generateGoogleAuthURL();
-
+  console.log(authURL)
   res.redirect(authURL);
 };
 
@@ -168,11 +168,15 @@ const handleGoogleCallback = async (req: Request, res: Response) => {
 
 
 
+
+
 // for tiktok 
 
 
 const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
+   console.log('================== from tikto redirect url',url)
+
   res.redirect(url);
 };
 

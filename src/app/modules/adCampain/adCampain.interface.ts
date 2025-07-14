@@ -59,6 +59,7 @@ export interface IAdCampaign {
     total: number;
     startDate: Date;
     endDate: Date;
+    costPerClick: number
   };
 
   status: 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'PENDING' | 'INACTIVE';
@@ -68,6 +69,9 @@ export interface IAdCampaign {
     clicks: number;
     conversions: number;
     roas: number;
+    reach: number;
+    revenue:number
+
   };
 
   adCopy?: {
@@ -78,7 +82,7 @@ export interface IAdCampaign {
   mediaFiles?: string[]; // Direct URLs or file IDs
   externalAdId?: string;
 
- 
+
   mediaAssets?: {
     url: string;
     type: 'image' | 'video';

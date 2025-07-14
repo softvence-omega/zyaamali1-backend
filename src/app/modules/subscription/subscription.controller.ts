@@ -214,8 +214,11 @@ export const setSubscriptionStatus = async (
 
 export const handleStripeWebhook = async (req: Request, res: Response) => {
 
+
+export const handleStripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string | undefined;
   const webhookSecret = config.STRIPE_WEBHOOK_SECRET;
+
 
   if (!sig || !webhookSecret) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Missing Stripe signature or webhook secret');
@@ -379,4 +382,4 @@ if (event.type === "invoice.payment_succeeded") {
 //   }
 
 //   next();
-// };
+// }

@@ -121,7 +121,6 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
     prompt: 'consent',
     scope: [
       'https://www.googleapis.com/auth/adwords',
-      'https://www.googleapis.com/auth/userinfo.email',
     ].join(' '),
   });
 
@@ -154,7 +153,6 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
 // for tiktok connection 
 
 const getTiktokAuthUrl = () => {
-  console.log('from redirect url tiktok ')
   const base = 'https://ads.tiktok.com/marketing_api/auth';
   const params = new URLSearchParams({
     app_id: process.env.TIKTOK_CLIENT_ID as string,
@@ -163,15 +161,14 @@ const getTiktokAuthUrl = () => {
     state: 'custom_state_token',
     scope: 'user.info.basic,ad.account.list'
   });
-
   return `${base}?${params.toString()}`;
 };
 
 const exchangeTiktokCodeForToken = async (code: any) => {
-  console.log('from callback form tiktok ')
+  console.log('from callback form tiktok ===================')
   const response = await axios.post('https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/', {
     app_id: process.env.TIKTOK_CLIENT_ID,
-    secret: process.env.TIKTOK_CLIENT_SECRET,
+    secret: process.env.TIKTOK_SECRET,
     auth_code: code,
     grant_type: 'authorization_code'
   });

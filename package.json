@@ -20,11 +20,13 @@
     "cloudinary": "^2.2.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "express-session": "^1.18.1",
     "facebook-nodejs-business-sdk": "^23.0.0",
     "form-data": "^4.0.3",
+    "google-ads-api": "^20.0.1",
     "google-auth-library": "^9.15.1",
     "http-status": "^1.7.4",
     "i": "^0.3.7",
@@ -35,7 +37,8 @@
     "nodemailer": "^6.9.13",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "stripe": "^18.1.0",
+    "stripe": "^18.3.0",
+    "uuid": "^11.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -56,4 +56,3 @@ const PricingPlanSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 export const PricingModel = mongoose.model("PricingPlan", PricingPlanSchema);
-
