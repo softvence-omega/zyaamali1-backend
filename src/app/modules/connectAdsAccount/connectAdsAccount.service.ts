@@ -65,7 +65,7 @@ const getLinkdinAuthURL = () => {
     response_type: 'code',
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
-    scope: 'r_liteprofile r_emailaddress rw_organization_admin r_ads r_ads_reporting rw_ads',
+   scope: 'openid profile' // Safe fallback
   });
 
   return `${base}?${params.toString()}`;

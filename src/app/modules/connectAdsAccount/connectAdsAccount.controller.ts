@@ -118,7 +118,7 @@ const handleInstagramConnection = async (req: Request, res: Response) => {
 
 const redirectToLinkedIn = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.getLinkdinAuthURL();
-console.log(authURL)
+
   res.redirect(authURL);
 };
 
