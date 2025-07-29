@@ -210,11 +210,6 @@ export const setSubscriptionStatus = async (
 
 
 
-
-
-export const handleStripeWebhook = async (req: Request, res: Response) => {
-
-
 export const handleStripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string | undefined;
   const webhookSecret = config.STRIPE_WEBHOOK_SECRET;
@@ -312,6 +307,7 @@ if (event.type === "invoice.payment_succeeded") {
     console.warn("⚠️ Subscription ID:", subscriptionId, "not found or auto-renew is disabled");
     console.warn("⚠️ Subscription not found for invoice:", invoice.id);
     console.warn("⚠️ Customer ID:", customerId);
+    
   }
 }
 
@@ -338,48 +334,3 @@ if (event.type === "invoice.payment_succeeded") {
 
   res.status(200).send(); 
 };
-
-
-
-// export const getLatestUserSubscription = async (req: Request, res: Response) => {
-//   const userId = req.user?._id || req.body.userId;
-
-//   if (!userId) {
-//     return res.status(400).json({ message: "User ID is required" });
-//   }
-
-//   const subscription = await getLatestSubscriptionByUser(userId);
-
-//   if (!subscription) {
-//     return res.status(404).json({ message: "No subscription found" });
-//   }
-
-//   res.json({ subscription });
-// };
-
-
-
-// export const checkSubscription = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   const userId = req.user?._id || req.body.userId;
-
-//   const subscription = await subscriptionModel
-//     .findOne({ userId })
-//     .sort({ paymentDate: -1 });
-
-//   if (
-//     !subscription ||
-//     subscription.status !== "active"
-//   ) {
-//     return res
-//       .status(403)
-//       .json({
-//         message: "You need an active subscription to access this feature.",
-//       });
-//   }
-
-//   next();
-// }

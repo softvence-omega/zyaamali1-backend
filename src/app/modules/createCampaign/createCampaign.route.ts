@@ -1,5 +1,6 @@
 import express from 'express';
 import { createCampaignController } from './createCampaign.controller';
+import { createLinkedInAdController, linkedinAuthCallback, linkedinAuthRedirect } from './linkedin.controller';
 
 const router = express.Router();
 
@@ -12,6 +13,18 @@ router.post('/facebook-ads', createCampaignController.createAdController);
 
 router.post('/create-google-ad', createCampaignController.createGoogleCampaign);
 router.get('/spend', createCampaignController.getGoogleCampaignSpend);
+
+
+
+
+
+
+// for linkedin
+router.get('/auth', linkedinAuthRedirect);
+router.get('/callback', linkedinAuthCallback);
+router.post('/ad', createLinkedInAdController);
+
+
 
 
 

@@ -16,7 +16,7 @@ router.get('/instagram/connect', connectAdsAccountController.handleInstagramConn
 
 // for linkdin 
 router.get('/linkedin-auth', connectAdsAccountController.redirectToLinkedIn);
-router.get('/linkdin/callback', connectAdsAccountController.handleLinkedInCallback);
+router.get('/linkedin/callback', connectAdsAccountController.handleLinkedInCallback);
 
 
 // for google 

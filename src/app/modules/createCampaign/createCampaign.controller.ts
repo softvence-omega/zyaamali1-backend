@@ -80,7 +80,7 @@ async function getGoogleCampaignSpend(req: Request, res: Response) {
       return res.status(400).json({ error: 'campaignResourceName query param is required.' });
     }
 
-    const spends = await createCampaignService.getGoogleCampaignSpend(campaignResourceName);
+    const spends = await createCampaignService.getGoogleCampaignSpend(campaignResourceName as string);
 
     return res.status(200).json(spends);
   } catch (error) {

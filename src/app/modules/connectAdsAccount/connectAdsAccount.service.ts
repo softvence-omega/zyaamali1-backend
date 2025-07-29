@@ -65,7 +65,8 @@ const getLinkdinAuthURL = () => {
     response_type: 'code',
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
-    scope: 'r_liteprofile r_emailaddress rw_organization_admin r_ads r_ads_reporting rw_ads',
+    scope: 'openid profile' // Safe fallback
+   //scope: 'r_ads'
   });
 
   return `${base}?${params.toString()}`;
@@ -153,7 +154,9 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
 // for tiktok connection 
 
 const getTiktokAuthUrl = () => {
-  const base = 'https://ads.tiktok.com/marketing_api/auth';
+  const base = 'https://business-api.tiktok.com/open_api/oauth2/authorize/';
+
+ // const base = 'https://ads.tiktok.com/marketing_api/auth';
   const params = new URLSearchParams({
     app_id: process.env.TIKTOK_CLIENT_ID as string,
     redirect_uri: process.env.TIKTOK_REDIRECT_URI  as string,

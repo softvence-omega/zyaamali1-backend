@@ -2,8 +2,7 @@ import axios from "axios";
 const bizSdk = require('facebook-nodejs-business-sdk');
 const { FacebookAdsApi, AdAccount, Campaign, AdSet, AdCreative, Ad } = bizSdk;
 import FormData from 'form-data';
-import { customer, getGoogleAdsClient } from "../../utils/googleAdsAuth";
-
+import { customer} from "../../utils/googleAdsAuth";
 
 
 const uploadImageService = async (
