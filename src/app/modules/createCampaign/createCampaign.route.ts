@@ -18,19 +18,6 @@ router.get('/spend', createCampaignController.getGoogleCampaignSpend);
 
 
 
-
-// for linkedin
-router.get('/auth', linkedinAuthRedirect);
-router.get('/callback', linkedinAuthCallback);
-router.post('/ad', createLinkedInAdController);
-
-
-
-
-
 export const createCampaignRoute = router;
 
 
-
-
-// https://chatgpt.com/share/687219a5-5d3c-8008-aebb-f5e169914a45

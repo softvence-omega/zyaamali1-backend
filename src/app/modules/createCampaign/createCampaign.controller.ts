@@ -35,7 +35,7 @@ const createAdController = async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await createCampaignService.createAdService(accessToken, adAccountId, pageId, imageHash);
+    const result = await createCampaignService.createFacebookAdService(accessToken, adAccountId, pageId, imageHash);
     return res.status(200).json({ message: '✅ Safe test ad created', result });
   } catch (error: any) {
     console.error('❌ Error in controller:', error.message || error);
