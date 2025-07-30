@@ -12,7 +12,6 @@ import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
 
-
 const router = Router();
 
 const moduleRoutes = [
@@ -49,21 +48,22 @@ const moduleRoutes = [
     path: "/ads",
     route: createCampaignRoute,
   },
+  {
     path: "/business",
     route: businessRoutes,
   },
   {
     path: "/viewer",
-    route: viewerRoutes
+    route: viewerRoutes,
   },
   {
     path: "/creator",
-    route: creatorRoutes
+    route: creatorRoutes,
   },
   {
     path: "/content",
-    route: contentRoutes
-  }
+    route: contentRoutes,
+  },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

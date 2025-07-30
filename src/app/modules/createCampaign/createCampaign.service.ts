@@ -25,7 +25,7 @@ const uploadImageService = async (
   });
 
   const images = response.data.images;
-  const imageHash = Object.values(images)[0].hash;
+  const imageHash = (Object as any).values(images)[0].hash;
   return imageHash;
 };
 
