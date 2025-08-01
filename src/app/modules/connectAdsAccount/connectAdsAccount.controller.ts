@@ -169,11 +169,10 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
   }
   const tokens = await exchangeCodeForTokens(code);
 
-  console.log(tokens);
   // Save tokens.access_token and tokens.refresh_token to your DB for the user
   res.json({
     message: "Google Ads connected successfully.",
-    accessToken: tokens.access_token,
+    token: tokens,
   });
 };
 
@@ -195,12 +194,15 @@ export const getGoogleAdAccounts = async (req: Request, res: Response) => {
 
 const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
+  console.log("url from tiktok", url);
   res.redirect(url);
 };
 
 const handleTiktokCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
-  if (!code) return res.status(400).send("Missing authorization code");
+  if (typeof code !== "string" || !code) {
+    return res.status(400).send("Missing or invalid authorization code");
+  }
 
   try {
     const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(

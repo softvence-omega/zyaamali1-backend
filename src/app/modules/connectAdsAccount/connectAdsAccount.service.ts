@@ -150,63 +150,65 @@ export const exchangeCodeForTokens = async (code: string) => {
 
 export const fetchGoogleAdAccounts = async (accessToken: string) => {
   try {
-    const response = await axios.post(
-      "https://googleads.googleapis.com/v16/customers:listAccessibleCustomers",
-      {},
+    const response = await axios.get(
+      "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN!,
-          // Omit if not an MCC account:
-          ...(process.env.GOOGLE_MANAGER_ID && {
-            "login-customer-id": process.env.GOOGLE_MANAGER_ID,
-          }),
-          "Content-Type": "application/json",
+          "login-customer-id": process.env.GOOGLE_MANAGER_ID!, // only if using an MCC account
         },
       }
     );
 
     return response.data.resourceNames.map((r: string) => r.split("/")[1]);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Google Ads API Error:", err.response?.data || err.message);
     throw new Error(
-      "Failed to fetch accounts. Check permissions and API version."
+      "Failed to fetch accounts. Check token, dev token, and MCC ID."
     );
   }
 };
-// for tiktok connection
 
+// for tiktok connection
 const getTiktokAuthUrl = () => {
-  console.log("from redirect url tiktok ");
   const base = "https://ads.tiktok.com/marketing_api/auth";
   const params = new URLSearchParams({
-    app_id: process.env.TIKTOK_CLIENT_ID as string,
-    redirect_uri: process.env.TIKTOK_REDIRECT_URI as string,
+    app_id: process.env.TIKTOK_CLIENT_ID!,
+    redirect_uri: process.env.TIKTOK_REDIRECT_URI!,
     response_type: "code",
-    state: "custom_state_token",
-    scope: "user.info.basic,ad.account.list",
+    scope: "user.info.basic,ad.account.list,ad.report.basic, ad.create",
+    state: "random_unique_string", // ideally generate this per user/session
   });
 
   return `${base}?${params.toString()}`;
 };
 
-const exchangeTiktokCodeForToken = async (code: any) => {
-  console.log("from callback form tiktok ");
-  const response = await axios.post(
-    "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/",
-    {
-      app_id: process.env.TIKTOK_CLIENT_ID,
-      secret: process.env.TIKTOK_CLIENT_SECRET,
-      auth_code: code,
-      grant_type: "authorization_code",
-    }
-  );
+const exchangeTiktokCodeForToken = async (code: string) => {
+  try {
+    const response = await axios.post(
+      "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/",
+      {
+        app_id: process.env.TIKTOK_CLIENT_ID,
+        secret: process.env.TIKTOK_SECRET,
+        auth_code: code,
+        grant_type: "authorization_code",
+      }
+    );
 
-  const { access_token, advertiser_ids } = response.data.data;
-  return {
-    accessToken: access_token,
-    advertiserIds: advertiser_ids,
-  };
+    const { access_token, advertiser_ids } = response.data.data;
+
+    return {
+      accessToken: access_token,
+      advertiserIds: advertiser_ids,
+    };
+  } catch (err) {
+    console.error(
+      "Failed to exchange code:",
+      err.response?.data || err.message
+    );
+    throw err;
+  }
 };
 
 export const connectAdsAccountservice = {
