@@ -161,7 +161,7 @@ export const fetchGoogleAdAccounts = async (accessToken: string) => {
       }
     );
 
-    return response.data.resourceNames.map((r: string) => r.split("/")[1]);
+    return response.data;
   } catch (err: any) {
     console.error("Google Ads API Error:", err.response?.data || err.message);
     throw new Error(
