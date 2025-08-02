@@ -20,7 +20,9 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
     "pages_show_list",
     "ads_management",
     "ads_read",
-  ].join(",");
+  ].join(",")
+
+  
 
   const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${
     config.facebookAppId
