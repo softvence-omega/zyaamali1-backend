@@ -14,11 +14,20 @@ import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 // for facebook connection
 
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
+  const scopes = [
+    "public_profile",
+    "business_management",
+    "pages_show_list",
+    "ads_management",
+    "ads_read",
+  ].join(",");
+
   const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${
     config.facebookAppId
   }&redirect_uri=${encodeURIComponent(
     config.facebookRedirectUri
-  )}&scope=business_management,pages_show_list&auth_type=rerequest`;
+  )}&scope=${scopes}&auth_type=rerequest`;
+
   console.log("Redirecting to Facebook OAuth:", authUrl);
   res.redirect(authUrl);
 };
@@ -31,6 +40,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     const accessToken = await connectAdsAccountservice.getFacebookAccessToken(
       code
     );
+    console.log(accessToken);
 
     FacebookAdsApi.init(accessToken);
 
@@ -216,7 +226,6 @@ export const getGoogleAdAccounts = async (req: Request, res: Response) => {
 };
 
 // for tiktok
-
 const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
 
