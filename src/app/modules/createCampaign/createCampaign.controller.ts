@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import {
+  createAdCampaign,
+  createAdCreative,
   createCampaignService,
   createGoogleAdService,
 } from "./createCampaign.service";
@@ -39,7 +41,6 @@ const createAdController = async (req: Request, res: Response) => {
   const { accessToken, adAccountId, pageId, imageHash } = req.body;
 
   if (!accessToken || !adAccountId || !pageId || !imageHash) {
-
     return res.status(400).json({ message: "Missing required parameters" });
   }
 
@@ -83,10 +84,32 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
   }
 };
 
+// linkedin
+
+export const createLinkedInAd = async (req: Request, res: Response) => {
+  const { accessToken, adAccountUrn, organizationUrn, landingPageUrl } =
+    req.body;
+
+  try {
+    const campaign = await createAdCampaign(accessToken, adAccountUrn);
+    const creative = await createAdCreative(
+      accessToken,
+      adAccountUrn,
+      organizationUrn,
+      landingPageUrl
+    );
+
+    res.status(200).json({
+      message: "Ad campaign and creative created successfully",
+      campaign,
+      creative,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const createCampaignController = {
   uploadImageController,
   createAdController,
-
 };
-

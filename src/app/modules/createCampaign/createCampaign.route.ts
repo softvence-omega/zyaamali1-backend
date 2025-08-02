@@ -2,6 +2,7 @@ import express from "express";
 import {
   createCampaignController,
   createGoogleAdController,
+  createLinkedInAd,
 } from "./createCampaign.controller";
 
 const router = express.Router();
@@ -16,5 +17,7 @@ router.post("/facebook-ads", createCampaignController.createAdController);
 // google
 router.post("/google/create-ad", createGoogleAdController);
 
-export const createAdsCampaignRoute = router;
+// linkedin
+router.post("/linkedin/create-ad", createLinkedInAd);
 
+export const createAdsCampaignRoute = router;

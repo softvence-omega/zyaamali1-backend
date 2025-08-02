@@ -72,9 +72,7 @@ const getLinkdinAuthURL = () => {
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
 
-    scope:
-      "r_liteprofile r_emailaddress rw_organization_admin r_ads r_ads_reporting rw_ads",
-
+    scope: "r_ads,rw_ads,rw_organization_admin",
   });
 
   return `${base}?${params.toString()}`;
@@ -101,16 +99,45 @@ const getLinkdinAccessToken = async (code: any) => {
   return response.data.access_token;
 };
 
-const getlinkedinAdAccounts = async (accessToken: any) => {
-  const res = await axios.get(
-    "https://api.linkedin.com/v2/adAccountsV2?q=search",
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-  return res.data;
+export const getLinkedinAdAccountsAndOrganizations = async (
+  accessToken: string
+) => {
+  try {
+    // Fetch Ad Accounts
+    const adAccountResponse = await axios.get(
+      "https://api.linkedin.com/v2/adAccountsV2?q=search",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-Restli-Protocol-Version": "2.0.0",
+        },
+      }
+    );
+
+    const adAccounts = adAccountResponse.data;
+
+    // Fetch Organizations (where user is admin)
+    const orgResponse = await axios.get(
+      "https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-Restli-Protocol-Version": "2.0.0",
+        },
+      }
+    );
+    console.log(orgResponse.data.elements);
+    const organizations = orgResponse.data.elements.map(
+      (el: any) => el.organizationalTarget
+    );
+
+    return {
+      adAccounts, // List of ad accounts
+      organizations, // List of organization URNs
+    };
+  } catch (error: any) {
+    throw new Error(`Failed to fetch LinkedIn data: ${error.message}`);
+  }
 };
 
 // for google
@@ -133,7 +160,6 @@ export const getGoogleOAuthUrl = () => {
     prompt: "consent",
     include_granted_scopes: true, // Optional: incremental auth
     state: "your_csrf_token_here", // Security measure
-
   });
 
   return url;
@@ -185,7 +211,6 @@ const getTiktokAuthUrl = () => {
     response_type: "code",
     scope: "user.info.basic,ad.account.list,ad.report.basic, ad.create",
     state: "random_unique_string", // ideally generate this per user/session
-
   });
   return `${base}?${params.toString()}`;
 };
@@ -215,7 +240,6 @@ const exchangeTiktokCodeForToken = async (code: string) => {
     );
     throw err;
   }
-
 };
 
 export const connectAdsAccountservice = {
@@ -224,9 +248,7 @@ export const connectAdsAccountservice = {
   getInstagramAccounts,
   getLinkdinAuthURL,
   getLinkdinAccessToken,
-  getlinkedinAdAccounts,
-
-
+  getLinkedinAdAccountsAndOrganizations,
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,

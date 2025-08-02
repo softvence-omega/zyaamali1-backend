@@ -2,6 +2,8 @@ import express from "express";
 import {
   connectAdsAccountController,
   getGoogleAdAccounts,
+  getLinkedinAdAccounts,
+  getTiktokAdAccounts,
   googleAuthCallback,
   googleAuthRedirect,
 } from "./connectAdsAccount.controller";
@@ -32,14 +34,15 @@ router.get(
 // for linkdin
 router.get("/linkedin-auth", connectAdsAccountController.redirectToLinkedIn);
 router.get(
-  "/linkdin/callback",
+  "/linkedin/callback",
   connectAdsAccountController.handleLinkedInCallback
 );
+router.get("/linkedin-ad-accounts", getLinkedinAdAccounts);
 
 // for google
 router.get("/google-auth", googleAuthRedirect);
 router.get("/google/callback", googleAuthCallback);
-router.get("/ad-accounts", getGoogleAdAccounts);
+router.get("/google-ad-accounts", getGoogleAdAccounts);
 
 // for tiktok
 router.get("/tiktok-auth", connectAdsAccountController.getTiktokAuthUrl);
@@ -49,4 +52,3 @@ router.get(
 );
 
 export const connectAdsAccountRoutes = router;
-
