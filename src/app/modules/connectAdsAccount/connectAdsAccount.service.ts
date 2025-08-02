@@ -1,7 +1,9 @@
 import axios from "axios";
 import config from "../../config";
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
+
 import { OAuth2Client } from "google-auth-library";
+
 const {
   LINKEDIN_CLIENT_ID,
   LINKEDIN_CLIENT_SECRET,
@@ -69,8 +71,10 @@ const getLinkdinAuthURL = () => {
     response_type: "code",
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
+
     scope:
       "r_liteprofile r_emailaddress rw_organization_admin r_ads r_ads_reporting rw_ads",
+
   });
 
   return `${base}?${params.toString()}`;
@@ -110,6 +114,7 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
 };
 
 // for google
+
 export const getGoogleOAuthUrl = () => {
   const scopes = [
     "https://www.googleapis.com/auth/adwords",
@@ -128,6 +133,7 @@ export const getGoogleOAuthUrl = () => {
     prompt: "consent",
     include_granted_scopes: true, // Optional: incremental auth
     state: "your_csrf_token_here", // Security measure
+
   });
 
   return url;
@@ -179,8 +185,8 @@ const getTiktokAuthUrl = () => {
     response_type: "code",
     scope: "user.info.basic,ad.account.list,ad.report.basic, ad.create",
     state: "random_unique_string", // ideally generate this per user/session
-  });
 
+  });
   return `${base}?${params.toString()}`;
 };
 
@@ -209,6 +215,7 @@ const exchangeTiktokCodeForToken = async (code: string) => {
     );
     throw err;
   }
+
 };
 
 export const connectAdsAccountservice = {
@@ -218,6 +225,8 @@ export const connectAdsAccountservice = {
   getLinkdinAuthURL,
   getLinkdinAccessToken,
   getlinkedinAdAccounts,
+
+
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,

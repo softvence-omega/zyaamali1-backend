@@ -10,7 +10,9 @@ import { businessRoutes } from "../modules/business/business.route";
 import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
+
 import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
+
 
 const router = Router();
 
@@ -37,7 +39,7 @@ const moduleRoutes = [
     route: UserRoutes,
   },
   {
-    path: "/subscriptions",
+    path: "/subscription",
     route: subscriptionRoutes,
   },
   {
@@ -45,10 +47,12 @@ const moduleRoutes = [
     route: ConversationRoutes,
   },
   {
+
     path: "/ads",
     route: createAdsCampaignRoute,
   },
   {
+
     path: "/business",
     route: businessRoutes,
   },
@@ -62,8 +66,10 @@ const moduleRoutes = [
   },
   {
     path: "/content",
+
     route: contentRoutes,
   },
+
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

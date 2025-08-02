@@ -23,6 +23,7 @@ router.get(
 );
 
 // for instagram
+
 router.get(
   "/instagram/connect",
   connectAdsAccountController.handleInstagramConnection
@@ -48,3 +49,4 @@ router.get(
 );
 
 export const connectAdsAccountRoutes = router;
+

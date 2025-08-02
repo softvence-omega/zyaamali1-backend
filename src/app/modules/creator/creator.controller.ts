@@ -19,7 +19,7 @@ const getAllCreator = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSingleCreator = catchAsync(async (req: Request, res: Response) => {
-  const result = await creatorService.getSingleCreatorFromDB(req.params.id);
+  const result = await creatorService.getSingleCreatorFromDB(req.params.id, req.loggedInUser.userId);
   sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
 });
 

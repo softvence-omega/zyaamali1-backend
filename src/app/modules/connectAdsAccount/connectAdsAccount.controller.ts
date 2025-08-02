@@ -1,18 +1,25 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import config from "../../config";
+
 import {
   connectAdsAccountservice,
   exchangeCodeForTokens,
   fetchGoogleAdAccounts,
   getGoogleOAuthUrl,
 } from "./connectAdsAccount.service";
+
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 
 // for facebook connection
 
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
-  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${config.facebookAppId}&redirect_uri=${config.facebookRedirectUri}&scope=ads_management,ads_read,pages_show_list`;
+  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${
+    config.facebookAppId
+  }&redirect_uri=${encodeURIComponent(
+    config.facebookRedirectUri
+  )}&scope=business_management,pages_show_list&auth_type=rerequest`;
+  console.log("Redirecting to Facebook OAuth:", authUrl);
   res.redirect(authUrl);
 };
 
@@ -24,6 +31,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     const accessToken = await connectAdsAccountservice.getFacebookAccessToken(
       code
     );
+
     FacebookAdsApi.init(accessToken);
 
     const user = new User("me");
@@ -31,9 +39,9 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     if (!adAccounts.length)
       return res.status(400).send("No ad accounts found.");
 
+
     const selectedAdAccount = adAccounts[0];
 
-    // Save accessToken + adAccountId to DB (if needed)
     return res.status(200).json({
       message: "✅ Facebook connected",
       accessToken,
@@ -42,7 +50,9 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error(
       "❌ Facebook OAuth error:",
+
       error.response?.data || error.message
+
     );
     return res.status(500).send("Failed to connect Facebook Ads account");
   }
@@ -133,12 +143,14 @@ const handleInstagramConnection = async (req: Request, res: Response) => {
 
 const redirectToLinkedIn = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.getLinkdinAuthURL();
+
   console.log(authURL);
+
   res.redirect(authURL);
 };
 
 const handleLinkedInCallback = async (req: Request, res: Response) => {
-  const code = req.query.code;
+  const code = req.query.code as string;
 
   console.log("✅linkdin  Callback route hit");
   try {
@@ -174,6 +186,7 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
     message: "Google Ads connected successfully.",
     token: tokens,
   });
+
 };
 
 export const getGoogleAdAccounts = async (req: Request, res: Response) => {
@@ -187,6 +200,7 @@ export const getGoogleAdAccounts = async (req: Request, res: Response) => {
     res.json(accounts);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch Google Ad accounts" });
+
   }
 };
 
@@ -194,15 +208,19 @@ export const getGoogleAdAccounts = async (req: Request, res: Response) => {
 
 const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
+
   console.log("url from tiktok", url);
+
   res.redirect(url);
 };
 
 const handleTiktokCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
+
   if (typeof code !== "string" || !code) {
     return res.status(400).send("Missing or invalid authorization code");
   }
+
 
   try {
     const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(

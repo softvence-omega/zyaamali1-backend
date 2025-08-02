@@ -39,6 +39,7 @@ const createAdController = async (req: Request, res: Response) => {
   const { accessToken, adAccountId, pageId, imageHash } = req.body;
 
   if (!accessToken || !adAccountId || !pageId || !imageHash) {
+
     return res.status(400).json({ message: "Missing required parameters" });
   }
 
@@ -82,7 +83,10 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
   }
 };
 
+
 export const createCampaignController = {
   uploadImageController,
   createAdController,
+
 };
+

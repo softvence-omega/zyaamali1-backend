@@ -8,6 +8,9 @@ import httpStatus from "http-status";
 import { sendFileToCloudinary } from "../../utils/sendFileToCloudinary";
 import mongoose from "mongoose";
 import QueryBuilder from "../../builder/QueryBuilder";
+import { Viewer } from "../viewer/viewer.model";
+import e from "express";
+import { Creator } from "../creator/creator.model";
 
 
 export const generateVerificationCode = () => {
@@ -51,6 +54,9 @@ const getMeFromDB = async (user: JwtPayload) => {
 
   return existingUser;
 };
+
+
+
 
 
 
@@ -131,6 +137,148 @@ const uploadImageIntoDB = async (userData: any, file: any) => {
 
 
 
+const updateProfile = async (id: string, payload: Partial<TUser>) => {
+  const user = await User.findOne({ _id: id, isDeleted: false });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // === For admin role ===
+  if (user.role === "admin") {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Step 1: Filter payload to get only updatable fields
+      const updateFields: Record<string, unknown> = {};
+      if (payload.fullName) updateFields.fullName = payload.fullName;
+      if (payload.companyName) updateFields.companyName = payload.companyName;
+      if (payload.country) updateFields.country = payload.country;
+
+      // Step 2: Update the admin's own profile
+      const updatedAdmin = await User.findOneAndUpdate(
+        { _id: id },
+        { $set: updateFields },
+        { new: true, runValidators: true, session }
+      );
+
+      // Step 3: Update child users (teamMembers) if companyName or country is updated
+      const childUpdateFields: Record<string, unknown> = {};
+      if (payload.companyName) childUpdateFields.companyName = payload.companyName;
+      if (payload.country) childUpdateFields.country = payload.country;
+
+      if (Object.keys(childUpdateFields).length > 0) {
+        await User.updateMany(
+          { createdBy: user._id },
+          { $set: childUpdateFields },
+          { session }
+        );
+      }
+
+      // Step 4: Commit the transaction
+      await session.commitTransaction();
+      return updatedAdmin;
+
+    } catch (error) {
+      // Rollback if any error occurs
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  // === For viewer or creator role ===
+  if (user.role === "viewer" || user.role === "creator") {
+    const updateFields: Record<string, unknown> = {};
+    if (payload.fullName) updateFields.fullName = payload.fullName;
+
+    if (Object.keys(updateFields).length === 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "No valid fields to update");
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
+
+    return updatedUser;
+  }
+
+  // === For any other role ===
+  throw new ApiError(httpStatus.FORBIDDEN, "Role is not allowed to update profile");
+};
+
+
+
+
+const deleteProfile = async (id: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const isUserExist = await User.findOne({ _id: id, isDeleted: false }).session(session);
+    if (!isUserExist) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+    if (isUserExist.role === "admin") {
+      await Viewer.updateMany(
+        { createdBy: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+      await Creator.updateMany(
+        { createdBy: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+      await User.findOneAndUpdate(
+        { _id: id },
+        { isDeleted: true },
+        { new: true, runValidators: true, session }
+      );
+
+    } else if (isUserExist.role === "viewer") {
+      await User.findOneAndUpdate(
+        { _id: id },
+        { isDeleted: true },
+        { new: true, runValidators: true, session }
+      );
+      await Viewer.updateOne(
+        { userId: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+
+    } else if (isUserExist.role === "creator") {
+      await User.findOneAndUpdate(
+        { _id: id },
+        { isDeleted: true },
+        { new: true, runValidators: true, session }
+      );
+      await Creator.updateOne(
+        { userId: id },
+        { isDeleted: true },
+        { runValidators: true, session }
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return null;
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    if (error instanceof Error) {
+      throw new Error(`User deletion failed: ${error.message}`);
+    } else {
+      throw new Error("An unknown error occurred while deleting profile.");
+    }
+  }
+};
 
 
 
@@ -140,5 +288,5 @@ export const UserServices = {
   getAllUsersFromDB,
   createAUserIntoDB,
   uploadImageIntoDB,
-
+  updateProfile, deleteProfile
 };

@@ -16,7 +16,7 @@ const app = express();
 
 
 app.post(
-  "/api/v1/subscriptions/webhook",
+  "/api/v1/subscription/webhook",
   express.raw({ type: "application/json" }),
   handleStripeWebhook
 );
@@ -29,6 +29,7 @@ app.use(passport.initialize());
 
 app.use("/api/v1", router);
 
+
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello harmonia!");
 });
@@ -37,7 +38,7 @@ app.get("/", (req: Request, res: Response) => {
 export const createDefaultSuperAdmin = async () => {
   try {
     const existingSuperAdmin = await User.findOne({
-      email: "superadmin@adsplatform.com",
+        email: "mohibullamiazi@gmail.com",
     });
 
     const hashedPassword = await bcrypt.hash(
@@ -48,7 +49,7 @@ export const createDefaultSuperAdmin = async () => {
     if (!existingSuperAdmin) {
       await User.create({
         fullName: "Platform Super Admin",
-        email: "superadmin@adsplatform.com",
+        email: "mohibullamiazi@gmail.com",
         password: hashedPassword,
         companyName: "AI Ads HQ",
         role: "superAdmin",

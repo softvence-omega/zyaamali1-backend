@@ -17,3 +17,4 @@ router.post("/facebook-ads", createCampaignController.createAdController);
 router.post("/google/create-ad", createGoogleAdController);
 
 export const createAdsCampaignRoute = router;
+

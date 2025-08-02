@@ -45,11 +45,11 @@ const addBusiness = async (payload: any) => {
 }
 
 
-const getAllBusiness = async (query: any) => {
+const getAllBusiness = async (createdBy:string,query: any) => {
     try {
 
 
-        const service_query = new QueryBuilder(Business.find({ isDeleted: false }).populate("createdBy", "name email role"), query)
+        const service_query = new QueryBuilder(Business.find({ isDeleted: false , createdBy}).populate("createdBy", "name email role"), query)
             .search(BUSINESS_SEARCHABLE_FIELDS)
             .filter()
             .sort()
@@ -74,13 +74,13 @@ const getAllBusiness = async (query: any) => {
 
 
 
-const updateBusiness = async (id: string, payload: any) => {
+const updateBusiness = async (createdBy:string,id: string, payload: any) => {
     console.log("Fetching businesses for user:", payload);
 
     const isBusinessExists = await Business.findOne({
         _id: id,
         isDeleted: false,
-        createdBy: payload.createdBy,
+        createdBy
     });
     if (!isBusinessExists) {
         throw new ApiError(
