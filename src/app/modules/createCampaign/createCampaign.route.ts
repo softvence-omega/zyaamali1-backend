@@ -1,23 +1,23 @@
-import express from 'express';
-import { createCampaignController } from './createCampaign.controller';
-import { createLinkedInAdController, linkedinAuthCallback, linkedinAuthRedirect } from './linkedin.controller';
+import express from "express";
+import {
+  createCampaignController,
+  createGoogleAdController,
+  createLinkedInAd,
+} from "./createCampaign.controller";
 
 const router = express.Router();
 
+// facebook
+router.post(
+  "/facebook/upload-image",
+  createCampaignController.uploadImageController
+);
+router.post("/facebook-ads", createCampaignController.createAdController);
 
-router.post('/facebook/upload-image', createCampaignController.uploadImageController);
-router.post('/facebook-ads', createCampaignController.createAdController);
+// google
+router.post("/google/create-ad", createGoogleAdController);
 
+// linkedin
+router.post("/linkedin/create-ad", createLinkedInAd);
 
-// for google
-
-router.post('/create-google-ad', createCampaignController.createGoogleCampaign);
-router.get('/spend', createCampaignController.getGoogleCampaignSpend);
-
-
-
-
-
-export const createCampaignRoute = router;
-
-
+export const createAdsCampaignRoute = router;

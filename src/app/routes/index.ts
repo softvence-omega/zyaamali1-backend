@@ -6,14 +6,14 @@ import { PricingRoutes } from "../modules/Pricing/Pricing.routes";
 import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
 import { configureRoutes } from "../modules/configure/configure.routes";
 import { connectAdsAccountRoutes } from "../modules/connectAdsAccount/connectAdsAccount.route";
-import { createCampaignRoute } from "../modules/createCampaign/createCampaign.route";
 import { businessRoutes } from "../modules/business/business.route";
 import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
-import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
-import { reportsRoutes } from "../modules/reports/reports.routes";
 
+import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
+import path from "path";
+import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
 
 const router = Router();
 
@@ -48,32 +48,30 @@ const moduleRoutes = [
     route: ConversationRoutes,
   },
   {
-    path: "/create-ads",
-    route: createCampaignRoute,
-  }, {
+    path: "/ads",
+    route: createAdsCampaignRoute,
+  },
+  {
+    path: "/ads-campaign",
+    route: adCampainRoutes,
+  },
+  {
     path: "/business",
     route: businessRoutes,
   },
   {
     path: "/viewer",
-    route: viewerRoutes
+    route: viewerRoutes,
   },
   {
     path: "/creator",
-    route: creatorRoutes
+    route: creatorRoutes,
   },
   {
     path: "/content",
-    route: contentRoutes
+
+    route: contentRoutes,
   },
-  {
-    path: "/ads",
-    route: reportsRoutes
-  },
-  {
-    path: "/ads-campaign",
-    route: adCampainRoutes
-  }
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

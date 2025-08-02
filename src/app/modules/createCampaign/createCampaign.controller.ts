@@ -1,13 +1,21 @@
-import { Request, Response } from 'express';
-import { createCampaignService } from './createCampaign.service';
+import { Request, Response } from "express";
+import {
+  createAdCampaign,
+  createAdCreative,
+  createCampaignService,
+  createGoogleAdService,
+} from "./createCampaign.service";
 
-
+// facebook
 const uploadImageController = async (req: Request, res: Response) => {
   try {
     const { accessToken, adAccountId, imageUrl } = req.body;
 
     if (!accessToken || !adAccountId || !imageUrl) {
-      return res.status(400).json({ message: 'Missing required parameters like accessToken, adAccountId, or imageUrl' });
+      return res.status(400).json({
+        message:
+          "Missing required parameters like accessToken, adAccountId, or imageUrl",
+      });
     }
 
     const imageHash = await createCampaignService.uploadImageService(
@@ -18,81 +26,90 @@ const uploadImageController = async (req: Request, res: Response) => {
 
     return res.status(200).json({ imageHash });
   } catch (error: any) {
-    console.error('❌ Upload Image Error:', error.response?.data || error.message);
+    console.error(
+      "❌ Upload Image Error:",
+      error.response?.data || error.message
+    );
     return res.status(500).json({
-      message: 'Failed to upload image',
+      message: "Failed to upload image",
       error: error.response?.data || error.message,
     });
   }
 };
 
-
 const createAdController = async (req: Request, res: Response) => {
   const { accessToken, adAccountId, pageId, imageHash } = req.body;
 
   if (!accessToken || !adAccountId || !pageId || !imageHash) {
-    return res.status(400).json({ message: 'Missing required parameters' });
+    return res.status(400).json({ message: "Missing required parameters" });
   }
 
   try {
-    const result = await createCampaignService.createFacebookAdService(accessToken, adAccountId, pageId, imageHash);
-    return res.status(200).json({ message: '✅ Safe test ad created', result });
+    const result = await createCampaignService.createAdService(
+      accessToken,
+      adAccountId,
+      pageId,
+      imageHash
+    );
+    return res.status(200).json({ message: "✅ Safe test ad created", result });
   } catch (error: any) {
-    console.error('❌ Error in controller:', error.message || error);
-    return res.status(500).json({ message: 'Failed to create test ad' });
+    console.error("❌ Error in controller:", error.message || error);
+    return res.status(500).json({ message: "Failed to create test ad" });
   }
 };
 
+// google
 
+export const createGoogleAdController = async (req: Request, res: Response) => {
+  const { customerId, refreshToken, finalUrl } = req.body;
 
+  if (!customerId || !refreshToken || !finalUrl) {
+    return res.status(400).json({ message: "Missing required fields." });
+  }
 
-// for google 
-
-async function createGoogleCampaign(req: Request, res: Response) {
   try {
-    const { clientId, campaignName, budgetMicros } = req.body;
-
-    if (!clientId || !campaignName || !budgetMicros) {
-      return res.status(400).json({ error: 'Missing required fields.' });
-    }
-
-    const result = await createCampaignService.createGoogleCampaign(clientId, campaignName, budgetMicros);
-
-    // TODO: Save campaign.resource_name and clientId in your DB here
-
-    return res.status(201).json({
-      message: 'Campaign created successfully',
-      campaign: result.campaign,
-      budget: result.budget,
+    const adResult = await createGoogleAdService({
+      customerId,
+      refreshToken,
+      finalUrl,
     });
-  } catch (error) {
-    console.error('Error creating campaign:', error);
-    return res.status(500).json({ error: 'Failed to create campaign.' });
+    res
+      .status(201)
+      .json({ message: "Ad created successfully!", data: adResult });
+  } catch (err: any) {
+    console.error("Ad creation error:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to create ad", error: err.message });
   }
-}
+};
 
-// get google campaign spend cost
-async function getGoogleCampaignSpend(req: Request, res: Response) {
+// linkedin
+
+export const createLinkedInAd = async (req: Request, res: Response) => {
+  const { accessToken, adAccountUrn, organizationUrn, landingPageUrl } =
+    req.body;
+
   try {
-    const { campaignResourceName } = req.query;
+    const campaign = await createAdCampaign(accessToken, adAccountUrn);
+    const creative = await createAdCreative(
+      accessToken,
+      adAccountUrn,
+      organizationUrn,
+      landingPageUrl
+    );
 
-    if (!campaignResourceName) {
-      return res.status(400).json({ error: 'campaignResourceName query param is required.' });
-    }
-
-    const spends = await createCampaignService.getGoogleCampaignSpend(campaignResourceName as string);
-
-    return res.status(200).json(spends);
-  } catch (error) {
-    console.error('Error fetching campaign spend:', error);
-    return res.status(500).json({ error: 'Failed to fetch campaign spending.' });
+    res.status(200).json({
+      message: "Ad campaign and creative created successfully",
+      campaign,
+      creative,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
-}
-
+};
 
 export const createCampaignController = {
   uploadImageController,
   createAdController,
-  createGoogleCampaign,
-  getGoogleCampaignSpend
-}
+};

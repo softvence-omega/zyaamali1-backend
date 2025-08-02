@@ -54,10 +54,6 @@ export const createDefaultSuperAdmin = async () => {
         password: hashedPassword,
         companyName: "AI Ads HQ",
         role: "superAdmin",
-        isActive: true,
-        isVerified: true,
-        credit: 999999, // optional: give high credits
-        country: "Global",
       });
       console.log("✅ Default superAdmin created.");
     } else {
