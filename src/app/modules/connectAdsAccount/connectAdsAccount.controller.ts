@@ -39,7 +39,6 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     if (!adAccounts.length)
       return res.status(400).send("No ad accounts found.");
 
-
     const selectedAdAccount = adAccounts[0];
 
     return res.status(200).json({
@@ -52,7 +51,6 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
       "❌ Facebook OAuth error:",
 
       error.response?.data || error.message
-
     );
     return res.status(500).send("Failed to connect Facebook Ads account");
   }
@@ -151,8 +149,6 @@ const redirectToLinkedIn = (req: Request, res: Response) => {
 
 const handleLinkedInCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
-
-  console.log("✅linkdin  Callback route hit");
   try {
     const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(
       code
@@ -162,6 +158,23 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("❌ Error getting access token:", error.message);
     res.status(500).json({ error: "Failed to retrieve access token" });
+  }
+};
+
+export const getLinkedinAdAccounts = async (req: Request, res: Response) => {
+  const accessToken = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!accessToken)
+    return res.status(401).json({ error: "Access token missing" });
+
+  try {
+    const accounts =
+      await connectAdsAccountservice.getLinkedinAdAccountsAndOrganizations(
+        accessToken
+      );
+    res.json(accounts);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch linkedin Ad accounts" });
   }
 };
 
@@ -186,7 +199,6 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
     message: "Google Ads connected successfully.",
     token: tokens,
   });
-
 };
 
 export const getGoogleAdAccounts = async (req: Request, res: Response) => {
@@ -200,7 +212,6 @@ export const getGoogleAdAccounts = async (req: Request, res: Response) => {
     res.json(accounts);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch Google Ad accounts" });
-
   }
 };
 
@@ -220,7 +231,6 @@ const handleTiktokCallback = async (req: Request, res: Response) => {
   if (typeof code !== "string" || !code) {
     return res.status(400).send("Missing or invalid authorization code");
   }
-
 
   try {
     const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(
