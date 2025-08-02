@@ -3,7 +3,6 @@ import {
   connectAdsAccountController,
   getGoogleAdAccounts,
   getLinkedinAdAccounts,
-  getTiktokAdAccounts,
   googleAuthCallback,
   googleAuthRedirect,
 } from "./connectAdsAccount.controller";

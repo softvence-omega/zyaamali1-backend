@@ -12,6 +12,8 @@ router.post(
   "/facebook/upload-image",
   createCampaignController.uploadImageController
 );
+
+
 router.post("/facebook-ads", createCampaignController.createAdController);
 
 // google
