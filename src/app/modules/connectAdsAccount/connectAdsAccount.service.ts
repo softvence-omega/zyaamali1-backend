@@ -1,13 +1,16 @@
 import axios from "axios";
 import config from "../../config";
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
+
+import { OAuth2Client } from "google-auth-library";
+
 const {
   LINKEDIN_CLIENT_ID,
   LINKEDIN_CLIENT_SECRET,
   LINKEDIN_REDIRECT_URI,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI,
+  GOOGLE_CLIENT_ID2,
+  GOOGLE_CLIENT_SECRET2,
+  GOOGLE_REDIRECT_URI2,
 } = process.env;
 
 const getFacebookAccessToken = async (code: string) => {
@@ -68,7 +71,10 @@ const getLinkdinAuthURL = () => {
     response_type: "code",
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
-    scope: "r_ads", // Safe fallback
+
+    scope:
+      "r_liteprofile r_emailaddress rw_organization_admin r_ads r_ads_reporting rw_ads",
+
   });
 
   return `${base}?${params.toString()}`;
@@ -109,77 +115,107 @@ const getlinkedinAdAccounts = async (accessToken: any) => {
 
 // for google
 
-const generateGoogleAuthURL = () => {
-  const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID!,
-    redirect_uri: GOOGLE_REDIRECT_URI!,
-    response_type: "code",
+export const getGoogleOAuthUrl = () => {
+  const scopes = [
+    "https://www.googleapis.com/auth/adwords",
+    "https://www.googleapis.com/auth/userinfo.email",
+  ];
+
+  const oauth2Client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID2,
+    process.env.GOOGLE_CLIENT_SECRET2,
+    process.env.GOOGLE_REDIRECT_URI2
+  );
+
+  const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
+    scope: scopes,
     prompt: "consent",
-    scope: ["https://www.googleapis.com/auth/adwords"].join(" "),
+    include_granted_scopes: true, // Optional: incremental auth
+    state: "your_csrf_token_here", // Security measure
+
   });
 
-  return `${rootUrl}?${params.toString()}`;
+  return url;
 };
 
-const exchangeGoogleCodeForToken = async (code: string) => {
-  console.log(
-    "from google accessToken code ===================================>inside sercice "
+export const exchangeCodeForTokens = async (code: string) => {
+  const oauth2Client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID2,
+    process.env.GOOGLE_CLIENT_SECRET2,
+    process.env.GOOGLE_REDIRECT_URI2
   );
-  const response = await axios.post("https://oauth2.googleapis.com/token", {
-    code,
-    client_id: GOOGLE_CLIENT_ID,
-    client_secret: GOOGLE_CLIENT_SECRET,
-    redirect_uri: GOOGLE_REDIRECT_URI,
-    grant_type: "authorization_code",
-  });
 
-  const { access_token, refresh_token, expires_in } = response.data;
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    return tokens;
+  } catch (err) {
+    throw new Error("Invalid or expired authorization code");
+  }
+};
 
-  return {
-    access_token,
-    refresh_token,
-    expires_in,
-  };
+export const fetchGoogleAdAccounts = async (accessToken: string) => {
+  try {
+    const response = await axios.get(
+      "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN!,
+          "login-customer-id": process.env.GOOGLE_MANAGER_ID!, // only if using an MCC account
+        },
+      }
+    );
+
+    return response.data;
+  } catch (err: any) {
+    console.error("Google Ads API Error:", err.response?.data || err.message);
+    throw new Error(
+      "Failed to fetch accounts. Check token, dev token, and MCC ID."
+    );
+  }
 };
 
 // for tiktok connection
-
 const getTiktokAuthUrl = () => {
-  const base = "https://sandbox-ads.tiktok.com/marketing_api/auth";
+  const base = "https://ads.tiktok.com/marketing_api/auth";
   const params = new URLSearchParams({
-    app_id: process.env.TIKTOK_CLIENT_ID as string,
-    redirect_uri: process.env.TIKTOK_REDIRECT_URI as string,
+    app_id: process.env.TIKTOK_CLIENT_ID!,
+    redirect_uri: process.env.TIKTOK_REDIRECT_URI!,
     response_type: "code",
-    state: "custom_state_token",
-    scope: "user.info.basic,ad.account.list",
+    scope: "user.info.basic,ad.account.list,ad.report.basic, ad.create",
+    state: "random_unique_string", // ideally generate this per user/session
+
   });
   return `${base}?${params.toString()}`;
 };
 
-const exchangeTiktokCodeForToken = async (code: any) => {
-  console.log("from callback form tiktok ===================");
-  const response = await axios.post(
-    "https://sandbox-ads.tiktok.com/open_api/v1.2/oauth2/access_token/",
-    {
-      app_id: process.env.TIKTOK_CLIENT_ID,
-      secret: process.env.TIKTOK_SECRET,
-      auth_code: code,
-      grant_type: "authorization_code",
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+const exchangeTiktokCodeForToken = async (code: string) => {
+  try {
+    const response = await axios.post(
+      "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/",
+      {
+        app_id: process.env.TIKTOK_CLIENT_ID,
+        secret: process.env.TIKTOK_SECRET,
+        auth_code: code,
+        grant_type: "authorization_code",
+      }
+    );
 
-  const { access_token, advertiser_ids } = response.data.data;
-  return {
-    accessToken: access_token,
-    advertiserIds: advertiser_ids,
-  };
+    const { access_token, advertiser_ids } = response.data.data;
+
+    return {
+      accessToken: access_token,
+      advertiserIds: advertiser_ids,
+    };
+  } catch (err) {
+    console.error(
+      "Failed to exchange code:",
+      err.response?.data || err.message
+    );
+    throw err;
+  }
+
 };
 
 export const connectAdsAccountservice = {
@@ -189,8 +225,9 @@ export const connectAdsAccountservice = {
   getLinkdinAuthURL,
   getLinkdinAccessToken,
   getlinkedinAdAccounts,
-  generateGoogleAuthURL,
-  exchangeGoogleCodeForToken,
+
+
+
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,
 };

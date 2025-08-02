@@ -1,7 +1,14 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import config from "../../config";
-import { connectAdsAccountservice } from "./connectAdsAccount.service";
+
+import {
+  connectAdsAccountservice,
+  exchangeCodeForTokens,
+  fetchGoogleAdAccounts,
+  getGoogleOAuthUrl,
+} from "./connectAdsAccount.service";
+
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 
 // for facebook connection
@@ -24,16 +31,14 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     const accessToken = await connectAdsAccountservice.getFacebookAccessToken(
       code
     );
-    console.log("Access Token:", accessToken);
 
     FacebookAdsApi.init(accessToken);
+
     const user = new User("me");
     const adAccounts = await user.getAdAccounts();
-
-    if (!adAccounts.length) {
-      console.log("No ad accounts found for user.");
+    if (!adAccounts.length)
       return res.status(400).send("No ad accounts found.");
-    }
+
 
     const selectedAdAccount = adAccounts[0];
 
@@ -45,7 +50,9 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error(
       "❌ Facebook OAuth error:",
-      error?.response?.data || error.message
+
+      error.response?.data || error.message
+
     );
     return res.status(500).send("Failed to connect Facebook Ads account");
   }
@@ -136,73 +143,64 @@ const handleInstagramConnection = async (req: Request, res: Response) => {
 
 const redirectToLinkedIn = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.getLinkdinAuthURL();
-  console.log("Redirecting to linkdedin OAuth:", authURL);
+
+  console.log(authURL);
+
   res.redirect(authURL);
 };
 
 const handleLinkedInCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
 
+  console.log("✅linkdin  Callback route hit");
   try {
-    // Step 1: Get access token
     const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(
       code
     );
-    console.log("✅ LinkedIn Access Token:", accessToken);
-
-    // Step 2: Fetch LinkedIn ad accounts
-    const adAccountsResponse = await axios.get(
-      "https://api.linkedin.com/v2/adAccountsV2?q=search",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    const adAccounts = adAccountsResponse.data.elements;
-
-    if (!adAccounts.length) {
-      return res.status(404).json({ message: "No LinkedIn ad accounts found" });
-    }
-
-    // Step 3: Respond with data
-    res.json({
-      message: "✅ LinkedIn connected",
-      accessToken,
-      adAccounts,
-    });
+    // Optionally: store accessToken in DB here
+    res.json({ access_token: accessToken });
   } catch (error: any) {
-    console.error(
-      "❌ LinkedIn OAuth error:",
-      error.response?.data || error.message
-    );
-    res.status(500).json({ error: "Failed to connect LinkedIn Ads account" });
+    console.error("❌ Error getting access token:", error.message);
+    res.status(500).json({ error: "Failed to retrieve access token" });
   }
 };
 
 // for google
-
-const getGoogleAuthURL = (req: Request, res: Response) => {
-  const authURL = connectAdsAccountservice.generateGoogleAuthURL();
-  console.log(authURL);
-  res.redirect(authURL);
+export const googleAuthRedirect = (req: Request, res: Response) => {
+  const url = getGoogleOAuthUrl();
+  console.log(url);
+  res.redirect(url);
 };
 
-const handleGoogleCallback = async (req: Request, res: Response) => {
-  const code = req.query.code as string;
-
-  if (!code) {
-    return res.status(400).json({ error: "Missing authorization code" });
+export const googleAuthCallback = async (req: Request, res: Response) => {
+  const code = req.query.code;
+  if (typeof code !== "string" || !code) {
+    return res
+      .status(400)
+      .json({ error: "Authorization code is missing or invalid." });
   }
+  const tokens = await exchangeCodeForTokens(code);
+
+  // Save tokens.access_token and tokens.refresh_token to your DB for the user
+  res.json({
+    message: "Google Ads connected successfully.",
+    token: tokens,
+  });
+
+};
+
+export const getGoogleAdAccounts = async (req: Request, res: Response) => {
+  const accessToken = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!accessToken)
+    return res.status(401).json({ error: "Access token missing" });
 
   try {
-    const tokens = await connectAdsAccountservice.exchangeGoogleCodeForToken(
-      code
-    );
-    res.json(tokens);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to exchange code for token" });
+    const accounts = await fetchGoogleAdAccounts(accessToken);
+    res.json(accounts);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch Google Ad accounts" });
+
   }
 };
 
@@ -210,14 +208,19 @@ const handleGoogleCallback = async (req: Request, res: Response) => {
 
 const getTiktokAuthUrl = (req: Request, res: Response) => {
   const url = connectAdsAccountservice.getTiktokAuthUrl();
-  console.log("================== from tikto redirect url", url);
+
+  console.log("url from tiktok", url);
 
   res.redirect(url);
 };
 
 const handleTiktokCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
-  if (!code) return res.status(400).send("Missing authorization code");
+
+  if (typeof code !== "string" || !code) {
+    return res.status(400).send("Missing or invalid authorization code");
+  }
+
 
   try {
     const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(
@@ -237,8 +240,7 @@ export const connectAdsAccountController = {
   getFacebookAdsConnection,
   redirectToLinkedIn,
   handleLinkedInCallback,
-  getGoogleAuthURL,
-  handleGoogleCallback,
+
   getTiktokAuthUrl,
   handleTiktokCallback,
 };

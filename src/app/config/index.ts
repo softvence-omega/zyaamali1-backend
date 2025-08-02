@@ -18,9 +18,11 @@ export default {
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   stripe_secret_key: process.env.STRIPE_SECRET_KEY,
+
   google_client_id: process.env.GOOGLE_CLIENT_ID,
   google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
   google_callback_url: process.env.GOOGLE_CALLBACK_URL,
+
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   PROJECT_NAME: process.env.PROJECT_NAME,
 
@@ -31,6 +33,7 @@ export default {
   linkdinClientId: process.env.LINKEDIN_CLIENT_ID,
   linkdinClientSecret: process.env.LINKEDIN_CLIENT_SECRET,
   linkdinRedirectUrl: process.env.LINKEDIN_REDIRECT_URI,
+
 
   google__client_id: process.env.GOOGLE_CLIENT_ID,
   google__client_secret: process.env.GOOGLE_CLIENT_SECRET,
