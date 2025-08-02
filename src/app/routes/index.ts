@@ -12,7 +12,8 @@ import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
 
 import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
-
+import path from "path";
+import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
 
 const router = Router();
 
@@ -47,12 +48,14 @@ const moduleRoutes = [
     route: ConversationRoutes,
   },
   {
-
     path: "/ads",
     route: createAdsCampaignRoute,
   },
   {
-
+    path: "/ads-campaign",
+    route: adCampainRoutes,
+  },
+  {
     path: "/business",
     route: businessRoutes,
   },
@@ -69,7 +72,6 @@ const moduleRoutes = [
 
     route: contentRoutes,
   },
-
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
