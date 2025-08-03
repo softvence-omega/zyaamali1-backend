@@ -29,64 +29,73 @@ const uploadImageService = async (
   return imageHash;
 };
 
-const createAdService = async (
+export const createAdService = async (
   accessToken: string,
   adAccountId: string,
   pageId: string,
   imageHash: string
 ) => {
-  FacebookAdsApi.init(accessToken);
+  try {
+    // Initialize Facebook API with access token
+    FacebookAdsApi.init(accessToken);
 
-  // 1. Campaign
-  const campaign = await new AdAccount(adAccountId).createCampaign([], {
-    name: "🚫 Safe Test Campaign",
-    objective: "LINK_CLICKS",
-    status: "PAUSED",
-    special_ad_categories: [],
-  });
+    const adAccount = new AdAccount(adAccountId);
 
-  // 2. Ad Set
-  const adSet = await new AdAccount(adAccountId).createAdSet([], {
-    name: "🚫 Safe Test Ad Set",
-    campaign_id: campaign.id,
-    daily_budget: 1000,
-    billing_event: "IMPRESSIONS",
-    optimization_goal: "LINK_CLICKS",
-    targeting: {
-      geo_locations: { countries: ["US"] },
-    },
-    start_time: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    end_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "PAUSED",
-  });
+    // Step 1: Create Campaign
+    const [campaign] = await adAccount.createCampaign([], {
+      name: "🚀 Auto Campaign",
+      objective: "OUTCOME_LEADS", // e.g., LINK_CLICKS, CONVERSIONS, etc.
+      status: "PAUSED",
+      special_ad_categories: [], // Empty unless targeting special ads
+    });
 
-  // 3. Creative
-  const creative = await new AdAccount(adAccountId).createAdCreative([], {
-    name: "Test Creative",
-    object_story_spec: {
-      page_id: pageId,
-      link_data: {
-        message: "🚀 This is a safe test ad (paused)",
-        link: "https://your-landing-page.com",
-        image_hash: imageHash,
+    // Step 2: Create Ad Set
+    const [adSet] = await adAccount.createAdSet([], {
+      name: "🎯 Auto Ad Set",
+      campaign_id: campaign.id,
+      daily_budget: 1000, // in smallest currency unit, e.g., 1000 = $10
+      billing_event: "IMPRESSIONS",
+      optimization_goal: "OUTCOME_LEADS",
+      targeting: {
+        geo_locations: { countries: ["US"] },
       },
-    },
-  });
+      start_time: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 mins from now
+      end_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // +2 days
+      status: "PAUSED",
+    });
 
-  // 4. Ad
-  const ad = await new AdAccount(adAccountId).createAd([], {
-    name: "🚫 Safe Test Ad",
-    adset_id: adSet.id,
-    creative: { creative_id: creative.id },
-    status: "PAUSED",
-  });
+    // Step 3: Create Ad Creative
+    const [creative] = await adAccount.createAdCreative([], {
+      name: "📸 Auto Creative",
+      object_story_spec: {
+        page_id: pageId,
+        link_data: {
+          message: "🔥 This is an automated test ad!",
+          link: "https://your-landing-page.com", // Replace with actual link
+          image_hash: imageHash,
+        },
+      },
+    });
 
-  return {
-    campaignId: campaign.id,
-    adSetId: adSet.id,
-    creativeId: creative.id,
-    adId: ad.id,
-  };
+    // Step 4: Create Ad
+    const [ad] = await adAccount.createAd([], {
+      name: "📢 Auto Ad",
+      adset_id: adSet.id,
+      creative: { creative_id: creative.id },
+      status: "PAUSED",
+    });
+
+    return {
+      campaignId: campaign.id,
+      adSetId: adSet.id,
+      creativeId: creative.id,
+      adId: ad.id,
+      message: "✅ Facebook ad created (paused by default)",
+    };
+  } catch (error: any) {
+    console.error("❌ Failed to create Facebook ad:", error.message || error);
+    throw new Error("Failed to create Facebook ad");
+  }
 };
 
 // google
