@@ -181,14 +181,15 @@ export const exchangeCodeForTokens = async (code: string) => {
 };
 
 export const fetchGoogleAdAccounts = async (accessToken: string) => {
+ 
   try {
     const response = await axios.get(
       "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN!,
-          "login-customer-id": process.env.GOOGLE_MANAGER_ID!, // only if using an MCC account
+          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN2!,
+          "login-customer-id": process.env.GOOGLE_MANAGER_ID2!, // only if using an MCC account
         },
       }
     );

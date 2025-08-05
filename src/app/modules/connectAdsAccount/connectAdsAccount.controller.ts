@@ -221,6 +221,7 @@ export const googleAuthRedirect = (req: Request, res: Response) => {
 };
 
 export const googleAuthCallback = async (req: Request, res: Response) => {
+  
   const code = req.query.code;
   if (typeof code !== "string" || !code) {
     return res
