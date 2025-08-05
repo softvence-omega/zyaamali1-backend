@@ -62,6 +62,7 @@ const createAdController = async (req: Request, res: Response) => {
 
 export const createGoogleAdController = async (req: Request, res: Response) => {
   const { customerId, refreshToken, finalUrl } = req.body;
+  console.log(customerId, refreshToken, finalUrl);
 
   if (!customerId || !refreshToken || !finalUrl) {
     return res.status(400).json({ message: "Missing required fields." });

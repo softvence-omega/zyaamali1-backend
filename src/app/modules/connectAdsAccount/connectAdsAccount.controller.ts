@@ -10,6 +10,7 @@ import {
 } from "./connectAdsAccount.service";
 
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
+import { ad } from "google-ads-api/build/src/protos/autogen/resourceNames";
 
 // for facebook connection
 
@@ -18,11 +19,9 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
     "public_profile",
     "business_management",
     "pages_show_list",
-    "ads_management",
-    "ads_read",
-  ].join(",")
-
-  
+    // "ads_management",
+    // "ads_read",
+  ].join(",");
 
   const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${
     config.facebookAppId
@@ -68,36 +67,37 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
   }
 };
 
-const getFacebookAdsConnection = async (req: Request, res: Response) => {
-  const userId = req.query.userId as string;
+// const getFacebookAdsConnection = async (req: Request, res: Response) => {
+//   const userId = req.query.userId as string;
 
-  // Example: fetch user's stored token from DB (replace with real DB call)
-  const accessToken =
-    "EAA7r59ZAbUhYBO8B7gUwInOrLDAkZCjbhba2AehRGYiGNmK1RUf2KMcPc6UFvM9tJlPO5eb9DOqjzmwu3Mhc6dj0BzBHVdP0RQF1JRFwrgPvFD3i503EXiK3GqUaqwdLSQ0JdVPn9CUlLgJLLNVIZBoCZBWeVXuhYvyQ1LJy4I5ZBZCXBrSA8tfmurqimJDFraQUCzyCs20YGRrpwC1U3mvBKBsJUsKVCUj2sLiaZBANIAWLukswZC6SekjdyQ2K";
+//   // Example: fetch user's stored token from DB (replace with real DB call)
+//   const accessToken =
+//     "EAA7r59ZAbUhYBPGrgg86YWd9YJZCNk5JRZAoyYuGdMLjZB5ljBbZAL20ynWqz96qnNkAD7mDxtGX49EUJVieHSkdskZCHmurLQOYe6gEMaUPWd8nuBfsZAQwyXNg1blqld1x9HX7kkgsQqvV5p95we0xgaoOhGf1Jn5N2t3rDbuvbUP9v7NaxHEWzGnEV4ECLcgWCs9QMv3zM9IPd2rOa4TbtM11ENqUufCtCuRenAwnDZBiwVi3K2ByqBZA7";
 
-  if (!accessToken) {
-    return res.status(401).json({ connected: false, message: "Not connected" });
-  }
+//   if (!accessToken) {
+//     return res.status(401).json({ connected: false, message: "Not connected" });
+//   }
 
-  try {
-    const adAccounts = await connectAdsAccountservice.getFacebookAdAccounts(
-      accessToken
-    );
+//   try {
+//     const adAccounts = await connectAdsAccountservice.getFacebookAdAccounts(
+//       accessToken
+//     );
+//     console.log(adAccounts);
 
-    if (adAccounts && adAccounts.length > 0) {
-      return res.status(200).json({ connected: true, adAccounts });
-    } else {
-      return res
-        .status(200)
-        .json({ connected: false, message: "No ad accounts found" });
-    }
-  } catch (error: any) {
-    console.error("Failed to check ad accounts:", error.message);
-    return res
-      .status(500)
-      .json({ connected: false, message: "Token invalid or expired" });
-  }
-};
+//     if (adAccounts && adAccounts.length > 0) {
+//       return res.status(200).json({ connected: true, adAccounts });
+//     } else {
+//       return res
+//         .status(200)
+//         .json({ connected: false, message: "No ad accounts found" });
+//     }
+//   } catch (error: any) {
+//     console.error("Failed to check ad accounts:", error.message);
+//     return res
+//       .status(500)
+//       .json({ connected: false, message: "Token invalid or expired" });
+//   }
+// };
 
 // for instagram connection
 
@@ -165,8 +165,31 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
     const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(
       code
     );
-    // Optionally: store accessToken in DB here
-    res.json({ access_token: accessToken });
+    console.log("✅ LinkedIn Access Token:", accessToken);
+
+    // Step 2: Fetch LinkedIn ad accounts
+    const adAccountsResponse = await axios.get(
+      "https://api.linkedin.com/v2/adAccountsV2?q=search",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const adAccounts = adAccountsResponse.data.elements;
+    console.log(adAccounts);
+
+    if (!adAccounts.length) {
+      return res.status(404).json({ message: "No LinkedIn ad accounts found" });
+    }
+
+    // Step 3: Respond with data
+    res.json({
+      message: "✅ LinkedIn connected",
+      accessToken,
+      adAccounts,
+    });
   } catch (error: any) {
     console.error("❌ Error getting access token:", error.message);
     res.status(500).json({ error: "Failed to retrieve access token" });
@@ -198,6 +221,7 @@ export const googleAuthRedirect = (req: Request, res: Response) => {
 };
 
 export const googleAuthCallback = async (req: Request, res: Response) => {
+  
   const code = req.query.code;
   if (typeof code !== "string" || !code) {
     return res
@@ -258,7 +282,7 @@ export const connectAdsAccountController = {
   redirectToFacebookOAuth,
   handleFacebookCallback,
   handleInstagramConnection,
-  getFacebookAdsConnection,
+  // getFacebookAdsConnection,
   redirectToLinkedIn,
   handleLinkedInCallback,
 

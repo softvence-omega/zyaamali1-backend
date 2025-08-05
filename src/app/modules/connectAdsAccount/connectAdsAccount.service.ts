@@ -29,18 +29,18 @@ const getFacebookAccessToken = async (code: string) => {
   return response.data.access_token;
 };
 
-const getFacebookAdAccounts = async (accessToken: string) => {
-  FacebookAdsApi.init(accessToken); // Sets the default token for SDK
+// const getFacebookAdAccounts = async (accessToken: string) => {
+//   FacebookAdsApi.init(accessToken); // Sets the default token for SDK
 
-  const user = new User("me");
-  const adAccounts = await user.getAdAccounts(); // No need to pass token here
+//   const user = new User("me");
+//   const adAccounts = await user.getAdAccounts(); // No need to pass token here
 
-  return adAccounts.map((account) => ({
-    id: account.id,
-    name: account.name,
-    account_status: account.account_status,
-  }));
-};
+//   return adAccounts.map((account) => ({
+//     id: account.id,
+//     name: account.name,
+//     account_status: account.account_status,
+//   }));
+// };
 
 // for instagram
 
@@ -181,14 +181,15 @@ export const exchangeCodeForTokens = async (code: string) => {
 };
 
 export const fetchGoogleAdAccounts = async (accessToken: string) => {
+ 
   try {
     const response = await axios.get(
       "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN!,
-          "login-customer-id": process.env.GOOGLE_MANAGER_ID!, // only if using an MCC account
+          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN2!,
+          "login-customer-id": process.env.GOOGLE_MANAGER_ID2!, // only if using an MCC account
         },
       }
     );
@@ -244,7 +245,7 @@ const exchangeTiktokCodeForToken = async (code: string) => {
 
 export const connectAdsAccountservice = {
   getFacebookAccessToken,
-  getFacebookAdAccounts,
+  // getFacebookAdAccounts,
   getInstagramAccounts,
   getLinkdinAuthURL,
   getLinkdinAccessToken,
