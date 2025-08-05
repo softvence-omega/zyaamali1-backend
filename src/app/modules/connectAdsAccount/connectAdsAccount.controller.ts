@@ -165,8 +165,31 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
     const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(
       code
     );
-    // Optionally: store accessToken in DB here
-    res.json({ access_token: accessToken });
+    console.log("✅ LinkedIn Access Token:", accessToken);
+
+    // Step 2: Fetch LinkedIn ad accounts
+    const adAccountsResponse = await axios.get(
+      "https://api.linkedin.com/v2/adAccountsV2?q=search",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const adAccounts = adAccountsResponse.data.elements;
+    console.log(adAccounts);
+
+    if (!adAccounts.length) {
+      return res.status(404).json({ message: "No LinkedIn ad accounts found" });
+    }
+
+    // Step 3: Respond with data
+    res.json({
+      message: "✅ LinkedIn connected",
+      accessToken,
+      adAccounts,
+    });
   } catch (error: any) {
     console.error("❌ Error getting access token:", error.message);
     res.status(500).json({ error: "Failed to retrieve access token" });
