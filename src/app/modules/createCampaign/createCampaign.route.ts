@@ -2,16 +2,14 @@ import express from "express";
 import {
   createCampaignController,
   createGoogleAdController,
+  createLeadFormController,
   createLinkedInAd,
 } from "./createCampaign.controller";
 
 const router = express.Router();
 
 // facebook
-router.post(
-  "/facebook/upload-image",
-  createCampaignController.uploadImageController
-);
+router.post("/facebook/lead-form", createLeadFormController);
 router.post("/facebook/create-ad", createCampaignController.createAdController);
 
 // google
