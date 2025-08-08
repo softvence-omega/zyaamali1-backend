@@ -11,7 +11,6 @@ import {
 
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 
-
 // for facebook connection
 
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
@@ -19,8 +18,8 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
     "public_profile",
     "business_management",
     "pages_show_list",
-    // "ads_management",
-    // "ads_read",
+    "ads_management",
+    "ads_read",
   ].join(",");
 
   const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${
@@ -35,13 +34,13 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
 
 const handleFacebookCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
+
   if (!code) return res.status(400).send("Authorization code is missing");
 
   try {
     const accessToken = await connectAdsAccountservice.getFacebookAccessToken(
       code
     );
-    console.log(accessToken);
 
     FacebookAdsApi.init(accessToken);
 
@@ -50,7 +49,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     if (!adAccounts.length)
       return res.status(400).send("No ad accounts found.");
 
-    const selectedAdAccount = adAccounts[0];
+    const selectedAdAccount = adAccounts[1];
 
     return res.status(200).json({
       message: "✅ Facebook connected",
@@ -66,38 +65,6 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     return res.status(500).send("Failed to connect Facebook Ads account");
   }
 };
-
-// const getFacebookAdsConnection = async (req: Request, res: Response) => {
-//   const userId = req.query.userId as string;
-
-//   // Example: fetch user's stored token from DB (replace with real DB call)
-//   const accessToken =
-//     "EAA7r59ZAbUhYBPGrgg86YWd9YJZCNk5JRZAoyYuGdMLjZB5ljBbZAL20ynWqz96qnNkAD7mDxtGX49EUJVieHSkdskZCHmurLQOYe6gEMaUPWd8nuBfsZAQwyXNg1blqld1x9HX7kkgsQqvV5p95we0xgaoOhGf1Jn5N2t3rDbuvbUP9v7NaxHEWzGnEV4ECLcgWCs9QMv3zM9IPd2rOa4TbtM11ENqUufCtCuRenAwnDZBiwVi3K2ByqBZA7";
-
-//   if (!accessToken) {
-//     return res.status(401).json({ connected: false, message: "Not connected" });
-//   }
-
-//   try {
-//     const adAccounts = await connectAdsAccountservice.getFacebookAdAccounts(
-//       accessToken
-//     );
-//     console.log(adAccounts);
-
-//     if (adAccounts && adAccounts.length > 0) {
-//       return res.status(200).json({ connected: true, adAccounts });
-//     } else {
-//       return res
-//         .status(200)
-//         .json({ connected: false, message: "No ad accounts found" });
-//     }
-//   } catch (error: any) {
-//     console.error("Failed to check ad accounts:", error.message);
-//     return res
-//       .status(500)
-//       .json({ connected: false, message: "Token invalid or expired" });
-//   }
-// };
 
 // for instagram connection
 
@@ -221,7 +188,6 @@ export const googleAuthRedirect = (req: Request, res: Response) => {
 };
 
 export const googleAuthCallback = async (req: Request, res: Response) => {
-  
   const code = req.query.code;
   if (typeof code !== "string" || !code) {
     return res
@@ -282,7 +248,7 @@ export const connectAdsAccountController = {
   redirectToFacebookOAuth,
   handleFacebookCallback,
   handleInstagramConnection,
-  // getFacebookAdsConnection,
+
   redirectToLinkedIn,
   handleLinkedInCallback,
 

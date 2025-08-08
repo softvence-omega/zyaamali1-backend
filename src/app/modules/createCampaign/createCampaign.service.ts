@@ -5,96 +5,151 @@ import FormData from "form-data";
 import { googleAdsClient } from "../../utils/googleAdsClient";
 
 // facebook
-const uploadImageService = async (
-  accessToken: string,
-  adAccountId: string,
-  imageUrl: string
-): Promise<string> => {
-  const endpoint = `https://graph.facebook.com/v19.0/act_${adAccountId}/adimages`;
 
-  const form = new FormData();
-  form.append("url", imageUrl);
+// src/services/facebookLeadForm.service.ts
 
-  const response = await axios.post(endpoint, form, {
-    headers: {
-      ...form.getHeaders(),
-    },
-    params: {
-      access_token: accessToken,
-    },
-  });
+class FacebookLeadFormService {
+  async createLeadForm(pageAccessToken: string, pageId: string) {
+    try {
+      const url = `https://graph.facebook.com/v23.0/${pageId}/leadgen_forms`;
 
-  const images = response.data.images;
-  const imageHash = (Object as any).values(images)[0].hash;
-  return imageHash;
-};
+      const payload = {
+        name: "🚀 My Auto Lead Form",
+        follow_up_action_url: "https://adelo.ai",
+        questions: JSON.stringify([
+          { type: "FULL_NAME" },
+          { type: "EMAIL" },
+          { type: "PHONE" },
+          {
+            type: "CUSTOM",
+            label: "What service are you interested in?",
+            options: [
+              { label: "Web Development", value: "web_dev" },
+              { label: "SEO", value: "seo" },
+              { label: "Marketing", value: "marketing" },
+            ],
+          },
+        ]),
+        privacy_policy: JSON.stringify({
+          url: "https://adelo.ai/privacy-policy",
+          link_text: "View our Privacy Policy",
+        }),
+        thank_you_screen: JSON.stringify({
+          title: "Thanks!",
+          body: "We’ll contact you shortly.",
+          button_text: "Visit Website",
+          button_url: "https://adelo.ai",
+        }),
+        locale: "EN_US",
+        access_token: pageAccessToken,
+      };
+
+      const res = await axios.post(url, payload);
+      return res.data; // { id: 'FORM_ID', success: true }
+    } catch (error: any) {
+      console.error(
+        "❌ Failed to create lead form:",
+        error.response?.data || error.message
+      );
+      throw new Error(
+        error.response?.data?.error?.message || "Lead form creation failed"
+      );
+    }
+  }
+}
+
+export const facebookLeadFormService = new FacebookLeadFormService();
 
 export const createAdService = async (
   accessToken: string,
-  adAccountId: string,
+  adAccountId: string, // e.g. act_1234567890
   pageId: string,
-  imageHash: string
+
+  imageUrl: string
 ) => {
   try {
-    // Initialize Facebook API with access token
-    FacebookAdsApi.init(accessToken);
+    // 1️⃣ Create Campaign
+    const campaignRes = await axios.post(
+      `https://graph.facebook.com/v23.0/act_${adAccountId}/campaigns`,
+      {
+        name: "🚀 My Traffic Campaign",
+        objective: "OUTCOME_TRAFFIC", // ✅ new API value
+        status: "PAUSED",
+        special_ad_categories: [], // ✅ still required
+        access_token: accessToken,
+      }
+    );
 
-    const adAccount = new AdAccount(adAccountId);
+    const campaignId = campaignRes.data.id;
+    console.log(`✅ Campaign created: ${campaignId}`);
 
-    // Step 1: Create Campaign
-    const [campaign] = await adAccount.createCampaign([], {
-      name: "🚀 Auto Campaign",
-      objective: "OUTCOME_LEADS", // e.g., LINK_CLICKS, CONVERSIONS, etc.
-      status: "PAUSED",
-      special_ad_categories: [], // Empty unless targeting special ads
-    });
-
-    // Step 2: Create Ad Set
-    const [adSet] = await adAccount.createAdSet([], {
-      name: "🎯 Auto Ad Set",
-      campaign_id: campaign.id,
-      daily_budget: 1000, // in smallest currency unit, e.g., 1000 = $10
-      billing_event: "IMPRESSIONS",
-      optimization_goal: "OUTCOME_LEADS",
-      targeting: {
-        geo_locations: { countries: ["US"] },
-      },
-      start_time: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 mins from now
-      end_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // +2 days
-      status: "PAUSED",
-    });
-
-    // Step 3: Create Ad Creative
-    const [creative] = await adAccount.createAdCreative([], {
-      name: "📸 Auto Creative",
-      object_story_spec: {
-        page_id: pageId,
-        link_data: {
-          message: "🔥 This is an automated test ad!",
-          link: "https://your-landing-page.com", // Replace with actual link
-          image_hash: imageHash,
+    // 2️⃣ Create Ad Set
+    const adSetRes = await axios.post(
+      `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,
+      {
+        name: "🚀 Traffic Ad Set",
+        campaign_id: campaignId,
+        daily_budget: 125000, // ✅ in poisha, so 125.00 BDT
+        billing_event: "IMPRESSIONS",
+        optimization_goal: "LINK_CLICKS",
+        bid_strategy: "LOWEST_COST_WITHOUT_CAP",
+        start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        // end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        targeting: {
+          geo_locations: { countries: ["BD"] },
+          age_min: 18,
+          age_max: 65,
         },
-      },
-    });
+        status: "PAUSED",
+        access_token: accessToken,
+      }
+    );
 
-    // Step 4: Create Ad
-    const [ad] = await adAccount.createAd([], {
-      name: "📢 Auto Ad",
-      adset_id: adSet.id,
-      creative: { creative_id: creative.id },
-      status: "PAUSED",
-    });
+    const adSetId = adSetRes.data.id;
+    console.log(`✅ Ad Set created: ${adSetId}`);
 
-    return {
-      campaignId: campaign.id,
-      adSetId: adSet.id,
-      creativeId: creative.id,
-      adId: ad.id,
-      message: "✅ Facebook ad created (paused by default)",
-    };
-  } catch (error: any) {
-    console.error("❌ Failed to create Facebook ad:", error.message || error);
-    throw new Error("Failed to create Facebook ad");
+    // 3️⃣ Create Ad Creative
+    const creativeRes = await axios.post(
+      `https://graph.facebook.com/v23.0/act_${adAccountId}/adcreatives`,
+      {
+        name: "Traffic Ad Creative",
+        object_story_spec: {
+          page_id: pageId,
+          link_data: {
+            message: "Check out our awesome website!",
+            link: "https://adelo.ai",
+            image_hash: imageUrl, // from previously uploaded image
+          },
+        },
+        access_token: accessToken,
+      }
+    );
+
+    const creativeId = creativeRes.data.id;
+    console.log(`✅ Creative created: ${creativeId}`);
+
+    // 4️⃣ Create Ad
+    const adRes = await axios.post(
+      `https://graph.facebook.com/v23.0/act_${adAccountId}/ads`,
+      {
+        name: "My Traffic Ad",
+        adset_id: adSetId,
+        creative: { creative_id: creativeId },
+        status: "PAUSED",
+        access_token: accessToken,
+      }
+    );
+
+    console.log(`✅ Ad created: ${adRes.data.id}`);
+    return adRes.data;
+  } catch (err: any) {
+    console.error(
+      "❌ Failed to create Traffic Ad:",
+      err.response?.data || err.message
+    );
+    throw new Error(
+      err.response?.data?.error?.message || "Traffic ad creation failed"
+    );
   }
 };
 
@@ -234,6 +289,5 @@ export const createAdCreative = async (
 };
 
 export const createCampaignService = {
-  uploadImageService,
   createAdService,
 };
