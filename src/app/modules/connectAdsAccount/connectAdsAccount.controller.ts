@@ -10,7 +10,7 @@ import {
 } from "./connectAdsAccount.service";
 
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
-import { ad } from "google-ads-api/build/src/protos/autogen/resourceNames";
+
 
 // for facebook connection
 

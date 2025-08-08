@@ -35,10 +35,10 @@ export default {
   linkdinRedirectUrl: process.env.LINKEDIN_REDIRECT_URI,
 
 
-  google__client_id: process.env.GOOGLE_CLIENT_ID,
-  google__client_secret: process.env.GOOGLE_CLIENT_SECRET,
-  google__refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-  google__developer_token: process.env.GOOGLE_DEVELOPER_TOKEN,
-  google__customer_id: process.env.GOOGLE_CUSTOMER_ID,
+  google__client_id: process.env.GOOGLE_CLIENT_ID2,
+  google__client_secret: process.env.GOOGLE_CLIENT_SECRET2,
+  google__refresh_token: process.env.GOOGLE_REFRESH_TOKEN2,
+  google__developer_token: process.env.GOOGLE_DEVELOPER_TOKEN2,
+  google__customer_id: process.env.GOOGLE_CUSTOMER_ID2,
 
 };
