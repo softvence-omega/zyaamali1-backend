@@ -29,18 +29,7 @@ const getFacebookAccessToken = async (code: string) => {
   return response.data.access_token;
 };
 
-// const getFacebookAdAccounts = async (accessToken: string) => {
-//   FacebookAdsApi.init(accessToken); // Sets the default token for SDK
 
-//   const user = new User("me");
-//   const adAccounts = await user.getAdAccounts(); // No need to pass token here
-
-//   return adAccounts.map((account) => ({
-//     id: account.id,
-//     name: account.name,
-//     account_status: account.account_status,
-//   }));
-// };
 
 // for instagram
 
@@ -164,6 +153,7 @@ export const getGoogleOAuthUrl = () => {
 
   return url;
 };
+
 
 export const exchangeCodeForTokens = async (code: string) => {
   const oauth2Client = new OAuth2Client(

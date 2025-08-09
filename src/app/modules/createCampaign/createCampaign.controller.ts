@@ -4,43 +4,46 @@ import {
   createAdCreative,
   createCampaignService,
   createGoogleAdService,
+  facebookLeadFormService,
 } from "./createCampaign.service";
 
-// facebook
-const uploadImageController = async (req: Request, res: Response) => {
-  try {
-    const { accessToken, adAccountId, imageUrl } = req.body;
 
-    if (!accessToken || !adAccountId || !imageUrl) {
-      return res.status(400).json({
-        message:
-          "Missing required parameters like accessToken, adAccountId, or imageUrl",
-      });
+
+// facebook
+
+// src/controllers/facebookLeadForm.controller.ts
+
+export const createLeadFormController = async (req: Request, res: Response) => {
+  try {
+    const { pageAccessToken, pageId } = req.body;
+
+    if (!pageAccessToken || !pageId) {
+      return res
+        .status(400)
+        .json({ error: "pageAccessToken and pageId are required" });
     }
 
-    const imageHash = await createCampaignService.uploadImageService(
-      accessToken,
-      adAccountId,
-      imageUrl
+    const leadForm = await facebookLeadFormService.createLeadForm(
+      pageAccessToken,
+      pageId
     );
 
-    return res.status(200).json({ imageHash });
-  } catch (error: any) {
-    console.error(
-      "❌ Upload Image Error:",
-      error.response?.data || error.message
-    );
-    return res.status(500).json({
-      message: "Failed to upload image",
-      error: error.response?.data || error.message,
+    res.status(201).json({
+      message: "✅ Lead form created successfully",
+      leadFormId: leadForm.id,
     });
+  } catch (error: any) {
+    console.error("❌ Error in lead form controller:", error.message);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to create lead form" });
   }
 };
 
 const createAdController = async (req: Request, res: Response) => {
-  const { accessToken, adAccountId, pageId, imageHash } = req.body;
+  const { accessToken, adAccountId, pageId, leadFormId, imageUrl } = req.body;
 
-  if (!accessToken || !adAccountId || !pageId || !imageHash) {
+  if (!accessToken || !adAccountId || !pageId) {
     return res.status(400).json({ message: "Missing required parameters" });
   }
 
@@ -49,7 +52,8 @@ const createAdController = async (req: Request, res: Response) => {
       accessToken,
       adAccountId,
       pageId,
-      imageHash
+    
+      imageUrl
     );
     return res.status(200).json({ message: "✅ Safe test ad created", result });
   } catch (error: any) {
@@ -137,6 +141,5 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 };
 
 export const createCampaignController = {
-  uploadImageController,
   createAdController,
 };

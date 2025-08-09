@@ -18,10 +18,7 @@ router.get(
   "/facebook/callback",
   connectAdsAccountController.handleFacebookCallback
 );
-// router.get(
-//   "/check-ads-status",
-//   connectAdsAccountController.getFacebookAdsConnection
-// );
+
 
 // for instagram
 
