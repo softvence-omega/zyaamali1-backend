@@ -65,7 +65,7 @@ export const subscriptionService = {
 
 
       const result = await subscriptionModel.updateOne({ _id: data.id }, data, {
-        new: true,
+
       });
       if (!result) {
         throw new Error("subscription not found.");

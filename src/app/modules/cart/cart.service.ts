@@ -60,9 +60,7 @@ export const cartService = {
       }
 
       console.log("dagta", data)
-      const result = await cartModel.updateOne({ _id: id, userId }, data, {
-        new: true,
-      });
+      const result = await cartModel.updateOne({ _id: id, userId }, data);
       if (!result) {
         throw new Error("cart not found.");
       }

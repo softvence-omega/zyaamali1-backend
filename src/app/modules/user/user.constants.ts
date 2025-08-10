@@ -1,5 +1,6 @@
 import { TLanguage } from "./user.interface";
 
+
 export const LANGUAGE: TLanguage[] = [
   "Amharic",
   "Arabic",

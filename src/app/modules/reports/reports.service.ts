@@ -65,7 +65,7 @@ export const reportsService = {
       }
 
       const result = await reportsModel.updateOne({ _id: data.id }, data, {
-        new: true,
+
       });
       if (!result) {
         throw new Error("reports not found.");

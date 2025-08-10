@@ -45,7 +45,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     FacebookAdsApi.init(accessToken);
 
     const user = new User("me");
-    const adAccounts = await user.getAdAccounts();
+    const adAccounts = await user.getAdAccounts(['id', 'name']);
     if (!adAccounts.length)
       return res.status(400).send("No ad accounts found.");
 
