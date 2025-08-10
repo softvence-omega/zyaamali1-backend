@@ -23,10 +23,10 @@ const moduleRoutes = [
     path: "/auth",
     route: AuthRoutes,
   },
-  {
-    path: "/connect",
-    route: connectAdsAccountRoutes,
-  },
+  // {
+  //   path: "/connect",
+  //   route: connectAdsAccountRoutes,
+  // },
   {
     path: "/pricing",
     route: PricingRoutes,
@@ -48,10 +48,10 @@ const moduleRoutes = [
     path: "/conversations",
     route: ConversationRoutes,
   },
-  {
-    path: "/ads",
-    route: createAdsCampaignRoute,
-  },
+  // {
+  //   path: "/ads",
+  //   route: createAdsCampaignRoute,
+  // },
   {
     path: "/ads-campaign",
     route: adCampainRoutes,
