@@ -14,6 +14,7 @@ import { contentRoutes } from "../modules/content/content.routes";
 import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
 import path from "path";
 import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
+import { chatbotHistoryRoute } from "../modules/chatbotHistory/chatbotHistory.route";
 
 const router = Router();
 
@@ -71,6 +72,10 @@ const moduleRoutes = [
     path: "/content",
 
     route: contentRoutes,
+  },
+  {
+    path: "/chatbot-history",
+    route: chatbotHistoryRoute,
   },
 ];
 

@@ -11,7 +11,7 @@ const userSchema = new Schema<TUser>(
     companyName: {
       type: String,
       required: function (this: TUser) {
-        return this.role === "admin"
+        return this.role === "admin";
       },
       trim: true,
     },
@@ -48,8 +48,7 @@ const userSchema = new Schema<TUser>(
 
       required: false,
       min: 0,
-      default: 0
-
+      default: 0,
     },
     isDeleted: {
       type: Boolean,
@@ -66,19 +65,13 @@ const userSchema = new Schema<TUser>(
       default: null,
     },
 
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
     teamMembers: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         default: [],
       },
     ],
-
 
     provider: {
       type: String,
@@ -87,7 +80,7 @@ const userSchema = new Schema<TUser>(
   },
   {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
   }
 );
 
