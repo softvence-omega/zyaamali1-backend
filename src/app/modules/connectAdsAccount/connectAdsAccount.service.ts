@@ -164,6 +164,7 @@ export const exchangeCodeForTokens = async (code: string) => {
 
   try {
     const { tokens } = await oauth2Client.getToken(code);
+    console.log(tokens);
     return tokens;
   } catch (err) {
     throw new Error("Invalid or expired authorization code");
@@ -171,7 +172,6 @@ export const exchangeCodeForTokens = async (code: string) => {
 };
 
 export const fetchGoogleAdAccounts = async (accessToken: string) => {
- 
   try {
     const response = await axios.get(
       "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
@@ -217,6 +217,8 @@ const exchangeTiktokCodeForToken = async (code: string) => {
         grant_type: "authorization_code",
       }
     );
+
+    console.log("Tiktok token response:", response.data.data);
 
     const { access_token, advertiser_ids } = response.data.data;
 

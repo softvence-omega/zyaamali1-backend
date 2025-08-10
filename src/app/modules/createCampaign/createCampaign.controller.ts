@@ -65,10 +65,22 @@ const createAdController = async (req: Request, res: Response) => {
 // google
 
 export const createGoogleAdController = async (req: Request, res: Response) => {
-  const { customerId, refreshToken, finalUrl } = req.body;
-  console.log(customerId, refreshToken, finalUrl);
+  const {
+    customerId,
+    refreshToken,
+    finalUrl,
+    adType, // e.g. SEARCH, DISPLAY, VIDEO
+    budgetAmountMicros,
+    campaignName,
+    adGroupName,
+    cpcBidMicros,
+    headlines,
+    descriptions,
+    images,
+    videoUrl
+  } = req.body;
 
-  if (!customerId || !refreshToken || !finalUrl) {
+  if (!customerId || !refreshToken || !finalUrl || !adType) {
     return res.status(400).json({ message: "Missing required fields." });
   }
 
@@ -77,17 +89,31 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
       customerId,
       refreshToken,
       finalUrl,
+      adType,
+      budgetAmountMicros,
+      campaignName,
+      adGroupName,
+      cpcBidMicros,
+      headlines,
+      descriptions,
+      images,
+      videoUrl
     });
-    res
-      .status(201)
-      .json({ message: "Ad created successfully!", data: adResult });
+
+    res.status(201).json({
+      message: `${adType} ad created successfully!`,
+      data: adResult
+    });
   } catch (err: any) {
     console.error("Ad creation error:", err);
-    res
-      .status(500)
-      .json({ message: "Failed to create ad", error: err.message });
+    res.status(500).json({
+      message: "Failed to create ad",
+      error: err.message
+    });
   }
 };
+
+
 
 // linkedin
 
