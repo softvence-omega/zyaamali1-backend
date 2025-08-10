@@ -14,7 +14,7 @@ const chatbotHistorySchema = new Schema<TChatbotHistory>(
       trim: true,
     },
     aiAnswer: {
-      type: Date,
+      type: String,
       required: true,
     },
   },
