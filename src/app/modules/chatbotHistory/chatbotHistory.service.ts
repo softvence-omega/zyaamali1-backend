@@ -14,7 +14,18 @@ const getChatbotHistory = async () => {
   return result;
 };
 
+const getSingleChatbotHistory = async (userId: string) => {
+  const result = await chatbotHistoryModel
+    .findOne({ userId: userId })
+    .populate("userId");
+  if (!result) {
+    throw new Error("No chatbot history found");
+  }
+  return result;
+};
+
 export const ChatbotHistoryService = {
   saveChatbotHistory,
   getChatbotHistory,
+  getSingleChatbotHistory,
 };
