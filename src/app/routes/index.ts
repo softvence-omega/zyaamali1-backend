@@ -5,14 +5,14 @@ import { ConversationRoutes } from "../modules/conversation/conversation.routes"
 import { PricingRoutes } from "../modules/Pricing/Pricing.routes";
 import { subscriptionRoutes } from "../modules/subscription/subscription.routes";
 import { configureRoutes } from "../modules/configure/configure.routes";
-// import { connectAdsAccountRoutes } from "../modules/connectAdsAccount/connectAdsAccount.route";
+import { connectAdsAccountRoutes } from "../modules/connectAdsAccount/connectAdsAccount.route";
 import { businessRoutes } from "../modules/business/business.route";
 import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
 
-// import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
-// import path from "path";
+import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
+import path from "path";
 import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
 import { chatbotHistoryRoute } from "../modules/chatbotHistory/chatbotHistory.route";
 
@@ -23,10 +23,10 @@ const moduleRoutes = [
     path: "/auth",
     route: AuthRoutes,
   },
-  // {
-  //   path: "/connect",
-  //   route: connectAdsAccountRoutes,
-  // },
+  {
+    path: "/connect",
+    route: connectAdsAccountRoutes,
+  },
   {
     path: "/pricing",
     route: PricingRoutes,
@@ -48,10 +48,10 @@ const moduleRoutes = [
     path: "/conversations",
     route: ConversationRoutes,
   },
-  // {
-  //   path: "/ads",
-  //   route: createAdsCampaignRoute,
-  // },
+  {
+    path: "/ads",
+    route: createAdsCampaignRoute,
+  },
   {
     path: "/ads-campaign",
     route: adCampainRoutes,
