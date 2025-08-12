@@ -94,7 +94,7 @@ export const createAdService = async (
       {
         name: "🚀 Traffic Ad Set",
         campaign_id: campaignId,
-        daily_budget: 125000, // ✅ in poisha, so 125.00 BDT
+        daily_budget: 12500, // ✅ in poisha, so 125.00 BDT
         billing_event: "IMPRESSIONS",
         optimization_goal: "LINK_CLICKS",
         bid_strategy: "LOWEST_COST_WITHOUT_CAP",
@@ -114,6 +114,7 @@ export const createAdService = async (
     console.log(`✅ Ad Set created: ${adSetId}`);
 
     // 3️⃣ Create Ad Creative
+    // 3️⃣ Create Ad Creative
     const creativeRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adcreatives`,
       {
@@ -123,7 +124,7 @@ export const createAdService = async (
           link_data: {
             message: "Check out our awesome website!",
             link: "https://adelo.ai",
-            image_hash: imageUrl, // from previously uploaded image
+            picture: imageUrl, // ✅ direct image URL
           },
         },
         access_token: accessToken,
