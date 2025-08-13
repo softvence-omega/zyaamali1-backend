@@ -19,6 +19,7 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
     "business_management",
     "pages_show_list",
     "ads_management",
+    "pages_read_engagement",
     "ads_read",
   ].join(",");
 
@@ -31,35 +32,61 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
   console.log("Redirecting to Facebook OAuth:", authUrl);
   res.redirect(authUrl);
 };
-
 const handleFacebookCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
-
   if (!code) return res.status(400).send("Authorization code is missing");
 
   try {
+    // ✅ Step 1: Exchange code for access token
     const accessToken = await connectAdsAccountservice.getFacebookAccessToken(
       code
     );
 
     FacebookAdsApi.init(accessToken);
 
+    // ✅ Step 2: Get Ad Accounts
     const user = new User("me");
-    const adAccounts = await user.getAdAccounts(['id', 'name']);
+    const adAccounts = await user.getAdAccounts(["id", "name"]);
     if (!adAccounts.length)
       return res.status(400).send("No ad accounts found.");
+    const selectedAdAccount = adAccounts[0]; // take first one
 
-    const selectedAdAccount = adAccounts[1];
+    // ✅ Step 3: Get Facebook Pages
+    const pagesRes = await axios.get(
+      `https://graph.facebook.com/v19.0/me/accounts`,
+      {
+        params: { access_token: accessToken },
+      }
+    );
+
+    if (!pagesRes.data.data.length) {
+      return res.status(400).send("No Facebook Pages found.");
+    }
+
+    const page = pagesRes.data.data[0];
+    const pageId = page.id;
+    const pageAccessToken = page.access_token;
+
+    console.log("✅ Selected Page ID:", pageId);
+
+
 
     return res.status(200).json({
       message: "✅ Facebook connected",
       accessToken,
-      adAccountId: selectedAdAccount.id,
+      adAccount: {
+        id: selectedAdAccount.id,
+        name: selectedAdAccount.name,
+      },
+      page: {
+        id: pageId,
+        name: page.name,
+      },
+     
     });
   } catch (error: any) {
     console.error(
       "❌ Facebook OAuth error:",
-
       error.response?.data || error.message
     );
     return res.status(500).send("Failed to connect Facebook Ads account");

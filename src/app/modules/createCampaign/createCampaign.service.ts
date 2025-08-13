@@ -67,10 +67,9 @@ export const facebookLeadFormService = new FacebookLeadFormService();
 
 export const createAdService = async (
   accessToken: string,
-  adAccountId: string, // e.g. act_1234567890
+  adAccountId: string, // without "act_"
   pageId: string,
-
-  imageUrl: string
+  imageUrl
 ) => {
   try {
     // 1️⃣ Create Campaign
@@ -78,13 +77,12 @@ export const createAdService = async (
       `https://graph.facebook.com/v23.0/act_${adAccountId}/campaigns`,
       {
         name: "🚀 My Traffic Campaign",
-        objective: "OUTCOME_TRAFFIC", // ✅ new API value
+        objective: "OUTCOME_TRAFFIC",
         status: "PAUSED",
-        special_ad_categories: [], // ✅ still required
+        special_ad_categories: [],
         access_token: accessToken,
       }
     );
-
     const campaignId = campaignRes.data.id;
     console.log(`✅ Campaign created: ${campaignId}`);
 
@@ -92,45 +90,49 @@ export const createAdService = async (
     const adSetRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,
       {
-        name: "🚀 Traffic Ad Set",
+        name: "🚀 Traffic Ad Set (FB only)",
         campaign_id: campaignId,
-        daily_budget: 12500, // ✅ in poisha, so 125.00 BDT
+        daily_budget: 125,
         billing_event: "IMPRESSIONS",
         optimization_goal: "LINK_CLICKS",
         bid_strategy: "LOWEST_COST_WITHOUT_CAP",
         start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        // end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         targeting: {
           geo_locations: { countries: ["BD"] },
           age_min: 18,
           age_max: 65,
+          publisher_platforms: ["facebook"], // only Facebook
+          facebook_positions: ["feed"], // Facebook feed only
         },
         status: "PAUSED",
         access_token: accessToken,
       }
     );
-
     const adSetId = adSetRes.data.id;
     console.log(`✅ Ad Set created: ${adSetId}`);
 
-    // 3️⃣ Create Ad Creative
-    // 3️⃣ Create Ad Creative
+    // 3️⃣ Create Ad Creative (force FB only, no IG actor)
     const creativeRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adcreatives`,
       {
-        name: "Traffic Ad Creative",
+        name: "🚀 Traffic Creative (FB only)",
         object_story_spec: {
           page_id: pageId,
+          instagram_actor_id: null, // ✅ prevent IG linking
           link_data: {
-            message: "Check out our awesome website!",
             link: "https://adelo.ai",
-            picture: imageUrl, // ✅ direct image URL
+            message: "Click here to learn more!",
+            call_to_action: {
+              type: "LEARN_MORE",
+              value: { link: "https://adelo.ai" },
+            },
+            // ✅ Ensure placement is FB-only
+            multi_share_end_card: false,
           },
         },
         access_token: accessToken,
       }
     );
-
     const creativeId = creativeRes.data.id;
     console.log(`✅ Creative created: ${creativeId}`);
 
@@ -138,14 +140,13 @@ export const createAdService = async (
     const adRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/ads`,
       {
-        name: "My Traffic Ad",
+        name: "My Traffic Ad (FB only)",
         adset_id: adSetId,
         creative: { creative_id: creativeId },
         status: "PAUSED",
         access_token: accessToken,
       }
     );
-
     console.log(`✅ Ad created: ${adRes.data.id}`);
     return adRes.data;
   } catch (err: any) {
