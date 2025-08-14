@@ -5,10 +5,13 @@ import {
   createGoogleAdController,
   createLeadFormController,
   createLinkedInAd,
+  
 } from "./createCampaign.controller";
 import multer from "multer";
 
 const router = express.Router();
+
+const upload = multer({ dest: "uploads/" });
 
 // facebook
 router.post("/facebook/lead-form", createLeadFormController);
@@ -21,7 +24,6 @@ router.post("/google/create-ad", createGoogleAdController);
 router.post("/linkedin/create-ad", createLinkedInAd);
 
 // tiktok
-const upload = multer({ dest: "uploads/" });
 
 router.post(
   "/tiktok/ad/full",

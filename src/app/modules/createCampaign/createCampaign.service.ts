@@ -445,6 +445,8 @@ export const createAdCreative = async (
 const ACCESS_TOKEN = "0aa4df50aa4aae8226bf83938b1b2b72ca97b8c5"; // Replace
 const ADVERTISER_ID = "7538282648226054162"; // Replace
 const BASE_URL = "https://business-api.tiktok.com/open_api/v1.3";
+const COUNTRY_CODE = process.env.COUNTRY_CODE || "BD"; // Change default country
+
 const headers = { "Access-Token": ACCESS_TOKEN };
 
 // Utility to get MD5 of a file
@@ -500,11 +502,11 @@ const createCampaign = async () => {
   const url = `${BASE_URL}/campaign/create/`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
-    campaign_name: "My First tiktok Campaign 111",
+    campaign_name: "My First TikTok CateremddSFDFSpaigDFDFn 45345",
     objective_type: "TRAFFIC",
     budget_mode: "BUDGET_MODE_DAY",
     budget: 100,
-    operation_status: "DISABLE", // ✅ paused
+    operation_status: "DISABLE", // paused
   };
 
   const res = await axios.post(url, payload, { headers });
@@ -515,22 +517,32 @@ const createCampaign = async () => {
   return res.data.data.campaign_id;
 };
 
-// Create Ad Group
+// Helper for UTC time
+const getUTCDateTime = (date = new Date()) =>
+  date.toISOString().slice(0, 19).replace("T", " ");
+
 // Create Ad Group
 const createAdGroup = async (campaign_id: string) => {
   const url = `${BASE_URL}/adgroup/create/`;
+
   const payload = {
     advertiser_id: ADVERTISER_ID,
     campaign_id,
     adgroup_name: "My First Ad Group",
     placement_type: "PLACEMENT_TYPE_AUTOMATIC",
     schedule_type: "SCHEDULE_FROM_NOW",
-    schedule_start_time: Math.floor(Date.now() / 1000), // current time in seconds
+    schedule_start_time: getUTCDateTime(),
     budget_mode: "BUDGET_MODE_DAY",
     budget: 100,
-    billing_event: "CPC",           // ✅ Changed to valid value
-    optimization_goal: "CLICK",     // ✅ Adjusted to match
-    operation_status: "DISABLE",    // paused
+    billing_event: "CPC",
+    optimization_goal: "CLICK",
+    operation_status: "DISABLE",
+    targeting: {
+      geo_location: {
+        location_types: ["HOME", "LIVE_EVENTS"], // ✅ Valid
+        location_ids: ["US"],
+      },
+    },
   };
 
   const res = await axios.post(url, payload, { headers });
@@ -540,8 +552,6 @@ const createAdGroup = async (campaign_id: string) => {
   console.log("✅ Ad group created:", res.data.data);
   return res.data.data.adgroup_id;
 };
-
-
 
 // Create Ad
 const createAd = async (adgroup_id: string, video_id: string) => {
@@ -558,7 +568,7 @@ const createAd = async (adgroup_id: string, video_id: string) => {
         display_name: "MyBrand",
       },
     ],
-    operation_status: "DISABLE", // ✅ paused
+    operation_status: "DISABLE",
   };
 
   const res = await axios.post(url, payload, { headers });
@@ -575,11 +585,7 @@ export const createFullAdFlow = async (
   imagePath: string
 ) => {
   try {
-    console.log(
-      "📦 Starting TikTok ad creation flow with:",
-      videoPath,
-      imagePath
-    );
+    console.log("📦 Starting TikTok ad creation flow");
 
     const video_id = await uploadVideo(videoPath);
     const image_id = await uploadImage(imagePath);
