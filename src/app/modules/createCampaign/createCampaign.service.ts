@@ -502,7 +502,7 @@ const createCampaign = async () => {
   const url = `${BASE_URL}/campaign/create/`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
-    campaign_name: "My First TikTok CateremddSFDFSpaigDFDFn 45345",
+    campaign_name: "My First TikTok CateremddSFDFddSpaigDFDFn 45345",
     objective_type: "TRAFFIC",
     budget_mode: "BUDGET_MODE_DAY",
     budget: 100,
@@ -539,8 +539,8 @@ const createAdGroup = async (campaign_id: string) => {
     operation_status: "DISABLE",
     targeting: {
       geo_location: {
-        location_types: ["HOME", "LIVE_EVENTS"], // ✅ Valid
-        location_ids: ["US"],
+       
+        location_ids: ["1210997"],
       },
     },
   };
