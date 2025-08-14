@@ -1,10 +1,12 @@
 import express from "express";
 import {
   createCampaignController,
+  createFullTiktokAdFlow,
   createGoogleAdController,
   createLeadFormController,
   createLinkedInAd,
 } from "./createCampaign.controller";
+import multer from "multer";
 
 const router = express.Router();
 
@@ -17,5 +19,17 @@ router.post("/google/create-ad", createGoogleAdController);
 
 // linkedin
 router.post("/linkedin/create-ad", createLinkedInAd);
+
+// tiktok
+const upload = multer({ dest: "uploads/" });
+
+router.post(
+  "/tiktok/ad/full",
+  upload.fields([
+    { name: "videoPath", maxCount: 1 },
+    { name: "imagePath", maxCount: 1 },
+  ]),
+  createFullTiktokAdFlow
+);
 
 export const createAdsCampaignRoute = router;

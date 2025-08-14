@@ -1,12 +1,14 @@
 const bizSdk = require("facebook-nodejs-business-sdk");
 const { FacebookAdsApi, AdAccount, Campaign, AdSet, AdCreative, Ad } = bizSdk;
-import FormData from "form-data";
+
 import { googleAdsClient } from "../../utils/googleAdsClient";
 
 import axios from "axios";
 import fs from "fs";
 import path from "path";
 
+import crypto from "crypto";
+import FormData from "form-data";
 import sharp from "sharp";
 
 // facebook
@@ -69,7 +71,7 @@ export const createAdService = async (
   accessToken: string,
   adAccountId: string, // without "act_"
   pageId: string,
-  imageUrl
+  imageUrl: any
 ) => {
   try {
     // 1️⃣ Create Campaign
@@ -438,6 +440,163 @@ export const createAdCreative = async (
   return res.data;
 };
 
+// TikTok
+
+const ACCESS_TOKEN = "0aa4df50aa4aae8226bf83938b1b2b72ca97b8c5"; // Replace
+const ADVERTISER_ID = "7538282648226054162"; // Replace
+const BASE_URL = "https://business-api.tiktok.com/open_api/v1.3";
+const headers = { "Access-Token": ACCESS_TOKEN };
+
+// Utility to get MD5 of a file
+const getFileMD5 = (filePath: string) => {
+  const fileBuffer = fs.readFileSync(filePath);
+  return crypto.createHash("md5").update(fileBuffer).digest("hex");
+};
+
+// Upload Video
+const uploadVideo = async (videoPath: string) => {
+  const url = `${BASE_URL}/file/video/ad/upload/`;
+  const videoSignature = getFileMD5(videoPath);
+
+  const form = new FormData();
+  form.append("advertiser_id", ADVERTISER_ID);
+  form.append("upload_type", "UPLOAD_BY_FILE");
+  form.append("video_signature", videoSignature);
+  form.append("video_file", fs.createReadStream(videoPath));
+
+  const res = await axios.post(url, form, {
+    headers: { ...headers, ...form.getHeaders() },
+  });
+  if (res.data.code !== 0)
+    throw new Error(`Video upload failed: ${res.data.message}`);
+
+  console.log("✅ Video uploaded:", res.data.data);
+  return res.data.data.video_id;
+};
+
+// Upload Image
+const uploadImage = async (imagePath: string) => {
+  const url = `${BASE_URL}/file/image/ad/upload/`;
+  const imageSignature = getFileMD5(imagePath);
+
+  const form = new FormData();
+  form.append("advertiser_id", ADVERTISER_ID);
+  form.append("upload_type", "UPLOAD_BY_FILE");
+  form.append("image_signature", imageSignature);
+  form.append("image_file", fs.createReadStream(imagePath));
+
+  const res = await axios.post(url, form, {
+    headers: { ...headers, ...form.getHeaders() },
+  });
+  if (res.data.code !== 0)
+    throw new Error(`Image upload failed: ${res.data.message}`);
+
+  console.log("✅ Image uploaded:", res.data.data);
+  return res.data.data.image_id;
+};
+
+// Create Campaign
+const createCampaign = async () => {
+  const url = `${BASE_URL}/campaign/create/`;
+  const payload = {
+    advertiser_id: ADVERTISER_ID,
+    campaign_name: "My First tiktok Campaign 111",
+    objective_type: "TRAFFIC",
+    budget_mode: "BUDGET_MODE_DAY",
+    budget: 100,
+    operation_status: "DISABLE", // ✅ paused
+  };
+
+  const res = await axios.post(url, payload, { headers });
+  if (res.data.code !== 0)
+    throw new Error(`Campaign creation failed: ${res.data.message}`);
+
+  console.log("✅ Campaign created:", res.data.data);
+  return res.data.data.campaign_id;
+};
+
+// Create Ad Group
+// Create Ad Group
+const createAdGroup = async (campaign_id: string) => {
+  const url = `${BASE_URL}/adgroup/create/`;
+  const payload = {
+    advertiser_id: ADVERTISER_ID,
+    campaign_id,
+    adgroup_name: "My First Ad Group",
+    placement_type: "PLACEMENT_TYPE_AUTOMATIC",
+    schedule_type: "SCHEDULE_FROM_NOW",
+    schedule_start_time: Math.floor(Date.now() / 1000), // current time in seconds
+    budget_mode: "BUDGET_MODE_DAY",
+    budget: 100,
+    billing_event: "CPC",           // ✅ Changed to valid value
+    optimization_goal: "CLICK",     // ✅ Adjusted to match
+    operation_status: "DISABLE",    // paused
+  };
+
+  const res = await axios.post(url, payload, { headers });
+  if (res.data.code !== 0)
+    throw new Error(`Ad group creation failed: ${res.data.message}`);
+
+  console.log("✅ Ad group created:", res.data.data);
+  return res.data.data.adgroup_id;
+};
+
+
+
+// Create Ad
+const createAd = async (adgroup_id: string, video_id: string) => {
+  const url = `${BASE_URL}/ad/create/`;
+  const payload = {
+    advertiser_id: ADVERTISER_ID,
+    adgroup_id,
+    creatives: [
+      {
+        ad_name: "My First API Ad",
+        ad_text: "Check this out!",
+        ad_format: "SINGLE_VIDEO",
+        video_id,
+        display_name: "MyBrand",
+      },
+    ],
+    operation_status: "DISABLE", // ✅ paused
+  };
+
+  const res = await axios.post(url, payload, { headers });
+  if (res.data.code !== 0)
+    throw new Error(`Ad creation failed: ${res.data.message}`);
+
+  console.log("✅ Ad created:", res.data.data);
+  return res.data;
+};
+
+// Full Flow
+export const createFullAdFlow = async (
+  videoPath: string,
+  imagePath: string
+) => {
+  try {
+    console.log(
+      "📦 Starting TikTok ad creation flow with:",
+      videoPath,
+      imagePath
+    );
+
+    const video_id = await uploadVideo(videoPath);
+    const image_id = await uploadImage(imagePath);
+    const campaign_id = await createCampaign();
+    const adgroup_id = await createAdGroup(campaign_id);
+    const adResult = await createAd(adgroup_id, video_id);
+
+    return { video_id, image_id, campaign_id, adgroup_id, adResult };
+  } catch (err: any) {
+    console.error("❌ TikTok Ad create error:", err.message);
+    throw err;
+  }
+};
+
 export const createCampaignService = {
   createAdService,
 };
+
+11000;
+10000;

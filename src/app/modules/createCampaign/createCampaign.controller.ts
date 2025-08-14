@@ -3,11 +3,10 @@ import {
   createAdCampaign,
   createAdCreative,
   createCampaignService,
+  createFullAdFlow,
   createGoogleAdService,
   facebookLeadFormService,
 } from "./createCampaign.service";
-
-
 
 // facebook
 
@@ -52,7 +51,7 @@ const createAdController = async (req: Request, res: Response) => {
       accessToken,
       adAccountId,
       pageId,
-    
+
       imageUrl
     );
     return res.status(200).json({ message: "✅ Safe test ad created", result });
@@ -77,7 +76,7 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
     headlines,
     descriptions,
     images,
-    videoUrl
+    videoUrl,
   } = req.body;
 
   if (!customerId || !refreshToken || !finalUrl || !adType) {
@@ -97,23 +96,21 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
       headlines,
       descriptions,
       images,
-      videoUrl
+      videoUrl,
     });
 
     res.status(201).json({
       message: `${adType} ad created successfully!`,
-      data: adResult
+      data: adResult,
     });
   } catch (err: any) {
     console.error("Ad creation error:", err);
     res.status(500).json({
       message: "Failed to create ad",
-      error: err.message
+      error: err.message,
     });
   }
 };
-
-
 
 // linkedin
 
@@ -137,6 +134,28 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// tiktok
+
+export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
+  try {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const videoFile = files.videoPath?.[0];
+    const imageFile = files.imagePath?.[0];
+
+    if (!videoFile || !imageFile) {
+      return res
+        .status(400)
+        .json({ error: "videoPath and imagePath are required" });
+    }
+
+    const result = await createFullAdFlow(videoFile.path, imageFile.path);
+    res.json(result);
+  } catch (error: any) {
+    console.error("❌ TikTok Ad create error:", error.message);
+    res.status(500).json({ error: "Failed to create TikTok ad" });
   }
 };
 

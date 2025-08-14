@@ -174,9 +174,9 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
     const adAccounts = adAccountsResponse.data.elements;
     console.log(adAccounts);
 
-    if (!adAccounts.length) {
-      return res.status(404).json({ message: "No LinkedIn ad accounts found" });
-    }
+    // if (!adAccounts.length) {
+    //   return res.status(404).json({ message: "No LinkedIn ad accounts found" });
+    // }
 
     // Step 3: Respond with data
     res.json({
