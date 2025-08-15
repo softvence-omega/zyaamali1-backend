@@ -69,8 +69,6 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
 
     console.log("✅ Selected Page ID:", pageId);
 
-
-
     return res.status(200).json({
       message: "✅ Facebook connected",
       accessToken,
@@ -82,7 +80,6 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
         id: pageId,
         name: page.name,
       },
-     
     });
   } catch (error: any) {
     console.error(

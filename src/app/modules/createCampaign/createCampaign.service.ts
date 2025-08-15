@@ -7,6 +7,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 
+import sizeOf from "image-size";
 import crypto from "crypto";
 import FormData from "form-data";
 import sharp from "sharp";
@@ -183,59 +184,81 @@ export const createGoogleAdService = async ({
     refresh_token: refreshToken,
   });
 
-  // Upload Image Asset
+  // Validate image aspect ratio before uploading
+  const validateAspectRatio = (
+    buffer: Buffer,
+    expectedRatio: number,
+    tolerance = 0.01
+  ) => {
+    const { width, height } = sizeOf(buffer);
+    const ratio = width / height;
+    console.log(ratio);
+    if (Math.abs(ratio - expectedRatio) > tolerance) {
+      console.warn(
+        `⚠ Aspect ratio mismatch. Expected ${expectedRatio}, got ${ratio.toFixed(
+          2
+        )}. Will resize.`
+      );
+      return false;
+    }
+    return true;
+  };
 
+  // Upload Image Asset (with exact resize)
   const uploadImageAsset = async (
     imageUrl: string,
     type: "LANDSCAPE" | "SQUARE" | "LOGO",
     customer: any
   ) => {
     const timestamp = Date.now();
-    const fileName = path.join(
-      "/tmp",
-      `${type.toLowerCase()}_${timestamp}.jpg`
-    );
 
     // Download image
     const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
 
-    // Balanced sizes between min and recommended
-    let width: number, height: number;
+    // Set required dimensions
+    let targetWidth: number, targetHeight: number, expectedRatio: number;
     if (type === "LANDSCAPE") {
-      width = 1000;
-      height = 523; // 1.91:1 ratio
+      targetWidth = 1200;
+      targetHeight = 628;
+      expectedRatio = 1.91;
     } else if (type === "SQUARE") {
-      width = 800;
-      height = 800;
+      targetWidth = 1200;
+      targetHeight = 1200;
+      expectedRatio = 1.0;
     } else {
-      width = 512; // Logo
-      height = 512;
+      targetWidth = 512;
+      targetHeight = 512;
+      expectedRatio = 1.0;
     }
 
-    // Resize and save
-    await sharp(data)
-      .resize(width, height, { fit: "cover" })
-      .jpeg({ quality: 88 }) // Slightly smaller file size but still high quality
-      .toFile(fileName);
+    // Resize & clean image → buffer
+    const processedBuffer = await sharp(data)
+      .resize(targetWidth, targetHeight, {
+        fit: "cover",
+        position: "center",
+        withoutEnlargement: true,
+      })
+      .flatten({ background: "#ffffff" }) // remove transparency
+      .jpeg({ quality: 100 })
+      .toBuffer();
 
-    // Create asset in Google Ads
+    // Validate final size
+    const { width, height } = sizeOf(processedBuffer);
+    console.log(`✅ Final ${type}: ${width}x${height}`);
+
+    // Upload to Google Ads directly from buffer
     const assetResult = await customer.assets.create([
       {
         name: `${type}_Asset_${timestamp}`,
         type: "IMAGE",
         image_asset: {
-          data: fs.readFileSync(fileName),
+          data: processedBuffer, // Use buffer directly
         },
       },
     ]);
 
     const assetName = assetResult.results[0].resource_name;
-
-    const meta = await sharp(fileName).metadata();
-    console.log(
-      `✅ Uploaded ${type} image (${meta.width}x${meta.height}) → ${assetName}`
-    );
-
+    console.log(`✅ Uploaded ${type} → ${assetName}`);
     return assetName;
   };
 
@@ -243,7 +266,7 @@ export const createGoogleAdService = async ({
   const uploadVideoAsset = async (videoUrl: string) => {
     const asset = await customer.assets.create([
       {
-        name: `Video_Asset_${Date.now()}`, // REQUIRED
+        name: `Video_Asset_${Date.now()}`,
         type: "YOUTUBE_VIDEO",
         youtube_video_asset: {
           youtube_video_id: videoUrl.includes("youtube.com")
@@ -252,7 +275,6 @@ export const createGoogleAdService = async ({
         },
       },
     ]);
-
     return asset.results[0].resource_name;
   };
 
@@ -272,7 +294,7 @@ export const createGoogleAdService = async ({
     {
       name: `${campaignName || "Campaign"}_${uniqueSuffix}`,
       advertising_channel_type: adType.toUpperCase(),
-      status: "ENABLED",
+      status: "PAUSED",
       manual_cpc: {},
       campaign_budget: budgetResourceName,
     },
@@ -284,13 +306,13 @@ export const createGoogleAdService = async ({
     {
       name: adGroupName || `AdGroup_${Date.now()}`,
       campaign: campaignResourceName,
-      status: "ENABLED",
+      status: "PAUSED",
       cpc_bid_micros: cpcBidMicros || 1_000_000,
     },
   ]);
   const adGroupResourceName = adGroup.results[0].resource_name;
 
-  // 4. Ad Creative — switch based on type
+  // 4. Ad Creative
   let adPayload: any;
   switch (adType.toUpperCase()) {
     case "SEARCH":
@@ -299,7 +321,6 @@ export const createGoogleAdService = async ({
           headlines: headlines || [
             { text: "Default Headline 1" },
             { text: "Default Headline 2" },
-            { text: "Default Headline 3" },
           ],
           descriptions: descriptions || [
             { text: "Default Description 1" },
@@ -335,13 +356,12 @@ export const createGoogleAdService = async ({
           long_headline: { text: "Biggest Sale of the Year!" },
           descriptions,
           business_name: "Your Business Name",
-          marketing_images: [{ asset: landscapeAsset }], // Landscape slot
-          square_marketing_images: [{ asset: squareAsset }], // Square slot
-          logo_images: [{ asset: logoAsset }], // Logo slot
+          marketing_images: [{ asset: landscapeAsset }],
+          square_marketing_images: [{ asset: squareAsset }],
+          logo_images: [{ asset: logoAsset }],
         },
         final_urls: [finalUrl],
       };
-
       break;
 
     case "VIDEO":
@@ -363,7 +383,7 @@ export const createGoogleAdService = async ({
   const ad = await customer.adGroupAds.create([
     {
       ad_group: adGroupResourceName,
-      status: "ENABLED",
+      status: "PAUSED",
       ad: adPayload,
     },
   ]);
@@ -442,7 +462,7 @@ export const createAdCreative = async (
 
 // TikTok
 
-const ACCESS_TOKEN = "0aa4df50aa4aae8226bf83938b1b2b72ca97b8c5"; // Replace
+const ACCESS_TOKEN = "3e2fd8a054e0a2e2bf3be64b89cda471ff6c5044"; // Replace
 const ADVERTISER_ID = "7538282648226054162"; // Replace
 const BASE_URL = "https://business-api.tiktok.com/open_api/v1.3";
 const COUNTRY_CODE = process.env.COUNTRY_CODE || "BD"; // Change default country
@@ -502,7 +522,8 @@ const createCampaign = async () => {
   const url = `${BASE_URL}/campaign/create/`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
-    campaign_name: "My First TikTok CateremddSFDFddSpaigDFDFn 45345",
+    campaign_name:
+      "My First TikTok CatdderedddmdddDddddSdssddsddDdddkfdfFDFdddSpaigDFDFn 45345",
     objective_type: "TRAFFIC",
     budget_mode: "BUDGET_MODE_DAY",
     budget: 100,
@@ -524,25 +545,23 @@ const getUTCDateTime = (date = new Date()) =>
 // Create Ad Group
 const createAdGroup = async (campaign_id: string) => {
   const url = `${BASE_URL}/adgroup/create/`;
-
   const payload = {
     advertiser_id: ADVERTISER_ID,
     campaign_id,
     adgroup_name: "My First Ad Group",
-    placement_type: "PLACEMENT_TYPE_AUTOMATIC",
+    promotion_type: "WEBSITE",
+    placement_type: "PLACEMENT_TYPE_NORMAL",
+    placements: ["PLACEMENT_TIKTOK"],
     schedule_type: "SCHEDULE_FROM_NOW",
     schedule_start_time: getUTCDateTime(),
     budget_mode: "BUDGET_MODE_DAY",
-    budget: 100,
+    budget: 100, // USD
     billing_event: "CPC",
     optimization_goal: "CLICK",
+    bid_type: "BID_TYPE_CUSTOM",
     operation_status: "DISABLE",
-    targeting: {
-      geo_location: {
-       
-        location_ids: ["1210997"],
-      },
-    },
+    location_ids: ["1210997"], // must be string
+    bid_price: 2,
   };
 
   const res = await axios.post(url, payload, { headers });
@@ -553,8 +572,35 @@ const createAdGroup = async (campaign_id: string) => {
   return res.data.data.adgroup_id;
 };
 
+// ✅ Fetch identities for the advertiser
+const getIdentity = async () => {
+  const url = `${BASE_URL}/identity/get/?advertiser_id=${ADVERTISER_ID}`;
+  const res = await axios.get(url, { headers });
+
+  if (res.data.code !== 0) {
+    throw new Error(`Failed to fetch identities: ${res.data.message}`);
+  }
+
+  const identities = res.data.data.list;
+  if (!identities || identities.length === 0) {
+    throw new Error("No identities found for this advertiser.");
+  }
+  console.log(
+    identities[0].identity_id,
+    identities[0].identity_type,
+    "-----------------------------------------"
+  );
+
+  return {
+    identity_id: identities[0].identity_id,
+    identity_type: identities[0].identity_type,
+  };
+};
+
 // Create Ad
 const createAd = async (adgroup_id: string, video_id: string) => {
+  const { identity_id, identity_type } = await getIdentity();
+
   const url = `${BASE_URL}/ad/create/`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
@@ -566,6 +612,8 @@ const createAd = async (adgroup_id: string, video_id: string) => {
         ad_format: "SINGLE_VIDEO",
         video_id,
         display_name: "MyBrand",
+        identity_id, // ✅ added
+        identity_type, // ✅ added
       },
     ],
     operation_status: "DISABLE",
@@ -586,6 +634,18 @@ export const createFullAdFlow = async (
 ) => {
   try {
     console.log("📦 Starting TikTok ad creation flow");
+
+    // const getAdvertiserInfo = async () => {
+    //   const advertiserIdsParam = encodeURIComponent(
+    //     JSON.stringify([ADVERTISER_ID])
+    //   );
+    //   const url = `${BASE_URL}/advertiser/info/?advertiser_ids=${advertiserIdsParam}`;
+
+    //   const res = await axios.get(url, { headers });
+    //   console.log(JSON.stringify(res.data, null, 2));
+    // };
+
+    // getAdvertiserInfo();
 
     const video_id = await uploadVideo(videoPath);
     const image_id = await uploadImage(imagePath);
