@@ -39,7 +39,7 @@ const getInstagramAccounts = async (
 ) => {
   FacebookAdsApi.init(accessToken);
   const adAccount = new AdAccount(adAccountId);
-  const instaAccounts = await adAccount.getInstagramAccounts();
+  const instaAccounts = await adAccount.getInstagramAccounts(['id', 'username']);
 
   return instaAccounts.map((insta) => ({
     id: insta.id,
@@ -226,7 +226,7 @@ const exchangeTiktokCodeForToken = async (code: string) => {
       accessToken: access_token,
       advertiserIds: advertiser_ids,
     };
-  } catch (err) {
+  } catch (err:any) {
     console.error(
       "Failed to exchange code:",
       err.response?.data || err.message

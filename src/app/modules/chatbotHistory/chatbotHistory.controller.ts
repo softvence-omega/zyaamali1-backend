@@ -4,7 +4,6 @@ import sendResponse from "../../utils/sendResponse";
 import { ChatbotHistoryService } from "./chatbotHistory.service";
 
 const saveChatbotHistory = catchAsync(async (req, res) => {
-
   const result = await ChatbotHistoryService.saveChatbotHistory(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -14,8 +13,20 @@ const saveChatbotHistory = catchAsync(async (req, res) => {
   });
 });
 const getChatbotHistory = catchAsync(async (req, res) => {
-
   const result = await ChatbotHistoryService.getChatbotHistory();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "get chatbot history .",
+    data: result,
+  });
+});
+const getSingleChatbotHistory = catchAsync(async (req, res) => {
+  const { userId } = req.query;
+
+  const result = await ChatbotHistoryService.getSingleChatbotHistory(
+    userId as string
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -26,5 +37,6 @@ const getChatbotHistory = catchAsync(async (req, res) => {
 
 export const ChatbotHistoryController = {
   saveChatbotHistory,
-  getChatbotHistory
+  getChatbotHistory,
+  getSingleChatbotHistory,
 };
