@@ -528,7 +528,7 @@ const createCampaign = async () => {
   const url = `${BASE_URL}/campaign/create/`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
-    campaign_name: "My First soyddddddddddadidbs1d k df 45345",
+    campaign_name: "My First soydddddddddddddddadidbs1d k df 45345",
     objective_type: "TRAFFIC",
     budget_mode: "BUDGET_MODE_DAY",
     budget: 100,
@@ -614,7 +614,6 @@ const getVideoThumbnails = async (video_id: string) => {
     throw new Error(`Failed to fetch video info: ${res.data.message}`);
   }
 
-
   console.log("🎥 Video info:", JSON.stringify(res.data.data, null, 2));
 
   // TikTok auto-generates cover image(s) for your video
@@ -693,4 +692,3 @@ export const createFullAdFlow = async (
 export const createCampaignService = {
   createAdService,
 };
-
