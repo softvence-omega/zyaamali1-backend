@@ -231,6 +231,8 @@ export const createGoogleAdService = async ({
       expectedRatio = 1.0;
     }
 
+    const isvalid = validateAspectRatio(data, expectedRatio);
+
     // Resize & clean image → buffer
     const processedBuffer = await sharp(data)
       .resize(targetWidth, targetHeight, {
@@ -462,7 +464,7 @@ export const createAdCreative = async (
 
 // TikTok
 
-const ACCESS_TOKEN = "3e2fd8a054e0a2e2bf3be64b89cda471ff6c5044"; // Replace
+const ACCESS_TOKEN = "2b5832d23ae562dae6ae40798fe157ccc53bc8a7"; // Replace
 const ADVERTISER_ID = "7538282648226054162"; // Replace
 const BASE_URL = "https://business-api.tiktok.com/open_api/v1.3";
 const COUNTRY_CODE = process.env.COUNTRY_CODE || "BD"; // Change default country
@@ -493,7 +495,9 @@ const uploadVideo = async (videoPath: string) => {
     throw new Error(`Video upload failed: ${res.data.message}`);
 
   console.log("✅ Video uploaded:", res.data.data);
-  return res.data.data.video_id;
+  const result = res.data.data[0].video_id;
+  console.log("video id ", result);
+  return result;
 };
 
 // Upload Image
@@ -514,7 +518,9 @@ const uploadImage = async (imagePath: string) => {
     throw new Error(`Image upload failed: ${res.data.message}`);
 
   console.log("✅ Image uploaded:", res.data.data);
-  return res.data.data.image_id;
+  const result = res.data.data.image_id;
+  console.log("image id ", result);
+  return result;
 };
 
 // Create Campaign
@@ -522,8 +528,7 @@ const createCampaign = async () => {
   const url = `${BASE_URL}/campaign/create/`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
-    campaign_name:
-      "My First TikTok CatdderedddmdddDddddSdssddsddDdddkfdfFDFdddSpaigDFDFn 45345",
+    campaign_name: "My First soydddddddddddddddadidbs1d k df 45345",
     objective_type: "TRAFFIC",
     budget_mode: "BUDGET_MODE_DAY",
     budget: 100,
@@ -580,51 +585,82 @@ const getIdentity = async () => {
   if (res.data.code !== 0) {
     throw new Error(`Failed to fetch identities: ${res.data.message}`);
   }
+  // console.log("00000000000000000000000000", res.data.data.identity_list);
 
-  const identities = res.data.data.list;
+  const identities = res.data?.data?.identity_list[0];
+
   if (!identities || identities.length === 0) {
     throw new Error("No identities found for this advertiser.");
   }
-  console.log(
-    identities[0].identity_id,
-    identities[0].identity_type,
-    "-----------------------------------------"
-  );
+
+  // console.log(
+  //   identities.identity_id,
+  //   identities.identity_type,
+  //   "======================================"
+  // );
 
   return {
-    identity_id: identities[0].identity_id,
-    identity_type: identities[0].identity_type,
+    identity_id: identities.identity_id,
+    identity_type: identities.identity_type,
   };
 };
 
+const getVideoThumbnails = async (video_id: string) => {
+  const url = `${BASE_URL}/file/video/ad/get`;
+  const payload = { advertiser_id: ADVERTISER_ID, video_ids: [video_id] };
+
+  const res = await axios.post(url, payload, { headers });
+  if (res.data.code !== 0) {
+    throw new Error(`Failed to fetch video info: ${res.data.message}`);
+  }
+
+  console.log("🎥 Video info:", JSON.stringify(res.data.data, null, 2));
+
+  // TikTok auto-generates cover image(s) for your video
+  const images = res.data.data.list[0]?.image_info?.image_ids || [];
+  console.log("thamneal images ", images);
+  return images;
+};
+
 // Create Ad
-const createAd = async (adgroup_id: string, video_id: string) => {
+const createAd = async (
+  adgroup_id: string,
+  video_id: string,
+  image_id: string
+) => {
+  console.log("from create ads on video id ", video_id);
+  // fetch advertiser identity
   const { identity_id, identity_type } = await getIdentity();
 
-  const url = `${BASE_URL}/ad/create/`;
+  const url = `${BASE_URL}/ad/create`;
   const payload = {
     advertiser_id: ADVERTISER_ID,
     adgroup_id,
+    ad_name: "My First API Ad",
+    operation_status: "DISABLE",
     creatives: [
       {
-        ad_name: "My First API Ad",
-        ad_text: "Check this out!",
         ad_format: "SINGLE_VIDEO",
+        ad_name: "Video Creative 1",
+        ad_text: "Check this out!",
+        call_to_action: "LEARN_MORE",
+        landing_page_url: "https://adelo.ai",
         video_id,
+        image_ids: [image_id],
         display_name: "MyBrand",
-        identity_id, // ✅ added
-        identity_type, // ✅ added
+        identity_id,
+        identity_type,
       },
     ],
-    operation_status: "DISABLE",
   };
 
   const res = await axios.post(url, payload, { headers });
-  if (res.data.code !== 0)
+  if (res.data.code !== 0) {
     throw new Error(`Ad creation failed: ${res.data.message}`);
+  }
 
   console.log("✅ Ad created:", res.data.data);
-  return res.data;
+  return res.data.data;
 };
 
 // Full Flow
@@ -635,27 +671,20 @@ export const createFullAdFlow = async (
   try {
     console.log("📦 Starting TikTok ad creation flow");
 
-    // const getAdvertiserInfo = async () => {
-    //   const advertiserIdsParam = encodeURIComponent(
-    //     JSON.stringify([ADVERTISER_ID])
-    //   );
-    //   const url = `${BASE_URL}/advertiser/info/?advertiser_ids=${advertiserIdsParam}`;
-
-    //   const res = await axios.get(url, { headers });
-    //   console.log(JSON.stringify(res.data, null, 2));
-    // };
-
-    // getAdvertiserInfo();
-
     const video_id = await uploadVideo(videoPath);
     const image_id = await uploadImage(imagePath);
     const campaign_id = await createCampaign();
     const adgroup_id = await createAdGroup(campaign_id);
-    const adResult = await createAd(adgroup_id, video_id);
 
-    return { video_id, image_id, campaign_id, adgroup_id, adResult };
+    // const [autoImageId] = await getVideoThumbnails(video_id);
+    // console.log("auto image id ", autoImageId);
+
+    const ad_id = await createAd(adgroup_id, video_id, image_id);
+    console.log("ads create log ", ad_id);
+
+    return { video_id, image_id, campaign_id, adgroup_id, ad_id };
   } catch (err: any) {
-    console.error("❌ TikTok Ad create error:", err.message);
+    console.error("❌ TikTok Ad create error:", err);
     throw err;
   }
 };
@@ -663,6 +692,3 @@ export const createFullAdFlow = async (
 export const createCampaignService = {
   createAdService,
 };
-
-11000;
-10000;
