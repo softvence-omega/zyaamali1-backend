@@ -225,8 +225,8 @@ export const createGoogleAdService = async ({
       targetHeight = 1200;
       expectedRatio = 1.0;
     } else {
-      targetWidth = 512;
-      targetHeight = 512;
+      targetWidth = 1200;
+      targetHeight = 1200; // square logo required (not 512x512)
       expectedRatio = 1.0;
     }
 
@@ -240,7 +240,7 @@ export const createGoogleAdService = async ({
         withoutEnlargement: true,
       })
       .flatten({ background: "#ffffff" }) // remove transparency
-      .jpeg({ quality: 100 })
+      .jpeg({ quality: 90 })
       .toBuffer();
 
     // Validate final size
