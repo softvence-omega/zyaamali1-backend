@@ -244,9 +244,11 @@ export const createGoogleAdService = async ({
       .jpeg({ quality: 90 })
       .toBuffer();
 
+
     // Validate final size
     const { width, height } = sizeOf(processedBuffer);
     console.log(`✅ Final ${type}: ${width}x${height}`);
+    
 
     // Upload to Google Ads directly from buffer
     const assetResult = await customer.assets.create([
