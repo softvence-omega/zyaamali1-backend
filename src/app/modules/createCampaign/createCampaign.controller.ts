@@ -3,10 +3,9 @@ import {
   createAdCampaign,
   createAdCreative,
   createCampaignService,
-  createFullAdFlow,
   createGoogleAdService,
+  createTikTokFullAd,
   facebookLeadFormService,
-  
 } from "./createCampaign.service";
 
 // facebook
@@ -140,28 +139,65 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 
 // tiktok
 
+
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     const videoFile = files.videoPath?.[0];
     const imageFile = files.imagePath?.[0];
+    const carouselFiles = files.carouselImages; // array of files for carousel
 
-    if (!videoFile || !imageFile) {
-      return res
-        .status(400)
-        .json({ error: "videoPath and imagePath are required" });
+    const { adType, postId } = req.body;
+
+    if (!adType) {
+      return res.status(400).json({ error: "adType is required" });
     }
 
-    const result = await createFullAdFlow(videoFile.path, imageFile.path);
+    // Validation depending on ad type
+    switch (adType) {
+      case "SINGLE_VIDEO":
+      case "TOPVIEW":
+      case "SPARK_AD":
+        if (!videoFile) {
+          return res.status(400).json({ error: "videoPath is required for this ad type" });
+        }
+        break;
+
+      case "SINGLE_IMAGE":
+        if (!imageFile) {
+          return res.status(400).json({ error: "imagePath is required for SINGLE_IMAGE ads" });
+        }
+        break;
+
+      case "CAROUSEL":
+        if (!carouselFiles || carouselFiles.length === 0) {
+          return res.status(400).json({ error: "At least one carousel image is required" });
+        }
+        break;
+
+      default:
+        return res.status(400).json({ error: "Unsupported ad type" });
+    }
+
+    // Prepare carousel image paths if any
+    const carouselImagePaths = carouselFiles ? carouselFiles.map((f) => f.path) : [];
+
+
+    // Call your TikTok ad creation function
+    const result = await createTikTokFullAd(
+      adType,
+      videoFile?.path || "",
+      imageFile?.path || "",
+      postId || "",
+      carouselImagePaths
+    );
+
     res.json(result);
   } catch (error: any) {
     console.error("❌ TikTok Ad create error:", error.message);
     res.status(500).json({ error: "Failed to create TikTok ad" });
   }
 };
-
-
-
 
 
 export const createCampaignController = {

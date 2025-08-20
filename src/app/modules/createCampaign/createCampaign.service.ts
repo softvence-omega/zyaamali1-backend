@@ -5,8 +5,7 @@ import { googleAdsClient } from "../../utils/googleAdsClient";
 
 import axios from "axios";
 import fs from "fs";
-import path from "path";
-
+import ffmpeg from "fluent-ffmpeg";
 import sizeOf from "image-size";
 import crypto from "crypto";
 import FormData from "form-data";
@@ -464,227 +463,256 @@ export const createAdCreative = async (
 
 // TikTok
 
-const ACCESS_TOKEN = "2b5832d23ae562dae6ae40798fe157ccc53bc8a7"; // Replace
-const ADVERTISER_ID = "7538282648226054162"; // Replace
+// ====== CONFIG ======
+const ACCESS_TOKEN =
+  process.env.ACCESS_TOKEN || "f6f28a79c10762e8ffb8e57a6d6e3a40e7c704b7";
+const ADVERTISER_ID = process.env.ADVERTISER_ID || "7538282648226054162";
 const BASE_URL = "https://business-api.tiktok.com/open_api/v1.3";
-const COUNTRY_CODE = process.env.COUNTRY_CODE || "BD"; // Change default country
-
 const headers = { "Access-Token": ACCESS_TOKEN };
 
-// Utility to get MD5 of a file
-const getFileMD5 = (filePath: string) => {
-  const fileBuffer = fs.readFileSync(filePath);
-  return crypto.createHash("md5").update(fileBuffer).digest("hex");
-};
+// ====== UTILS ======
+const getFileMD5 = (filePath: string) =>
+  crypto.createHash("md5").update(fs.readFileSync(filePath)).digest("hex");
 
-// Upload Video
-const uploadVideo = async (videoPath: string) => {
-  const url = `${BASE_URL}/file/video/ad/upload/`;
-  const videoSignature = getFileMD5(videoPath);
-
-  const form = new FormData();
-  form.append("advertiser_id", ADVERTISER_ID);
-  form.append("upload_type", "UPLOAD_BY_FILE");
-  form.append("video_signature", videoSignature);
-  form.append("video_file", fs.createReadStream(videoPath));
-
-  const res = await axios.post(url, form, {
-    headers: { ...headers, ...form.getHeaders() },
-  });
-  if (res.data.code !== 0)
-    throw new Error(`Video upload failed: ${res.data.message}`);
-
-  console.log("✅ Video uploaded:", res.data.data);
-  const result = res.data.data[0].video_id;
-  console.log("video id ", result);
-  return result;
-};
-
-// Upload Image
-const uploadImage = async (imagePath: string) => {
-  const url = `${BASE_URL}/file/image/ad/upload/`;
-  const imageSignature = getFileMD5(imagePath);
-
-  const form = new FormData();
-  form.append("advertiser_id", ADVERTISER_ID);
-  form.append("upload_type", "UPLOAD_BY_FILE");
-  form.append("image_signature", imageSignature);
-  form.append("image_file", fs.createReadStream(imagePath));
-
-  const res = await axios.post(url, form, {
-    headers: { ...headers, ...form.getHeaders() },
-  });
-  if (res.data.code !== 0)
-    throw new Error(`Image upload failed: ${res.data.message}`);
-
-  console.log("✅ Image uploaded:", res.data.data);
-  const result = res.data.data.image_id;
-  console.log("image id ", result);
-  return result;
-};
-
-// Create Campaign
-const createCampaign = async () => {
-  const url = `${BASE_URL}/campaign/create/`;
-  const payload = {
-    advertiser_id: ADVERTISER_ID,
-    campaign_name: "My First soydddddddddddddddadidbs1d k df 45345",
-    objective_type: "TRAFFIC",
-    budget_mode: "BUDGET_MODE_DAY",
-    budget: 100,
-    operation_status: "DISABLE", // paused
-  };
-
-  const res = await axios.post(url, payload, { headers });
-  if (res.data.code !== 0)
-    throw new Error(`Campaign creation failed: ${res.data.message}`);
-
-  console.log("✅ Campaign created:", res.data.data);
-  return res.data.data.campaign_id;
-};
-
-// Helper for UTC time
 const getUTCDateTime = (date = new Date()) =>
   date.toISOString().slice(0, 19).replace("T", " ");
 
-// Create Ad Group
-const createAdGroup = async (campaign_id: string) => {
-  const url = `${BASE_URL}/adgroup/create/`;
-  const payload = {
-    advertiser_id: ADVERTISER_ID,
-    campaign_id,
-    adgroup_name: "My First Ad Group",
-    promotion_type: "WEBSITE",
-    placement_type: "PLACEMENT_TYPE_NORMAL",
-    placements: ["PLACEMENT_TIKTOK"],
-    schedule_type: "SCHEDULE_FROM_NOW",
-    schedule_start_time: getUTCDateTime(),
-    budget_mode: "BUDGET_MODE_DAY",
-    budget: 100, // USD
-    billing_event: "CPC",
-    optimization_goal: "CLICK",
-    bid_type: "BID_TYPE_CUSTOM",
-    operation_status: "DISABLE",
-    location_ids: ["1210997"], // must be string
-    bid_price: 2,
-  };
-
-  const res = await axios.post(url, payload, { headers });
-  if (res.data.code !== 0)
-    throw new Error(`Ad group creation failed: ${res.data.message}`);
-
-  console.log("✅ Ad group created:", res.data.data);
-  return res.data.data.adgroup_id;
-};
-
-// ✅ Fetch identities for the advertiser
-const getIdentity = async () => {
-  const url = `${BASE_URL}/identity/get/?advertiser_id=${ADVERTISER_ID}`;
-  const res = await axios.get(url, { headers });
-
-  if (res.data.code !== 0) {
-    throw new Error(`Failed to fetch identities: ${res.data.message}`);
-  }
-  // console.log("00000000000000000000000000", res.data.data.identity_list);
-
-  const identities = res.data?.data?.identity_list[0];
-
-  if (!identities || identities.length === 0) {
-    throw new Error("No identities found for this advertiser.");
-  }
-
-  // console.log(
-  //   identities.identity_id,
-  //   identities.identity_type,
-  //   "======================================"
-  // );
-
-  return {
-    identity_id: identities.identity_id,
-    identity_type: identities.identity_type,
-  };
-};
-
-const getVideoThumbnails = async (video_id: string) => {
-  const url = `${BASE_URL}/file/video/ad/get`;
-  const payload = { advertiser_id: ADVERTISER_ID, video_ids: [video_id] };
-
-  const res = await axios.post(url, payload, { headers });
-  if (res.data.code !== 0) {
-    throw new Error(`Failed to fetch video info: ${res.data.message}`);
-  }
-
-  console.log("🎥 Video info:", JSON.stringify(res.data.data, null, 2));
-
-  // TikTok auto-generates cover image(s) for your video
-  const images = res.data.data.list[0]?.image_info?.image_ids || [];
-  console.log("thamneal images ", images);
-  return images;
-};
-
-// Create Ad
-const createAd = async (
-  adgroup_id: string,
-  video_id: string,
-  image_id: string
-) => {
-  console.log("from create ads on video id ", video_id);
-  // fetch advertiser identity
-  const { identity_id, identity_type } = await getIdentity();
-
-  const url = `${BASE_URL}/ad/create`;
-  const payload = {
-    advertiser_id: ADVERTISER_ID,
-    adgroup_id,
-    ad_name: "My First API Ad",
-    operation_status: "DISABLE",
-    creatives: [
-      {
-        ad_format: "SINGLE_VIDEO",
-        ad_name: "Video Creative 1",
-        ad_text: "Check this out!",
-        call_to_action: "LEARN_MORE",
-        landing_page_url: "https://adelo.ai",
-        video_id,
-        image_ids: [image_id],
-        display_name: "MyBrand",
-        identity_id,
-        identity_type,
-      },
-    ],
-  };
-
-  const res = await axios.post(url, payload, { headers });
-  if (res.data.code !== 0) {
-    throw new Error(`Ad creation failed: ${res.data.message}`);
-  }
-
-  console.log("✅ Ad created:", res.data.data);
-  return res.data.data;
-};
-
-// Full Flow
-export const createFullAdFlow = async (
-  videoPath: string,
-  imagePath: string
+// ====== MAIN FUNCTION ======
+export const createTikTokFullAd = async (
+  adType: string, // "SINGLE_VIDEO" | "SINGLE_IMAGE" | "SPARK_AD" | "CAROUSEL"
+  videoPath?: string, // required for video / spark
+  imagePath?: string, // required for image / video thumbnail
+  postId?: string, // required for SPARK_AD
+  carouselImages?: string[] // required for CAROUSEL
 ) => {
   try {
-    console.log("📦 Starting TikTok ad creation flow");
+    console.log(`📦 Starting TikTok ${adType} ad creation flow`);
+    console.log(adType, videoPath, imagePath, postId, carouselImages);
 
-    const video_id = await uploadVideo(videoPath);
-    const image_id = await uploadImage(imagePath);
-    const campaign_id = await createCampaign();
-    const adgroup_id = await createAdGroup(campaign_id);
+    let video_id: string | undefined;
+    let image_id: string | undefined;
+    let image_ids: string[] = [];
 
-    // const [autoImageId] = await getVideoThumbnails(video_id);
-    // console.log("auto image id ", autoImageId);
+    // ===== Upload Video if Needed =====
+    if (["SINGLE_VIDEO", "SPARK_AD"].includes(adType) && videoPath) {
+      const videoForm = new FormData();
+      videoForm.append("advertiser_id", ADVERTISER_ID);
+      videoForm.append("upload_type", "UPLOAD_BY_FILE");
+      videoForm.append("video_signature", getFileMD5(videoPath));
+      videoForm.append("video_file", fs.createReadStream(videoPath));
 
-    const ad_id = await createAd(adgroup_id, video_id, image_id);
-    console.log("ads create log ", ad_id);
+      const videoRes = await axios.post(
+        `${BASE_URL}/file/video/ad/upload/`,
+        videoForm,
+        { headers: { ...headers, ...videoForm.getHeaders() } }
+      );
 
-    return { video_id, image_id, campaign_id, adgroup_id, ad_id };
+      if (videoRes.data.code !== 0)
+        throw new Error(`Video upload failed: ${videoRes.data.message}`);
+      video_id = videoRes.data.data[0].video_id;
+      console.log("✅ Video uploaded:", video_id);
+    }
+
+    // ===== Upload Image if Needed =====
+    if (["SINGLE_IMAGE", "SINGLE_VIDEO"].includes(adType) && imagePath) {
+      const imageForm = new FormData();
+      imageForm.append("advertiser_id", ADVERTISER_ID);
+      imageForm.append("upload_type", "UPLOAD_BY_FILE");
+      imageForm.append("image_signature", getFileMD5(imagePath));
+      imageForm.append("image_file", fs.createReadStream(imagePath));
+
+      const imageRes = await axios.post(
+        `${BASE_URL}/file/image/ad/upload/`,
+        imageForm,
+        { headers: { ...headers, ...imageForm.getHeaders() } }
+      );
+
+      if (imageRes.data.code !== 0)
+        throw new Error(`Image upload failed: ${imageRes.data.message}`);
+      image_id = imageRes.data.data.image_id;
+      console.log("✅ Image uploaded:", image_id);
+    }
+
+    // ===== Upload Carousel Images if Needed =====
+    if (adType === "CAROUSEL" && carouselImages && carouselImages.length > 0) {
+      for (const img of carouselImages) {
+        const form = new FormData();
+        form.append("advertiser_id", ADVERTISER_ID);
+        form.append("upload_type", "UPLOAD_BY_FILE");
+        form.append("image_signature", getFileMD5(img));
+        form.append("image_file", fs.createReadStream(img));
+
+        const res = await axios.post(
+          `${BASE_URL}/file/image/ad/upload/`,
+          form,
+          {
+            headers: { ...headers, ...form.getHeaders() },
+          }
+        );
+
+        if (res.data.code !== 0)
+          throw new Error(`Carousel image upload failed: ${res.data.message}`);
+        image_ids.push(res.data.data.image_id);
+      }
+      console.log("✅ Carousel images uploaded:", image_ids);
+    }
+
+    // ===== Create Campaign =====
+    const campaignRes = await axios.post(
+      `${BASE_URL}/campaign/create/`,
+      {
+        advertiser_id: ADVERTISER_ID,
+        campaign_name: `My Campaign ${Date.now()}`,
+        objective_type: "TRAFFIC",
+        budget_mode: "BUDGET_MODE_DAY",
+        budget: 100,
+        operation_status: "DISABLE",
+      },
+      { headers }
+    );
+    if (campaignRes.data.code !== 0)
+      throw new Error(`Campaign creation failed: ${campaignRes.data.message}`);
+    const campaign_id = campaignRes.data.data.campaign_id;
+    console.log("✅ Campaign created:", campaign_id);
+
+    // ===== Create Ad Group =====
+    const adGroupRes = await axios.post(
+      `${BASE_URL}/adgroup/create/`,
+      {
+        advertiser_id: ADVERTISER_ID,
+        campaign_id,
+        adgroup_name: `AdGroup ${Date.now()}`,
+        promotion_type: "WEBSITE",
+        placement_type: "PLACEMENT_TYPE_NORMAL",
+        placements: ["PLACEMENT_TIKTOK"],
+        schedule_type: "SCHEDULE_FROM_NOW",
+        schedule_start_time: getUTCDateTime(),
+        budget_mode: "BUDGET_MODE_DAY",
+        budget: 100,
+        billing_event: "CPC",
+        optimization_goal: "CLICK",
+        bid_type: "BID_TYPE_CUSTOM",
+        operation_status: "DISABLE",
+        location_ids: ["1210997"],
+        bid_price: 2,
+      },
+      { headers }
+    );
+    if (adGroupRes.data.code !== 0)
+      throw new Error(`Ad group creation failed: ${adGroupRes.data.message}`);
+    const adgroup_id = adGroupRes.data.data.adgroup_id;
+    console.log("✅ Ad group created:", adgroup_id);
+
+    // ===== Get Identity =====
+    const identityRes = await axios.get(
+      `${BASE_URL}/identity/get/?advertiser_id=${ADVERTISER_ID}`,
+      { headers }
+    );
+    if (identityRes.data.code !== 0)
+      throw new Error(
+        `Failed to fetch identities: ${identityRes.data.message}`
+      );
+    const { identity_id, identity_type } =
+      identityRes.data.data.identity_list[0] || {};
+    if (!identity_id) throw new Error("No identity found for this advertiser");
+
+    // ===== Switch-case for ad types =====
+    let creativePayload: any;
+    switch (adType) {
+      case "SINGLE_VIDEO":
+        creativePayload = {
+          ad_format: "SINGLE_VIDEO",
+          ad_name: "Video Creative",
+          ad_text: "Check this out!",
+          call_to_action: "LEARN_MORE",
+          landing_page_url: "https://adelo.ai",
+          video_id,
+          image_ids: [image_id],
+          display_name: "MyBrand",
+          identity_id,
+          identity_type,
+        };
+        break;
+
+      case "SINGLE_IMAGE":
+        creativePayload = {
+          ad_format: "SINGLE_IMAGE",
+          ad_name: "Image Creative",
+          ad_text: "Discover now!",
+          call_to_action: "LEARN_MORE",
+          landing_page_url: "https://adelo.ai",
+          image_ids: [image_id],
+          display_name: "MyBrand",
+          identity_id,
+          identity_type,
+        };
+        break;
+
+      case "SPARK_AD":
+        if (!postId) throw new Error("Spark Ad requires a valid postId");
+        creativePayload = {
+          ad_format: "SPARK_AD",
+          ad_name: "Spark Ad Creative",
+          ad_text: "Check out this post!",
+          call_to_action: "LEARN_MORE",
+          landing_page_url: "https://adelo.ai",
+          spark_ad_type: 1,
+          postId,
+          display_name: "MyBrand",
+          identity_id,
+          identity_type,
+        };
+        break;
+
+      case "CAROUSEL":
+        creativePayload = {
+          ad_format: "CAROUSEL",
+          ad_name: "Carousel Creative",
+          ad_text: "Swipe to see more!",
+          call_to_action: "LEARN_MORE",
+          landing_page_url: "https://adelo.ai",
+          image_ids,
+          display_name: "MyBrand",
+          identity_id,
+          identity_type,
+        };
+        break;
+
+      default:
+        throw new Error(`Unsupported ad type: ${adType}`);
+    }
+
+    // ===== Create Ad =====
+    const adRes = await axios.post(
+      `${BASE_URL}/ad/create`,
+      {
+        advertiser_id: ADVERTISER_ID,
+        adgroup_id,
+        ad_name: `My API Ad ${Date.now()}`,
+        operation_status: "DISABLE",
+        creatives: [creativePayload],
+      },
+      { headers }
+    );
+
+    if (adRes.data.code !== 0)
+      throw new Error(`Ad creation failed: ${adRes.data.message}`);
+
+    const adId = adRes.data.data?.ad_ids?.[0];
+    if (!adId) throw new Error("Ad ID not found in response");
+
+    console.log("✅ Ad created:", adId);
+    return {
+      adType,
+      adId,
+      campaign_id,
+      adgroup_id,
+      video_id,
+      image_id,
+      image_ids,
+    };
   } catch (err: any) {
-    console.error("❌ TikTok Ad create error:", err);
+    console.error("❌ TikTok Ad create error:", err.message);
     throw err;
   }
 };

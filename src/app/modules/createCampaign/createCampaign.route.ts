@@ -5,7 +5,6 @@ import {
   createGoogleAdController,
   createLeadFormController,
   createLinkedInAd,
-  
 } from "./createCampaign.controller";
 import multer from "multer";
 
@@ -30,6 +29,7 @@ router.post(
   upload.fields([
     { name: "videoPath", maxCount: 1 },
     { name: "imagePath", maxCount: 1 },
+    { name: "carouselImages", maxCount: 10 },
   ]),
   createFullTiktokAdFlow
 );
