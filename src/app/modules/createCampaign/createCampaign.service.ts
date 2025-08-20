@@ -534,7 +534,10 @@ export const createTikTokFullAd = async (
     }
 
     // ===== Upload Carousel Images if Needed =====
+    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
     if (adType === "CAROUSEL" && carouselImages && carouselImages.length > 0) {
+      image_ids = [];
       for (const img of carouselImages) {
         const form = new FormData();
         form.append("advertiser_id", ADVERTISER_ID);
@@ -545,14 +548,17 @@ export const createTikTokFullAd = async (
         const res = await axios.post(
           `${BASE_URL}/file/image/ad/upload/`,
           form,
-          {
-            headers: { ...headers, ...form.getHeaders() },
-          }
+          { headers: { ...headers, ...form.getHeaders() } }
         );
 
-        if (res.data.code !== 0)
+        if (res.data.code !== 0) {
           throw new Error(`Carousel image upload failed: ${res.data.message}`);
+        }
+
         image_ids.push(res.data.data.image_id);
+
+        // ✅ Wait for processing
+        await delay(10000); // 3 seconds
       }
       console.log("✅ Carousel images uploaded:", image_ids);
     }
@@ -653,12 +659,9 @@ export const createTikTokFullAd = async (
         creativePayload = {
           ad_format: "SPARK_AD",
           ad_name: "Spark Ad Creative",
-          ad_text: "Check out this post!",
           call_to_action: "LEARN_MORE",
-          landing_page_url: "https://adelo.ai",
           spark_ad_type: 1,
-          postId,
-          display_name: "MyBrand",
+          post_id: postId, // ✅ correct field name
           identity_id,
           identity_type,
         };
@@ -668,13 +671,14 @@ export const createTikTokFullAd = async (
         creativePayload = {
           ad_format: "CAROUSEL",
           ad_name: "Carousel Creative",
-          ad_text: "Swipe to see more!",
           call_to_action: "LEARN_MORE",
-          landing_page_url: "https://adelo.ai",
-          image_ids,
-          display_name: "MyBrand",
           identity_id,
           identity_type,
+          carousel_card_list: image_ids.map((id, idx) => ({
+            image_id: id,
+            card_name: `Card ${idx + 1}`,
+            landing_page_url: "https://adelo.ai",
+          })),
         };
         break;
 
