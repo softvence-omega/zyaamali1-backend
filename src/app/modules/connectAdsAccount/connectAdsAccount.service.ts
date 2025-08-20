@@ -88,46 +88,6 @@ const getLinkdinAccessToken = async (code: any) => {
   return response.data.access_token;
 };
 
-export const getLinkedinAdAccountsAndOrganizations = async (
-  accessToken: string
-) => {
-  try {
-    // Fetch Ad Accounts
-    const adAccountResponse = await axios.get(
-      "https://api.linkedin.com/v2/adAccountsV2?q=search",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "X-Restli-Protocol-Version": "2.0.0",
-        },
-      }
-    );
-
-    const adAccounts = adAccountResponse.data;
-
-    // Fetch Organizations (where user is admin)
-    const orgResponse = await axios.get(
-      "https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "X-Restli-Protocol-Version": "2.0.0",
-        },
-      }
-    );
-    console.log(orgResponse.data.elements);
-    const organizations = orgResponse.data.elements.map(
-      (el: any) => el.organizationalTarget
-    );
-
-    return {
-      adAccounts, // List of ad accounts
-      organizations, // List of organization URNs
-    };
-  } catch (error: any) {
-    throw new Error(`Failed to fetch LinkedIn data: ${error.message}`);
-  }
-};
 
 // for google
 
@@ -241,7 +201,7 @@ export const connectAdsAccountservice = {
   getInstagramAccounts,
   getLinkdinAuthURL,
   getLinkdinAccessToken,
-  getLinkedinAdAccountsAndOrganizations,
+  
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,

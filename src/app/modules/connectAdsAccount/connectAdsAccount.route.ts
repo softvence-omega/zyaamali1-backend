@@ -2,7 +2,6 @@ import express from "express";
 import {
   connectAdsAccountController,
   getGoogleAdAccounts,
-  getLinkedinAdAccounts,
   googleAuthCallback,
   googleAuthRedirect,
 } from "./connectAdsAccount.controller";
@@ -19,7 +18,6 @@ router.get(
   connectAdsAccountController.handleFacebookCallback
 );
 
-
 // for instagram
 
 router.get(
@@ -33,7 +31,6 @@ router.get(
   "/linkedin/callback",
   connectAdsAccountController.handleLinkedInCallback
 );
-router.get("/linkedin-ad-accounts", getLinkedinAdAccounts);
 
 // for google
 router.get("/google-auth", googleAuthRedirect);

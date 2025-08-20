@@ -187,22 +187,7 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
   }
 };
 
-export const getLinkedinAdAccounts = async (req: Request, res: Response) => {
-  const accessToken = req.headers.authorization?.replace("Bearer ", "");
 
-  if (!accessToken)
-    return res.status(401).json({ error: "Access token missing" });
-
-  try {
-    const accounts =
-      await connectAdsAccountservice.getLinkedinAdAccountsAndOrganizations(
-        accessToken
-      );
-    res.json(accounts);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch linkedin Ad accounts" });
-  }
-};
 
 // for google
 export const googleAuthRedirect = (req: Request, res: Response) => {

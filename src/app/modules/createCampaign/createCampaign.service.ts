@@ -534,8 +534,6 @@ export const createTikTokFullAd = async (
     }
 
     // ===== Upload Carousel Images if Needed =====
-    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-
     if (adType === "CAROUSEL" && carouselImages && carouselImages.length > 0) {
       image_ids = [];
       for (const img of carouselImages) {
@@ -548,17 +546,17 @@ export const createTikTokFullAd = async (
         const res = await axios.post(
           `${BASE_URL}/file/image/ad/upload/`,
           form,
-          { headers: { ...headers, ...form.getHeaders() } }
+          {
+            headers: { ...headers, ...form.getHeaders() },
+          }
         );
 
         if (res.data.code !== 0) {
           throw new Error(`Carousel image upload failed: ${res.data.message}`);
         }
 
-        image_ids.push(res.data.data.image_id);
-
-        // ✅ Wait for processing
-        await delay(10000); // 3 seconds
+        const imgId = res.data.data.image_id;
+        image_ids.push(imgId);
       }
       console.log("✅ Carousel images uploaded:", image_ids);
     }
@@ -641,6 +639,8 @@ export const createTikTokFullAd = async (
         break;
 
       case "SINGLE_IMAGE":
+        console.log("identy id", identity_id);
+        console.log("identy type", identity_type);
         creativePayload = {
           ad_format: "SINGLE_IMAGE",
           ad_name: "Image Creative",
@@ -657,21 +657,26 @@ export const createTikTokFullAd = async (
       case "SPARK_AD":
         if (!postId) throw new Error("Spark Ad requires a valid postId");
         creativePayload = {
-          ad_format: "SPARK_AD",
+          ad_format: "SINGLE_VIDEO",
           ad_name: "Spark Ad Creative",
           call_to_action: "LEARN_MORE",
           spark_ad_type: 1,
-          post_id: postId, // ✅ correct field name
+          promotion_post_id: "7540557690238455047", // ✅ correct field name
           identity_id,
           identity_type,
         };
         break;
 
       case "CAROUSEL":
+        console.log("identy id", identity_id);
+        console.log("identy type", identity_type);
         creativePayload = {
-          ad_format: "CAROUSEL",
+          ad_format: "CAROUSEL_ADS", // must be valid
           ad_name: "Carousel Creative",
+          ad_text: "Swipe to explore more!",
           call_to_action: "LEARN_MORE",
+          landing_page_url: "https://adelo.ai",
+          display_name: "MyBrand",
           identity_id,
           identity_type,
           carousel_card_list: image_ids.map((id, idx) => ({
@@ -680,6 +685,7 @@ export const createTikTokFullAd = async (
             landing_page_url: "https://adelo.ai",
           })),
         };
+
         break;
 
       default:
