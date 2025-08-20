@@ -184,24 +184,24 @@ export const createGoogleAdService = async ({
   });
 
   // Validate image aspect ratio before uploading
-  const validateAspectRatio = (
-    buffer: Buffer,
-    expectedRatio: number,
-    tolerance = 0.01
-  ) => {
-    const { width, height } = sizeOf(buffer);
-    const ratio = width / height;
-    console.log(ratio);
-    if (Math.abs(ratio - expectedRatio) > tolerance) {
-      console.warn(
-        `⚠ Aspect ratio mismatch. Expected ${expectedRatio}, got ${ratio.toFixed(
-          2
-        )}. Will resize.`
-      );
-      return false;
-    }
-    return true;
-  };
+  // const validateAspectRatio = (
+  //   buffer: Buffer,
+  //   expectedRatio: number,
+  //   tolerance = 0.01
+  // ) => {
+  //   const { width, height } = sizeOf(buffer);
+  //   const ratio = width / height;
+  //   console.log(ratio);
+  //   if (Math.abs(ratio - expectedRatio) > tolerance) {
+  //     console.warn(
+  //       `⚠ Aspect ratio mismatch. Expected ${expectedRatio}, got ${ratio.toFixed(
+  //         2
+  //       )}. Will resize.`
+  //     );
+  //     return false;
+  //   }
+  //   return true;
+  // };
 
   // Upload Image Asset (with exact resize)
   const uploadImageAsset = async (
@@ -230,7 +230,8 @@ export const createGoogleAdService = async ({
       expectedRatio = 1.0;
     }
 
-    const isvalid = validateAspectRatio(data, expectedRatio);
+    // const isvalid = validateAspectRatio(data, expectedRatio);
+    // console.log('===========================',isvalid)
 
     // Resize & clean image → buffer
     const processedBuffer = await sharp(data)
