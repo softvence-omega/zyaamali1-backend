@@ -187,18 +187,55 @@ export const createGoogleAdService = async ({
   });
 
   /**
+   * Load image (supports local path or remote URL)
+   */
+  const loadImage = async (filePath: string) => {
+    if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+      const response = await axios.get(filePath, {
+        responseType: "arraybuffer",
+      });
+      return Buffer.from(response.data);
+    }
+    return filePath; // local file path
+  };
+
+  /**
+   * Validates image ratio before uploading to Google Ads
+   */
+  const validateImageRatio = async (
+    filePath: string,
+    expectedRatio: number,
+    label: string
+  ) => {
+    const input = await loadImage(filePath);
+    const metadata = await sharp(input).metadata();
+    const width = metadata.width || 0;
+    const height = metadata.height || 0;
+
+    const actualRatio = parseFloat((width / height).toFixed(2));
+    console.log(actualRatio);
+
+    if (actualRatio !== expectedRatio) {
+      throw new Error(
+        `${label} must have ratio ${expectedRatio}, but got ${actualRatio} (${width}x${height})`
+      );
+    }
+
+    return true;
+  };
+
+  /**
    * Upload Image Asset to Google Ads
    */
   const uploadImageAsset = async (
     imageUrl: string,
     type: "LANDSCAPE" | "SQUARE" | "LOGO" | "LOGO_SQUARE" | "LOGO_WIDE"
   ) => {
+    const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
     const timestamp = Date.now();
 
-    const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
-
     let targetWidth = 1200;
-    let targetHeight = 628;
+    let targetHeight = 627;
 
     switch (type) {
       case "SQUARE":
@@ -214,62 +251,36 @@ export const createGoogleAdService = async ({
     }
 
     const processedBuffer = await sharp(data)
-      .resize(targetWidth, targetHeight, {
-        fit: "cover", // crop to exact ratio
-        position: "center",
-      })
-      .extend({
-        // ensures exact ratio
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: "#ffffff",
-      })
-      .toFormat("jpeg", { quality: 90 })
+      .resize(targetWidth, targetHeight, { fit: "cover" })
+      .jpeg({ quality: 100 })
       .toBuffer();
 
     const { width, height } = sizeOf(processedBuffer);
     const ratio = +(width / height).toFixed(2);
     console.log(`${type} final ratio: ${ratio} and size:${width}*${height}`);
 
-    // Validate against expected
-    if (type === "LANDSCAPE" && ratio !== 1.91)
-      throw new Error("Landscape must be 1.91:1");
-    if ((type === "SQUARE" || type.includes("LOGO_SQUARE")) && ratio !== 1.0)
-      throw new Error("Square must be 1:1");
-    if (type === "LOGO_WIDE" && ratio !== 4.0)
-      throw new Error("Wide logo must be 4:1");
+    const isClose = (a: number, b: number, tolerance = 0.02) =>
+      Math.abs(a - b) <= tolerance;
 
+    if (type === "LANDSCAPE" && !isClose(ratio, 1.91))
+      throw new Error(`Landscape must be ~1.91:1 (got ${ratio})`);
+    if (
+      (type === "SQUARE" || type.includes("LOGO_SQUARE")) &&
+      !isClose(ratio, 1.0)
+    )
+      throw new Error(`Square must be ~1:1 (got ${ratio})`);
+    if (type === "LOGO_WIDE" && !isClose(ratio, 4.0))
+      throw new Error(`Wide logo must be ~4:1 (got ${ratio})`);
+    
     const assetResult = await customer.assets.create([
       {
         name: `${type}_Asset_${timestamp}`,
         type: "IMAGE",
-        image_asset: { data: processedBuffer },
+        image_asset: { data: processedBuffer }, // Buffer, not base64
       },
     ]);
 
     return assetResult.results[0].resource_name;
-  };
-
-  const validateImageRatio = async (
-    filePath: string,
-    expectedRatio: number,
-    label: string
-  ) => {
-    const metadata = await sharp(filePath).metadata();
-    const width = metadata.width || 0;
-    const height = metadata.height || 0;
-
-    const actualRatio = parseFloat((width / height).toFixed(2));
-
-    if (actualRatio !== expectedRatio) {
-      throw new Error(
-        `${label} must have ratio ${expectedRatio}, but got ${actualRatio} (${width}x${height})`
-      );
-    }
-
-    return true;
   };
 
   /**
