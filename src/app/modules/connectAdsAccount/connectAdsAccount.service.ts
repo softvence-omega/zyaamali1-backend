@@ -29,8 +29,6 @@ const getFacebookAccessToken = async (code: string) => {
   return response.data.access_token;
 };
 
-
-
 // for instagram
 
 const getInstagramAccounts = async (
@@ -39,7 +37,10 @@ const getInstagramAccounts = async (
 ) => {
   FacebookAdsApi.init(accessToken);
   const adAccount = new AdAccount(adAccountId);
-  const instaAccounts = await adAccount.getInstagramAccounts(['id', 'username']);
+  const instaAccounts = await adAccount.getInstagramAccounts([
+    "id",
+    "username",
+  ]);
 
   return instaAccounts.map((insta) => ({
     id: insta.id,
@@ -61,7 +62,7 @@ const getLinkdinAuthURL = () => {
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
 
-    scope: "r_ads,rw_ads,rw_organization_admin",
+    scope: "r_ads rw_ads rw_campaigns",
   });
 
   return `${base}?${params.toString()}`;
@@ -88,7 +89,6 @@ const getLinkdinAccessToken = async (code: any) => {
   return response.data.access_token;
 };
 
-
 // for google
 
 export const getGoogleOAuthUrl = () => {
@@ -113,7 +113,6 @@ export const getGoogleOAuthUrl = () => {
 
   return url;
 };
-
 
 export const exchangeCodeForTokens = async (code: string) => {
   const oauth2Client = new OAuth2Client(
@@ -186,7 +185,7 @@ const exchangeTiktokCodeForToken = async (code: string) => {
       accessToken: access_token,
       advertiserIds: advertiser_ids,
     };
-  } catch (err:any) {
+  } catch (err: any) {
     console.error(
       "Failed to exchange code:",
       err.response?.data || err.message
@@ -201,7 +200,6 @@ export const connectAdsAccountservice = {
   getInstagramAccounts,
   getLinkdinAuthURL,
   getLinkdinAccessToken,
-  
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,
