@@ -179,7 +179,7 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
     res.json({
       message: "✅ LinkedIn connected",
       accessToken,
-      // adAccountIds: adAccounts.map((acc) => acc.account.id),
+      adAccountIds: adAccounts.map((acc:any) => acc.id),
     });
   } catch (error: any) {
     console.error("❌ Error getting access token:", error.message);

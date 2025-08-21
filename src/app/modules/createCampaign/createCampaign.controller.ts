@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import {
-
   createCampaignService,
   createGoogleAdService,
   createTikTokFullAd,
   facebookLeadFormService,
+  getLinkedinCampaignsService,
 } from "./createCampaign.service";
 
 // facebook
@@ -113,12 +113,41 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
 
 // linkedin
 
+export const getLinkedinController = async (req: Request, res: Response) => {
+  const accessToken = (req.headers.authorization?.replace("Bearer ", "") ||
+    req.query.accessToken) as string;
+
+  const advertiserId = (req.query.advertiserId as string) || "";
+  
+  if (!accessToken || !advertiserId)
+    return res
+      .status(400)
+      .json({ error: "Missing accessToken or advertiserId" });
+  try {
+    const data = await getLinkedinCampaignsService(accessToken, advertiserId);
+    res.json(data);
+  } catch (e: any) {
+    res.status(500).json({ error: e.response?.data || e.message });
+  }
+};
 
 export const createLinkedInAd = async (req: Request, res: Response) => {
   try {
-    const { accessToken, advertiserId, campaignName, creativeText, landingPageUrl } = req.body;
+    const {
+      accessToken,
+      advertiserId,
+      campaignName,
+      creativeText,
+      landingPageUrl,
+    } = req.body;
 
-    if (!accessToken || !advertiserId || !campaignName || !creativeText || !landingPageUrl) {
+    if (
+      !accessToken ||
+      !advertiserId ||
+      !campaignName ||
+      !creativeText ||
+      !landingPageUrl
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -129,9 +158,7 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
       creativeText,
       landingPageUrl,
     });
-    console.log(
-      'linkedin ads ',ad
-    )
+    console.log("linkedin ads ", ad);
 
     res.json(ad);
   } catch (error: any) {
@@ -140,9 +167,7 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
   }
 };
 
-
 // tiktok
-
 
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
   try {
@@ -163,19 +188,25 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
       case "TOPVIEW":
       case "SPARK_AD":
         if (!videoFile) {
-          return res.status(400).json({ error: "videoPath is required for this ad type" });
+          return res
+            .status(400)
+            .json({ error: "videoPath is required for this ad type" });
         }
         break;
 
       case "SINGLE_IMAGE":
         if (!imageFile) {
-          return res.status(400).json({ error: "imagePath is required for SINGLE_IMAGE ads" });
+          return res
+            .status(400)
+            .json({ error: "imagePath is required for SINGLE_IMAGE ads" });
         }
         break;
 
       case "CAROUSEL":
         if (!carouselFiles || carouselFiles.length === 0) {
-          return res.status(400).json({ error: "At least one carousel image is required" });
+          return res
+            .status(400)
+            .json({ error: "At least one carousel image is required" });
         }
         break;
 
@@ -184,8 +215,9 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     }
 
     // Prepare carousel image paths if any
-    const carouselImagePaths = carouselFiles ? carouselFiles.map((f) => f.path) : [];
-
+    const carouselImagePaths = carouselFiles
+      ? carouselFiles.map((f) => f.path)
+      : [];
 
     // Call your TikTok ad creation function
     const result = await createTikTokFullAd(
@@ -203,8 +235,7 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
   }
 };
 
-
 export const createCampaignController = {
   createAdController,
-  createLinkedInAd
+  createLinkedInAd,
 };

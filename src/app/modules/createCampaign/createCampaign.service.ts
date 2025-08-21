@@ -10,6 +10,7 @@ import sizeOf from "image-size";
 import crypto from "crypto";
 import FormData from "form-data";
 import sharp from "sharp";
+import { liAxios } from "../../utils/getLinkedinCampaignId";
 
 // facebook
 
@@ -206,7 +207,7 @@ export const createGoogleAdService = async ({
   // Upload Image Asset (with exact resize)
   const uploadImageAsset = async (
     imageUrl: string,
-    type: "LANDSCAPE" | "SQUARE" | "LOGO",
+    type: "LANDSCAPE" | "SQUARE" | "LOGO" | "LOGO_SQUARE" | "LOGO_WIDE",
     customer: any
   ) => {
     const timestamp = Date.now();
@@ -216,39 +217,48 @@ export const createGoogleAdService = async ({
 
     // Set required dimensions
     let targetWidth: number, targetHeight: number, expectedRatio: number;
-    if (type === "LANDSCAPE") {
-      targetWidth = 1200;
-      targetHeight = 628;
-      expectedRatio = 1.91;
-    } else if (type === "SQUARE") {
-      targetWidth = 1200;
-      targetHeight = 1200;
-      expectedRatio = 1.0;
-    } else {
-      targetWidth = 1200;
-      targetHeight = 1200; // square logo required (not 512x512)
-      expectedRatio = 1.0;
+    switch (type) {
+      case "LANDSCAPE":
+        targetWidth = 1200;
+        targetHeight = 628;
+        break;
+      case "SQUARE":
+        targetWidth = 1200;
+        targetHeight = 1200;
+        break;
+      case "LOGO":
+      case "LOGO_SQUARE":
+        targetWidth = 1200;
+        targetHeight = 1200;
+        break;
+      case "LOGO_WIDE":
+        targetWidth = 1200;
+        targetHeight = 300; // wide logo
+        break;
     }
 
     // const isvalid = validateAspectRatio(data, expectedRatio);
     // console.log('===========================',isvalid)
 
     // Resize & clean image → buffer
-    const processedBuffer = await sharp(data)
-      .resize(targetWidth, targetHeight, {
-        fit: "cover",
-        position: "center",
-        withoutEnlargement: true,
-      })
-      .flatten({ background: "#ffffff" }) // remove transparency
-      .jpeg({ quality: 90 })
-      .toBuffer();
-
+    const processedBuffer =
+      type === "LOGO_WIDE"
+        ? data
+        : await sharp(data)
+            .resize(targetWidth, targetHeight, {
+              fit: "cover",
+              position: "center",
+            })
+            .flatten({ background: "#ffffff" })
+            .jpeg({ quality: 90 })
+            .toBuffer();
 
     // Validate final size
     const { width, height } = sizeOf(processedBuffer);
     console.log(`✅ Final ${type}: ${width}x${height}`);
-    
+
+    const ratio = width / height;
+    console.log(`${type} ratio: ${ratio}`); // should be 4.0 for LOGO_WIDE
 
     // Upload to Google Ads directly from buffer
     const assetResult = await customer.assets.create([
@@ -352,7 +362,17 @@ export const createGoogleAdService = async ({
         "SQUARE",
         customer
       );
-      const logoAsset = await uploadImageAsset(images.logo, "LOGO", customer);
+      // const logoAsset = await uploadImageAsset(images.logo, "LOGO", customer);
+      const squareLogoAsset = await uploadImageAsset(
+        images.logo_square,
+        "LOGO_SQUARE",
+        customer
+      );
+      const wideLogoAsset = await uploadImageAsset(
+        images.logo_wide,
+        "LOGO_WIDE",
+        customer
+      );
 
       adPayload = {
         responsive_display_ad: {
@@ -362,10 +382,11 @@ export const createGoogleAdService = async ({
           business_name: "Your Business Name",
           marketing_images: [{ asset: landscapeAsset }],
           square_marketing_images: [{ asset: squareAsset }],
-          logo_images: [{ asset: logoAsset }],
+          logo_images: [{ asset: squareLogoAsset }, { asset: wideLogoAsset }],
         },
         final_urls: [finalUrl],
       };
+
       break;
 
     case "VIDEO":
@@ -398,7 +419,6 @@ export const createGoogleAdService = async ({
 
 // linkedin
 
-
 interface LinkedInAdInput {
   accessToken: string;
   advertiserId: string;
@@ -406,6 +426,23 @@ interface LinkedInAdInput {
   creativeText: string;
   landingPageUrl: string;
 }
+
+export const getLinkedinCampaignsService = async (
+  accessToken: string,
+  advertiserId: string
+) => {
+  const http = liAxios(accessToken);
+
+  // IMPORTANT: you currently cannot create campaigns via API without rw_campaigns. Fetch existing ones.
+  const { data } = await http.get("/v2/adCampaignsV2", {
+    params: {
+      q: "search",
+      "search.account.values[0]": `urn:li:sponsoredAccount:${advertiserId}`,
+    },
+  });
+  console.log("=============================", data);
+  return data;
+};
 
 export const createLinkedInAd = async ({
   accessToken,
@@ -471,7 +508,6 @@ export const createLinkedInAd = async ({
     ad: adRes.data,
   };
 };
-
 
 // TikTok
 
@@ -741,5 +777,5 @@ export const createTikTokFullAd = async (
 
 export const createCampaignService = {
   createAdService,
-  createLinkedInAd
+  createLinkedInAd,
 };

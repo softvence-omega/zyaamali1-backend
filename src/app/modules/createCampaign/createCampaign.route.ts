@@ -5,6 +5,7 @@ import {
   createGoogleAdController,
   createLeadFormController,
   createLinkedInAd,
+  getLinkedinController,
 } from "./createCampaign.controller";
 import multer from "multer";
 
@@ -20,7 +21,7 @@ router.post("/facebook/create-ad", createCampaignController.createAdController);
 router.post("/google/create-ad", createGoogleAdController);
 
 // linkedin
-
+router.get("/linkedin/campaigns", getLinkedinController);
 router.post("/linkedin/create-ad", createCampaignController.createLinkedInAd);
 
 // tiktok
