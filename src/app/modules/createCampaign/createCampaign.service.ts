@@ -271,7 +271,7 @@ export const createGoogleAdService = async ({
       throw new Error(`Square must be ~1:1 (got ${ratio})`);
     if (type === "LOGO_WIDE" && !isClose(ratio, 4.0))
       throw new Error(`Wide logo must be ~4:1 (got ${ratio})`);
-
+    
     const assetResult = await customer.assets.create([
       {
         name: `${type}_Asset_${timestamp}`,
@@ -696,6 +696,7 @@ export const createTikTokFullAd = async (
         break;
 
 
+        
       case "SINGLE_IMAGE":
         console.log("identy id", identity_id);
         console.log("identy type", identity_type);
