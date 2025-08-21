@@ -20,7 +20,8 @@ router.post("/facebook/create-ad", createCampaignController.createAdController);
 router.post("/google/create-ad", createGoogleAdController);
 
 // linkedin
-router.post("/linkedin/create-ad", createLinkedInAd);
+
+router.post("/linkedin/create-ad", createCampaignController.createLinkedInAd);
 
 // tiktok
 

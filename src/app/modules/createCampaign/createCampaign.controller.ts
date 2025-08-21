@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import {
-  createAdCampaign,
-  createAdCreative,
+
   createCampaignService,
   createGoogleAdService,
   createTikTokFullAd,
@@ -114,28 +113,30 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
 
 // linkedin
 
+
 export const createLinkedInAd = async (req: Request, res: Response) => {
-  const { accessToken, adAccountUrn, organizationUrn, landingPageUrl } =
-    req.body;
-
   try {
-    const campaign = await createAdCampaign(accessToken, adAccountUrn);
-    const creative = await createAdCreative(
-      accessToken,
-      adAccountUrn,
-      organizationUrn,
-      landingPageUrl
-    );
+    const { accessToken, advertiserId, campaignName, creativeText, landingPageUrl } = req.body;
 
-    res.status(200).json({
-      message: "Ad campaign and creative created successfully",
-      campaign,
-      creative,
+    if (!accessToken || !advertiserId || !campaignName || !creativeText || !landingPageUrl) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const ad = await createCampaignService.createLinkedInAd({
+      accessToken,
+      advertiserId,
+      campaignName,
+      creativeText,
+      landingPageUrl,
     });
+
+    res.json(ad);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error("Error creating ad:", error.response?.data || error.message);
+    res.status(500).json({ error: error.response?.data || error.message });
   }
 };
+
 
 // tiktok
 
@@ -202,4 +203,5 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
 
 export const createCampaignController = {
   createAdController,
+  createLinkedInAd
 };

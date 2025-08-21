@@ -398,71 +398,80 @@ export const createGoogleAdService = async ({
 
 // linkedin
 
-export const createAdCampaign = async (
-  accessToken: string,
-  adAccountUrn: string
-) => {
-  const url = "https://api.linkedin.com/v2/adCampaignsV2";
 
-  const body = {
-    account: adAccountUrn,
-    campaignGroup: `${adAccountUrn.replace(
-      "sponsoredAccount",
-      "sponsoredCampaignGroup"
-    )}`,
-    name: "Auto Campaign",
-    dailyBudget: {
-      amount: 5000, // $50.00
-      currencyCode: "USD",
-    },
-    objectiveType: "WEBSITE_VISITS",
-    status: "ACTIVE",
+interface LinkedInAdInput {
+  accessToken: string;
+  advertiserId: string;
+  campaignName: string;
+  creativeText: string;
+  landingPageUrl: string;
+}
+
+export const createLinkedInAd = async ({
+  accessToken,
+  advertiserId,
+  campaignName,
+  creativeText,
+  landingPageUrl,
+}: LinkedInAdInput) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "X-Restli-Protocol-Version": "2.0.0",
+    "Content-Type": "application/json",
   };
 
-  const res = await axios.post(url, body, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      "X-Restli-Protocol-Version": "2.0.0",
+  // 1️⃣ Create Campaign
+  const campaignRes = await axios.post(
+    "https://api.linkedin.com/v2/adCampaigns",
+    {
+      account: `urn:li:sponsoredAccount:${advertiserId}`,
+      name: campaignName,
+      dailyBudget: { amount: 1000, currencyCode: "USD" },
+      type: "TEXT_AD", // or "SPONSORED_UPDATES"
+      status: "ACTIVE",
     },
-  });
+    { headers }
+  );
 
-  return res.data;
-};
+  const campaignId = campaignRes.data.id;
 
-export const createAdCreative = async (
-  accessToken: string,
-  adAccountUrn: string,
-  organizationUrn: string,
-  landingPageUrl: string
-) => {
-  const url = "https://api.linkedin.com/v2/adCreativesV2";
-
-  const body = {
-    account: adAccountUrn,
-    name: "Auto Creative",
-    type: "TEXT_AD",
-    status: "ACTIVE",
-    reference: {
-      reference: organizationUrn,
+  // 2️⃣ Create Creative
+  const creativeRes = await axios.post(
+    "https://api.linkedin.com/v2/adCreatives",
+    {
+      campaign: `urn:li:sponsoredCampaign:${campaignId}`,
+      reference: {
+        reference: {
+          textAd: {
+            headline: creativeText,
+            landingPageUrl: landingPageUrl,
+          },
+        },
+      },
     },
-    textAd: {
-      headline: "Grow with LinkedIn",
-      description: "Click to scale your business",
-      landingPageUrl,
+    { headers }
+  );
+
+  const creativeId = creativeRes.data.id;
+
+  // 3️⃣ Create Ad
+  const adRes = await axios.post(
+    "https://api.linkedin.com/v2/adDirectSponsoredContents",
+    {
+      account: `urn:li:sponsoredAccount:${advertiserId}`,
+      creative: `urn:li:sponsoredCreative:${creativeId}`,
+      status: "ACTIVE",
     },
+    { headers }
+  );
+
+  return {
+    campaignId,
+    creativeId,
+    ad: adRes.data,
   };
-
-  const res = await axios.post(url, body, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      "X-Restli-Protocol-Version": "2.0.0",
-    },
-  });
-
-  return res.data;
 };
+
 
 // TikTok
 
@@ -732,4 +741,5 @@ export const createTikTokFullAd = async (
 
 export const createCampaignService = {
   createAdService,
+  createLinkedInAd
 };
