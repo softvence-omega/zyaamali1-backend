@@ -52,42 +52,51 @@ const getInstagramAccounts = async (
 // for linkdin connection
 
 const getLinkdinAuthURL = () => {
-  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_REDIRECT_URI) {
-    throw new Error("Missing LinkedIn client ID or redirect URI");
-  }
-
+  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_REDIRECT_URI)
+    throw new Error("Missing LinkedIn envs");
   const base = "https://www.linkedin.com/oauth/v2/authorization";
   const params = new URLSearchParams({
     response_type: "code",
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
-
-    scope: "r_ads rw_ads rw_campaigns",
+    // With your current product tier, you can use these scopes. Add rw_campaigns later if approved.
+    scope: "r_ads rw_ads r_ads_reporting",
   });
-
   return `${base}?${params.toString()}`;
 };
 
 const getLinkdinAccessToken = async (code: any) => {
-  const response = await axios.post(
+  if (
+    !LINKEDIN_CLIENT_ID ||
+    !LINKEDIN_CLIENT_SECRET ||
+    !LINKEDIN_REDIRECT_URI
+  ) {
+    throw new Error("Missing LinkedIn envs");
+  }
+  const resp = await axios.post(
     "https://www.linkedin.com/oauth/v2/accessToken",
-    null,
-    {
-      params: {
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: LINKEDIN_REDIRECT_URI,
-        client_id: LINKEDIN_CLIENT_ID,
-        client_secret: LINKEDIN_CLIENT_SECRET,
-      },
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    }
+    new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: LINKEDIN_REDIRECT_URI,
+      client_id: LINKEDIN_CLIENT_ID,
+      client_secret: LINKEDIN_CLIENT_SECRET,
+    }),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
 
-  return response.data.access_token;
+  console.log(resp)
+  
+  return resp.data as {
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+    refresh_token_expires_in?: number;
+  };
 };
+
+
+
 
 // for google
 

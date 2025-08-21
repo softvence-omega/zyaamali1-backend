@@ -153,9 +153,9 @@ const redirectToLinkedIn = (req: Request, res: Response) => {
 const handleLinkedInCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
   try {
-    const accessToken = await connectAdsAccountservice.getLinkdinAccessToken(
-      code
-    );
+    const token = await connectAdsAccountservice.getLinkdinAccessToken(code);
+
+    const accessToken = token.access_token;
     console.log("✅ LinkedIn Access Token:", accessToken);
 
     // Step 2: Fetch LinkedIn ad accounts
@@ -179,15 +179,13 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
     res.json({
       message: "✅ LinkedIn connected",
       accessToken,
-      adAccounts,
+      // adAccountIds: adAccounts.map((acc) => acc.account.id),
     });
   } catch (error: any) {
     console.error("❌ Error getting access token:", error.message);
     res.status(500).json({ error: "Failed to retrieve access token" });
   }
 };
-
-
 
 // for google
 export const googleAuthRedirect = (req: Request, res: Response) => {

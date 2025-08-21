@@ -129,6 +129,9 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
       creativeText,
       landingPageUrl,
     });
+    console.log(
+      'linkedin ads ',ad
+    )
 
     res.json(ad);
   } catch (error: any) {
