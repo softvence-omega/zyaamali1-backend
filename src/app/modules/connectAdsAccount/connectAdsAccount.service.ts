@@ -85,8 +85,8 @@ const getLinkdinAccessToken = async (code: any) => {
     { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
 
-  console.log(resp)
-  
+  console.log(resp);
+
   return resp.data as {
     access_token: string;
     expires_in: number;
@@ -95,15 +95,13 @@ const getLinkdinAccessToken = async (code: any) => {
   };
 };
 
-
-
-
 // for google
 
 export const getGoogleOAuthUrl = () => {
   const scopes = [
     "https://www.googleapis.com/auth/adwords",
     "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/youtube.readonly",
   ];
 
   const oauth2Client = new OAuth2Client(

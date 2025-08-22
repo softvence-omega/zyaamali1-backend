@@ -106,7 +106,7 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
     console.error("Ad creation error:", err);
     res.status(500).json({
       message: "Failed to create ad",
-      error: err.message,
+      error: err,
     });
   }
 };
