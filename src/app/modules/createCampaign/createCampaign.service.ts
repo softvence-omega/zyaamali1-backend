@@ -459,7 +459,6 @@ export const createGoogleAdService = async ({
         ad_group: adGroupResourceName,
         status: "PAUSED",
         ad: adPayload,
-        contains_eu_political_advertising: false,
       },
     },
   ]);
