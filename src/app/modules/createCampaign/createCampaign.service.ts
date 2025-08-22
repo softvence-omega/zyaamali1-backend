@@ -165,6 +165,7 @@ export const createAdService = async (
 
 // google
 
+
 export const createGoogleAdService = async ({
   customerId,
   refreshToken,
@@ -200,7 +201,7 @@ export const createGoogleAdService = async ({
   };
 
   /**
-   * Validates image ratio before uploading to Google Ads
+   * Validates image ratio before uploading
    */
   const validateImageRatio = async (
     filePath: string,
@@ -213,19 +214,16 @@ export const createGoogleAdService = async ({
     const height = metadata.height || 0;
 
     const actualRatio = parseFloat((width / height).toFixed(2));
-    console.log(actualRatio);
-
     if (actualRatio !== expectedRatio) {
       throw new Error(
         `${label} must have ratio ${expectedRatio}, but got ${actualRatio} (${width}x${height})`
       );
     }
-
     return true;
   };
 
   /**
-   * Upload Image Asset to Google Ads
+   * Upload Image Asset
    */
   const uploadImageAsset = async (
     imageUrl: string,
@@ -240,7 +238,7 @@ export const createGoogleAdService = async ({
     switch (type) {
       case "LANDSCAPE":
         targetWidth = 1200;
-        targetHeight = 628; // ✅ exact
+        targetHeight = 628;
         break;
       case "SQUARE":
       case "LOGO_SQUARE":
@@ -253,28 +251,10 @@ export const createGoogleAdService = async ({
         break;
     }
 
-    // Force resize and export as PNG
     const processedBuffer = await sharp(data)
       .resize(targetWidth, targetHeight, { fit: "fill" })
       .png()
       .toBuffer();
-
-    // Double-check metadata after resize
-    const metadata = await sharp(processedBuffer).metadata();
-    const { width, height } = metadata;
-    const ratio = +(width / height).toFixed(2);
-
-    console.log(`${type} final ratio: ${ratio} and size:${width}*${height}`);
-
-    if (type === "LANDSCAPE" && (width !== 1200 || height !== 628)) {
-      throw new Error(`Landscape must be 1200x628 (got ${width}x${height})`);
-    }
-    if ((type === "SQUARE" || type === "LOGO_SQUARE") && width !== height) {
-      throw new Error(`Square must be NxN (got ${width}x${height})`);
-    }
-    if (type === "LOGO_WIDE" && width / height !== 4) {
-      throw new Error(`Wide logo must be 4:1 (got ${width}:${height})`);
-    }
 
     const assetResult = await customer.assets.create([
       {
@@ -291,30 +271,19 @@ export const createGoogleAdService = async ({
    * Upload Video Asset
    */
   const uploadVideoAsset = async (videoUrl: string) => {
-    // Extract YouTube ID from various URL formats
     const getYouTubeId = (url: string) => {
-      try {
-        if (url.includes("youtube.com")) {
-          const params = new URL(url).searchParams;
-          return params.get("v") || "";
-        } else if (url.includes("youtu.be")) {
-          return url.split("/").pop()?.split("?")[0] || "";
-        }
-        return url; // fallback if direct ID is provided
-      } catch (err) {
-        console.error("Error parsing YouTube URL:", err);
-        return "";
+      if (url.includes("youtube.com")) {
+        const params = new URL(url).searchParams;
+        return params.get("v") || "";
+      } else if (url.includes("youtu.be")) {
+        return url.split("/").pop()?.split("?")[0] || "";
       }
+      return url; // fallback: assume direct ID
     };
 
     const youtubeId = getYouTubeId(videoUrl);
-    if (!youtubeId) {
-      throw new Error("Invalid YouTube URL or missing video ID");
-    }
+    if (!youtubeId) throw new Error("Invalid YouTube URL or missing video ID");
 
-    console.log("✅ Extracted YouTube ID:", youtubeId);
-
-    // Upload video asset to Google Ads
     const asset = await customer.assets.create([
       {
         name: `Video_Asset_${Date.now()}`,
@@ -323,11 +292,10 @@ export const createGoogleAdService = async ({
       },
     ]);
 
-    console.log("🎬 Video asset created:", asset.results[0]);
     return asset.results[0].resource_name;
   };
 
-  // 1️⃣ Create Budget
+  // 1️⃣ Budget
   const budget = await customer.campaignBudgets.create([
     {
       name: `Budget_${Date.now()}`,
@@ -337,23 +305,19 @@ export const createGoogleAdService = async ({
   ]);
   const budgetResourceName = budget.results[0].resource_name;
 
-  // 2️⃣ Create Campaign
-  const channelType =
-    adType.toUpperCase() === "VIDEO" ? "VIDEO_ACTION" : adType.toUpperCase();
-
+  // 2️⃣ Campaign
   const campaign = await customer.campaigns.create([
     {
       name: `${campaignName || "Campaign"}_${Date.now()}`,
-      advertising_channel_type: channelType,
+      advertising_channel_type: adType.toUpperCase(),
       status: "PAUSED",
       manual_cpc: {},
       campaign_budget: budgetResourceName,
     },
   ]);
-
   const campaignResourceName = campaign.results[0].resource_name;
 
-  // 3️⃣ Create Ad Group
+  // 3️⃣ Ad Group
   const adGroup = await customer.adGroups.create([
     {
       name: adGroupName || `AdGroup_${Date.now()}`,
@@ -364,7 +328,7 @@ export const createGoogleAdService = async ({
   ]);
   const adGroupResourceName = adGroup.results[0].resource_name;
 
-  // 4️⃣ Create Ad Payload
+  // 4️⃣ Ad Payload
   let adPayload: any;
 
   switch (adType?.trim().toUpperCase()) {
@@ -391,7 +355,6 @@ export const createGoogleAdService = async ({
         );
       }
 
-      // 🔍 Validate before upload
       await validateImageRatio(images.landscape, 1.91, "Landscape image");
       await validateImageRatio(images.square, 1, "Square image");
       await validateImageRatio(images.logo_square, 1, "Square Logo");
@@ -399,15 +362,9 @@ export const createGoogleAdService = async ({
         await validateImageRatio(images.logo_wide, 4, "Wide Logo");
       }
 
-      const landscapeAsset = await uploadImageAsset(
-        images.landscape,
-        "LANDSCAPE"
-      );
+      const landscapeAsset = await uploadImageAsset(images.landscape, "LANDSCAPE");
       const squareAsset = await uploadImageAsset(images.square, "SQUARE");
-      const squareLogoAsset = await uploadImageAsset(
-        images.logo_square,
-        "LOGO_SQUARE"
-      );
+      const squareLogoAsset = await uploadImageAsset(images.logo_square, "LOGO_SQUARE");
 
       let wideLogoAsset: string | null | undefined = null;
       if (images.logo_wide) {
@@ -423,9 +380,9 @@ export const createGoogleAdService = async ({
           long_headline: longHeadline || { text: "Default Long Headline" },
           descriptions,
           business_name: businessName || "Your Business Name",
-          marketing_images: [{ asset: landscapeAsset }], // 1.91:1
-          square_marketing_images: [{ asset: squareAsset }], // 1:1
-          logo_images: logoImages, // ✅ safe merge
+          marketing_images: [{ asset: landscapeAsset }],
+          square_marketing_images: [{ asset: squareAsset }],
+          logo_images: logoImages,
         },
         final_urls: [finalUrl],
       };
@@ -435,12 +392,11 @@ export const createGoogleAdService = async ({
       if (!videoUrl) throw new Error("Video URL is required for VIDEO ads");
 
       const videoAsset = await uploadVideoAsset(videoUrl);
-      await new Promise((res) => setTimeout(res, 5000)); // wait a few seconds for processing
 
       adPayload = {
         video_ad: {
           video: videoAsset,
-          in_stream: {}, // required
+          in_stream: {}, // skippable in-stream
         },
         final_urls: [finalUrl],
       };
@@ -456,15 +412,14 @@ export const createGoogleAdService = async ({
       ad_group: adGroupResourceName,
       status: "PAUSED",
       ad: adPayload,
-      ad_group_ad: {
-        contains_eu_political_advertising: false, // ✅ correct
-      },
+      containsEuPoliticalAdvertising: false, // 👈 IMPORTANT
     },
   ]);
 
   console.log(`✅ ${adType} Ad created:`, ad.results[0]);
   return ad.results[0];
 };
+
 
 // linkedin
 
