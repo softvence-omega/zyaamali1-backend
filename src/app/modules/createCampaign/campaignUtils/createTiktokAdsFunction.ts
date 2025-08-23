@@ -60,7 +60,7 @@ export const uploadCarouselImages = async (images: string[]) => {
 };
 
 // ========================= CAMPAIGN / ADGROUP =========================
-export const createCampaign = async () => {
+export const createTiktokCampaign = async () => {
   const res = await axios.post(
     `${BASE_URL}/campaign/create/`,
     {
@@ -80,7 +80,7 @@ export const createCampaign = async () => {
   return res.data.data.campaign_id;
 };
 
-export const createAdGroup = async (campaign_id: string) => {
+export const createTiktokAdGroup = async (campaign_id: string) => {
   const res = await axios.post(
     `${BASE_URL}/adgroup/create/`,
     {
@@ -192,7 +192,7 @@ export const buildCreativePayload = (
 };
 
 // ========================= CREATE AD =========================
-export const createAd = async (
+export const createTiktokAd = async (
   adgroup_id: string,
   creativePayload: any,
   adType: string

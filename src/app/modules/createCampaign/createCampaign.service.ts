@@ -1,17 +1,8 @@
 const bizSdk = require("facebook-nodejs-business-sdk");
-const { FacebookAdsApi, AdAccount, Campaign, AdSet, AdCreative, Ad } = bizSdk;
-
 import { googleAdsClient } from "../../utils/googleAdsClient";
 
 import axios from "axios";
-import fs from "fs";
-import ffmpeg from "fluent-ffmpeg";
-import sizeOf from "image-size";
-import crypto from "crypto";
-import FormData from "form-data";
-import sharp from "sharp";
 import { liAxios } from "../../utils/getLinkedinCampaignId";
-import { error } from "console";
 import {
   buildDisplayAdPayload,
   buildSearchAdPayload,
@@ -28,11 +19,9 @@ import {
   createFacebookAdSet,
   createFacebookCampaign,
 } from "./campaignUtils/createFacebookAdsFunction";
-import { uploadCarouselImages, uploadImage, uploadVideo } from "./campaignUtils/createTiktokAdsFunction";
+import { buildCreativePayload, createTiktokAd, createTiktokAdGroup, createTiktokCampaign, getIdentity, uploadCarouselImages, uploadImage, uploadVideo } from "./campaignUtils/createTiktokAdsFunction";
 
 // facebook
-
-// src/services/facebookLeadForm.service.ts
 
 class FacebookLeadFormService {
   async createLeadForm(pageAccessToken: string, pageId: string) {
@@ -83,7 +72,6 @@ class FacebookLeadFormService {
     }
   }
 }
-
 export const facebookLeadFormService = new FacebookLeadFormService();
 
 export const createFacebookAdService = async (
@@ -197,6 +185,8 @@ export const createGoogleAdService = async (params: any) => {
     adType,
     campaignName
   );
+
+  // ads group setup
   const adGroupResourceName = await createAdGroup(
     customer,
     campaignResourceName,
@@ -245,7 +235,6 @@ export const createGoogleAdService = async (params: any) => {
 };
 
 // linkedin
-
 interface LinkedInAdInput {
   accessToken: string;
   advertiserId: string;
@@ -253,7 +242,6 @@ interface LinkedInAdInput {
   creativeText: string;
   landingPageUrl: string;
 }
-
 export const getLinkedinCampaignsService = async (
   accessToken: string,
   advertiserId: string
@@ -336,6 +324,7 @@ export const createLinkedInAd = async ({
   };
 };
 
+
 // TikTok
 export const createTikTokFullAd = async (
   adType: string,
@@ -364,8 +353,8 @@ export const createTikTokFullAd = async (
         : [];
 
     // Step 2: Create Campaign + AdGroup
-    const campaign_id = await createCampaign();
-    const adgroup_id = await createAdGroup(campaign_id);
+    const campaign_id = await createTiktokCampaign();
+    const adgroup_id = await createTiktokAdGroup(campaign_id);
 
     // Step 3: Get Identity
     const identity = await getIdentity();
@@ -379,7 +368,7 @@ export const createTikTokFullAd = async (
     );
 
     // Step 5: Create Ad
-    const adId = await createAd(adgroup_id, creativePayload, adType);
+    const adId = await createTiktokAd(adgroup_id, creativePayload, adType);
 
     console.log("✅ Ad created:", adId);
 
