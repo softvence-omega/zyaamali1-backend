@@ -410,46 +410,43 @@ export const createGoogleAdService = async ({
   };
 
   // Upload Image Asset
-
   const uploadImageAsset = async (
-    customerId: string,
-    refreshToken: string,
     imageUrl: string,
-    assetName: string = "Uploaded Image"
-  ): Promise<string> => {
-    try {
-      // 1️⃣ Download the image as a buffer
-      const response = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-      });
-      const imageData = Buffer.from(response.data).toString("base64");
+    type: "LANDSCAPE" | "SQUARE" | "LOGO_SQUARE" | "LOGO_WIDE"
+  ) => {
+    const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    const timestamp = Date.now();
 
-      // 2️⃣ Init customer
-      const customer = googleAdsClient.Customer({
-        customer_id: customerId,
-        refresh_token: refreshToken,
-      });
+    let targetWidth = 1200;
+    let targetHeight = 1200;
 
-      // 3️⃣ Create Asset (MUST be inside array [])
-      const assetResponse = await customer.assets.create([
-        {
-          name: assetName,
-          type: "IMAGE",
-          image_asset: {
-            data: imageData,
-          },
-        },
-      ]);
-
-      // 4️⃣ Return resource name
-      const resourceName = assetResponse.results[0].resource_name;
-      console.log("✅ Uploaded Image Asset:", resourceName);
-
-      return resourceName as string;
-    } catch (error: any) {
-      console.error("❌ Image upload failed:", error.message || error);
-      throw new Error("Google Ads Image upload failed: " + error.message);
+    switch (type) {
+      case "LANDSCAPE":
+        targetWidth = 1200;
+        targetHeight = 628;
+        break;
+      case "SQUARE":
+      case "LOGO_SQUARE":
+        targetWidth = 1200;
+        targetHeight = 1200;
+        break;
     }
+
+    const processedBuffer = await sharp(data)
+      .resize(targetWidth, targetHeight, { fit: "fill" })
+      .png()
+      .toBuffer();
+    const assetResult = await customer.assets.create([
+      {
+        name: `${type}_Asset_${timestamp}`,
+        type: "IMAGE",
+        image_asset: { data: processedBuffer },
+      },
+    ]);
+
+    console.log(processedBuffer);
+
+    return assetResult.results[0].resource_name;
   };
 
   // Upload Video Asset
@@ -559,35 +556,19 @@ export const createGoogleAdService = async ({
         await validateImageRatio(images.logo_wide, 4, "Wide Logo");
 
       const landscapeAsset = await uploadImageAsset(
-        customerId,
-        refreshToken,
         images.landscape,
         "LANDSCAPE"
       );
+      console.log(landscapeAsset);
 
-      const squareAsset = await uploadImageAsset(
-        customerId,
-        refreshToken,
-        images.square,
-        "SQUARE"
-      );
+      const squareAsset = await uploadImageAsset(images.square, "SQUARE");
 
       const squareLogoAsset = await uploadImageAsset(
-        customerId,
-        refreshToken,
         images.logo_square,
         "LOGO_SQUARE"
       );
 
-      let wideLogoAsset: string | null = null;
-      if (images.logo_wide) {
-        wideLogoAsset = await uploadImageAsset(
-          customerId,
-          refreshToken,
-          images.logo_wide,
-          "LOGO_WIDE"
-        );
-      }
+      const logoImages = [{ asset: squareLogoAsset }];
 
       adPayload = {
         responsive_display_ad: {
@@ -597,7 +578,7 @@ export const createGoogleAdService = async ({
           business_name: businessName || "Your Business Name",
           marketing_images: [{ asset: landscapeAsset }],
           square_marketing_images: [{ asset: squareAsset }],
-          logo_images: squareLogoAsset,
+          logo_images: logoImages,
         },
         final_urls: [finalUrl],
       };
@@ -644,7 +625,7 @@ export const createGoogleAdService = async ({
       containsEuPoliticalAdvertising;
   }
 
-  console.log("adCreatePayload:", JSON.stringify(adCreatePayload, null, 2)); // Debug log
+  // console.log("adCreatePayload:", JSON.stringify(adCreatePayload, null, 2)); // Debug log
   const ad = await customer.adGroupAds.create([adCreatePayload]);
   console.log(`✅ ${adType} Ad created:`, ad.results[0]);
   return ad.results[0];
