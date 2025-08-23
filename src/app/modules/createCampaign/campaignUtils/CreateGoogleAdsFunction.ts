@@ -271,6 +271,7 @@ export const buildDisplayAdPayload = async (
       images.logo_square,
       "LOGO_SQUARE"
     );
+    console.log('logo square', squareLogoAsset)
 
     return {
       responsive_display_ad: {
