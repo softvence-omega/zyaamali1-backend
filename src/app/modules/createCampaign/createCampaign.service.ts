@@ -72,7 +72,6 @@ export const createAdService = async (
   accessToken: string,
   adAccountId: string, // without "act_"
   pageId: string,
-  imageUrl: any
 ) => {
   try {
     // 1️⃣ Create Campaign

@@ -64,10 +64,6 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     }
 
     const pages = pagesRes.data.data;
-    const pageId = page.id;
-    const pageAccessToken = page.access_token;
-
-    console.log("✅ Selected Page ID:", pageId);
 
     return res.status(200).json({
       message: "✅ Facebook connected",
@@ -76,11 +72,11 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
         id: account.id,
         name: account.name,
       })),
-      page: {
-        id: pageId,
-        name: page.name,
-        pageAccessToken: pageAccessToken,
-      },
+      page: pages.map((page: any) => ({
+        pageId: page.id,
+        pageName: page.name,
+        pageAccessToken: page.access_token,
+      })),
     });
   } catch (error: any) {
     console.error(
