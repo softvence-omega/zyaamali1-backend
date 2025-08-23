@@ -67,6 +67,7 @@ export const buildFacebookAdObjectiveAndCreative = (
                 type: callToActionType || "LEARN_MORE",
                 value: { link },
               },
+               image_url: imageUrl || "https://your-default-thumbnail.jpg",
             },
           },
         };
