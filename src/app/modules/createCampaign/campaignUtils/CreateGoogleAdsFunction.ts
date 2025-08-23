@@ -78,15 +78,18 @@ export const uploadImageAsset = async (
 ) => {
   try {
     const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
+ 
     const timestamp = Date.now();
 
     // validate aspect ratio
     const metadata = await sharp(data).metadata();
+  
     if (!metadata.width || !metadata.height) {
       throw new Error("Could not determine image dimensions.");
     }
 
     const aspectRatio = metadata.width / metadata.height;
+    console.log(aspectRatio,'------------------------------------------')
 
     switch (type) {
       case "LANDSCAPE":
