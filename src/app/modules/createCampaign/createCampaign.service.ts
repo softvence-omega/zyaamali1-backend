@@ -19,7 +19,16 @@ import {
   createFacebookAdSet,
   createFacebookCampaign,
 } from "./campaignUtils/createFacebookAdsFunction";
-import { buildCreativePayload, createTiktokAd, createTiktokAdGroup, createTiktokCampaign, getIdentity, uploadCarouselImages, uploadImage, uploadVideo } from "./campaignUtils/createTiktokAdsFunction";
+import {
+  buildCreativePayload,
+  createTiktokAd,
+  createTiktokAdGroup,
+  createTiktokCampaign,
+  getIdentity,
+  uploadCarouselImages,
+  uploadImage,
+  uploadVideo,
+} from "./campaignUtils/createTiktokAdsFunction";
 
 // facebook
 
@@ -323,7 +332,6 @@ export const createLinkedInAd = async ({
     ad: adRes.data,
   };
 };
-
 
 // TikTok
 export const createTikTokFullAd = async (
