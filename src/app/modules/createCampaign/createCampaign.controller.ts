@@ -39,7 +39,22 @@ export const createLeadFormController = async (req: Request, res: Response) => {
 };
 
 const createAdController = async (req: Request, res: Response) => {
-  const { accessToken, adAccountId, pageId, leadFormId, imageUrl } = req.body;
+  const {
+    accessToken,
+    adAccountId,
+    pageId,
+    adType, 
+    campaignName,
+    adSetName,
+    adName,
+    dailyBudget,
+    targeting,
+    link,
+    message,
+    callToActionType,
+    imageUrl,
+    videoId,
+  } = req.body;
 
   if (!accessToken || !adAccountId || !pageId) {
     return res.status(400).json({ message: "Missing required parameters" });
@@ -47,11 +62,20 @@ const createAdController = async (req: Request, res: Response) => {
 
   try {
     const result = await createCampaignService.createAdService(
-      accessToken,
-      adAccountId,
-      pageId,
-
-      imageUrl
+     accessToken,
+    adAccountId,
+    pageId,
+    adType, 
+    campaignName,
+    adSetName,
+    adName,
+    dailyBudget,
+    targeting,
+    link,
+    message,
+    callToActionType,
+    imageUrl,
+    videoId,
     );
     return res.status(200).json({ message: "✅ Safe test ad created", result });
   } catch (error: any) {
@@ -118,7 +142,7 @@ export const getLinkedinController = async (req: Request, res: Response) => {
     req.query.accessToken) as string;
 
   const advertiserId = (req.query.advertiserId as string) || "";
-  
+
   if (!accessToken || !advertiserId)
     return res
       .status(400)

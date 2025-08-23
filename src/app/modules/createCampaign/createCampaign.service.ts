@@ -11,6 +11,7 @@ import crypto from "crypto";
 import FormData from "form-data";
 import sharp from "sharp";
 import { liAxios } from "../../utils/getLinkedinCampaignId";
+import { error } from "console";
 
 // facebook
 
@@ -69,96 +70,266 @@ class FacebookLeadFormService {
 export const facebookLeadFormService = new FacebookLeadFormService();
 
 export const createAdService = async (
-  accessToken: string,
-  adAccountId: string, // without "act_"
-  pageId: string,
+  accessToken: any,
+  adAccountId: any,
+  pageId: any,
+  adType: any,
+  campaignName: any,
+  adSetName: any,
+  adName: any,
+  dailyBudget: any,
+  targeting: any,
+  link: any,
+  message: any,
+  callToActionType: any,
+  imageUrl: any,
+  videoId: any
 ) => {
   try {
-    // 1️⃣ Create Campaign
+    let objective = "";
+    let optimizationGoal = "";
+    let billingEvent = "IMPRESSIONS";
+    let creativePayload: any = {};
+
+    // 1️⃣ Determine campaign objective & creative based on adType
+    switch (adType) {
+      case "TRAFFIC":
+        objective = "OUTCOME_TRAFFIC";
+        optimizationGoal = "LINK_CLICKS";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "LEARN_MORE",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "LEAD_GENERATION":
+        objective = "LEAD_GENERATION";
+        optimizationGoal = "LEAD_GENERATION";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              call_to_action: { type: "SIGN_UP", value: { link } },
+            },
+          },
+        };
+        break;
+
+      case "VIDEO_VIEWS":
+        objective = "OUTCOME_ENGAGEMENT";
+        optimizationGoal = "THRUPLAY";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            video_data: {
+              video_id: videoId,
+              message,
+              call_to_action: {
+                type: callToActionType || "LEARN_MORE",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "CONVERSIONS":
+        objective = "OUTCOME_SALES";
+        optimizationGoal = "OFFSITE_CONVERSIONS";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "SHOP_NOW",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "BRAND_AWARENESS":
+        objective = "OUTCOME_AWARENESS";
+        optimizationGoal = "REACH";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "LEARN_MORE",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "REACH":
+        objective = "OUTCOME_REACH";
+        optimizationGoal = "REACH";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "LEARN_MORE",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "ENGAGEMENT":
+        objective = "OUTCOME_ENGAGEMENT";
+        optimizationGoal = "ENGAGED_USERS";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "LIKE_PAGE",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "APP_INSTALLS":
+        objective = "OUTCOME_APP_PROMOTION";
+        optimizationGoal = "APP_INSTALLS";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "INSTALL_APP",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      case "MESSAGES":
+        objective = "OUTCOME_MESSAGES";
+        optimizationGoal = "MESSAGES";
+        creativePayload = {
+          object_story_spec: {
+            page_id: pageId,
+            link_data: {
+              link,
+              message,
+              picture: imageUrl || undefined,
+              call_to_action: {
+                type: callToActionType || "MESSAGE_PAGE",
+                value: { link },
+              },
+            },
+          },
+        };
+        break;
+
+      default:
+        throw new Error(`Ad type "${adType}" is not supported.`);
+    }
+
+    // 2️⃣ Create Campaign
     const campaignRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/campaigns`,
       {
-        name: "🚀 Facebook Frist ads111",
-        objective: "OUTCOME_TRAFFIC",
+        name: campaignName,
+        objective,
         status: "PAUSED",
         special_ad_categories: [],
         access_token: accessToken,
       }
     );
     const campaignId = campaignRes.data.id;
-    console.log(`✅ Campaign created: ${campaignId}`);
 
-    // 2️⃣ Create Ad Set
+    // 3️⃣ Create Ad Set
     const adSetRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,
       {
-        name: "🚀 Traffic Ad Set (FB only)",
+        name: adSetName,
         campaign_id: campaignId,
-        daily_budget: 125,
-        billing_event: "IMPRESSIONS",
-        optimization_goal: "LINK_CLICKS",
+        daily_budget: dailyBudget,
+        billing_event: billingEvent,
+        optimization_goal: optimizationGoal,
         bid_strategy: "LOWEST_COST_WITHOUT_CAP",
         start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        targeting: {
+        targeting: targeting || {
           geo_locations: { countries: ["BD"] },
           age_min: 18,
           age_max: 65,
-          publisher_platforms: ["facebook"], // only Facebook
-          facebook_positions: ["feed"], // Facebook feed only
         },
         status: "PAUSED",
         access_token: accessToken,
       }
     );
     const adSetId = adSetRes.data.id;
-    console.log(`✅ Ad Set created: ${adSetId}`);
 
-    // 3️⃣ Create Ad Creative (force FB only, no IG actor)
+    // 4️⃣ Create Ad Creative
     const creativeRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adcreatives`,
       {
-        name: "🚀 Traffic Creative (FB only)",
-        object_story_spec: {
-          page_id: pageId,
-          instagram_actor_id: null, // ✅ prevent IG linking
-          link_data: {
-            link: "https://adelo.ai",
-            message: "Click here to learn more!",
-            call_to_action: {
-              type: "LEARN_MORE",
-              value: { link: "https://adelo.ai" },
-            },
-            // ✅ Ensure placement is FB-only
-            multi_share_end_card: false,
-          },
-        },
+        name: `${adType} Creative`,
+        ...creativePayload,
         access_token: accessToken,
       }
     );
     const creativeId = creativeRes.data.id;
-    console.log(`✅ Creative created: ${creativeId}`);
 
-    // 4️⃣ Create Ad
+    // 5️⃣ Create Ad
     const adRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/ads`,
       {
-        name: "Facebook Frist ads111",
+        name: adName,
         adset_id: adSetId,
         creative: { creative_id: creativeId },
         status: "PAUSED",
         access_token: accessToken,
       }
     );
-    console.log(`✅ Ad created: ${adRes.data.id}`);
-    return adRes.data;
+
+    return {
+      message: `${adType} ad created successfully`,
+      campaignId,
+      adSetId,
+      creativeId,
+      adId: adRes.data.id,
+    };
   } catch (err: any) {
-    console.error(
-      "❌ Failed to create Traffic Ad:",
-      err.response?.data || err.message
-    );
-    throw new Error(
-      err.response?.data?.error?.message || "Traffic ad creation failed"
-    );
+    console.error("❌ Error creating ad:", err.response?.data || err.message);
   }
 };
 
