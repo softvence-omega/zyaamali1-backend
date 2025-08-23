@@ -67,7 +67,7 @@ export const buildFacebookAdObjectiveAndCreative = (
                 type: callToActionType || "LEARN_MORE",
                 value: { link },
               },
-               image_url: imageUrl || "https://your-default-thumbnail.jpg",
+              image_url: imageUrl || "https://your-default-thumbnail.jpg",
             },
           },
         };
@@ -299,10 +299,11 @@ export const createFacebookAdCreative = async (
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adcreatives`,
       {
         name: `${adType} Creative`,
-        ...creativePayload,
+        object_story_spec: JSON.stringify(creativePayload.object_story_spec),
         access_token: accessToken,
       }
     );
+    console.log('facebook ads creative', res.data)
     return res.data.id;
   } catch (error: any) {
     console.error(
@@ -334,7 +335,9 @@ export const createFacebookAd = async (
         access_token: accessToken,
       }
     );
+    console.log('ads created',res.data)
     return res.data.id;
+
   } catch (error: any) {
     console.error(
       "❌ Failed to create ad:",
