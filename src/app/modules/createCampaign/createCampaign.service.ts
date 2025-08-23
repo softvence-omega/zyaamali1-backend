@@ -69,7 +69,6 @@ class FacebookLeadFormService {
 
 export const facebookLeadFormService = new FacebookLeadFormService();
 
-
 export const createFacebookAdService = async (
   accessToken: string,
   adAccountId: string,
@@ -281,25 +280,36 @@ export const createFacebookAdService = async (
     const campaignId = campaignRes.data.id;
 
     // 3️⃣ Create Ad Set
+    const adSetPayload: any = {
+      name: adSetName,
+      campaign_id: campaignId,
+      daily_budget: dailyBudget,
+      billing_event: billingEvent,
+      optimization_goal: optimizationGoal,
+      bid_strategy: "LOWEST_COST_WITHOUT_CAP",
+      start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      targeting: targeting || {
+        geo_locations: { countries: ["BD"] },
+        age_min: 18,
+        age_max: 65,
+      },
+      status: "PAUSED",
+      access_token: accessToken,
+    };
+
+    // 👇 add this when adType is CONVERSIONS
+    if (adType === "CONVERSIONS") {
+      adSetPayload.promoted_object = {
+        pixel_id: "<YOUR_PIXEL_ID>", // must be a pixel connected to the ad account
+        custom_event_type: "PURCHASE", // or "LEAD", "ADD_TO_CART" etc.
+      };
+    }
+
     const adSetRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,
-      {
-        name: adSetName,
-        campaign_id: campaignId,
-        daily_budget: dailyBudget,
-        billing_event: billingEvent,
-        optimization_goal: optimizationGoal,
-        bid_strategy: "LOWEST_COST_WITHOUT_CAP",
-        start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        targeting: targeting || {
-          geo_locations: { countries: ["BD"] },
-          age_min: 18,
-          age_max: 65,
-        },
-        status: "PAUSED",
-        access_token: accessToken,
-      }
+      adSetPayload
     );
+
     const adSetId = adSetRes.data.id;
 
     // 4️⃣ Create Ad Creative
@@ -337,31 +347,8 @@ export const createFacebookAdService = async (
       },
     };
   } catch (err: any) {
-    console.error("❌ Error creating ad:", err.response?.data || err.message);
-    return err.response
-
-    // Facebook API error
-    if (err.response?.data) {
-      return {
-        success: false,
-        message: "Facebook API error",
-        error: err.response.data,
-      };
-    }
-
-    // Known JS error
-    if (err instanceof Error) {
-      return {
-        success: false,
-        message: err.message,
-      };
-    }
-
-    // Unknown error
-    return {
-      success: false,
-      message: "Unexpected error occurred while creating ad",
-    };
+    console.error("❌ Error creating ad:", err.response.data || err.message);
+    return err.response;
   }
 };
 

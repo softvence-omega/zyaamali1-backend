@@ -90,29 +90,14 @@ export const createAdController = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error("❌ Error in createAdController:", error);
-
-    // Facebook API errors usually have response details
-    if (error.response?.data) {
-      return res.status(error.response.status || 500).json({
-        success: false,
-        message: "Facebook API error",
-        error: error.response.data,
-      });
-    }
-
-    // Handle known errors
-    if (error instanceof Error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    // Fallback for unknown errors
-    return res.status(500).json({
+    console.error(
+      "❌ Error in facebook createAdController:",
+      error?.response?.data || error.message
+    );
+    res.status(500).json({
       success: false,
-      message: "An unexpected error occurred while creating the ad",
+      message: "Failed to create ad",
+      error: error?.response?.data || error.message,
     });
   }
 };
