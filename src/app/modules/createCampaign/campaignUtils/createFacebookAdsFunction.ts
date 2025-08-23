@@ -303,7 +303,7 @@ export const createFacebookAdCreative = async (
         access_token: accessToken,
       }
     );
-    console.log("facebook ads creative", res.data);
+    console.log('facebook ads creative', res.data)
     return res.data.id;
   } catch (error: any) {
     console.error(
@@ -327,20 +327,17 @@ export const createFacebookAd = async (
   try {
     const res = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/ads`,
-      new URLSearchParams({
+      {
         name: adName,
         adset_id: adSetId,
-        creative: JSON.stringify({ creative_id: creativeId }),
+        creative: { creative_id: creativeId },
         status: "PAUSED",
-      }),
-      {
-        params: { access_token: accessToken },
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        access_token: accessToken,
       }
     );
-
-    console.log("✅ Ad created", res.data);
+    console.log('ads created',res.data)
     return res.data.id;
+
   } catch (error: any) {
     console.error(
       "❌ Failed to create ad:",
