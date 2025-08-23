@@ -69,21 +69,22 @@ class FacebookLeadFormService {
 
 export const facebookLeadFormService = new FacebookLeadFormService();
 
-export const createAdService = async (
-  accessToken: any,
-  adAccountId: any,
-  pageId: any,
-  adType: any,
-  campaignName: any,
-  adSetName: any,
-  adName: any,
-  dailyBudget: any,
+
+export const createFacebookAdService = async (
+  accessToken: string,
+  adAccountId: string,
+  pageId: string,
+  adType: string,
+  campaignName: string,
+  adSetName: string,
+  adName: string,
+  dailyBudget: string,
   targeting: any,
-  link: any,
-  message: any,
-  callToActionType: any,
-  imageUrl: any,
-  videoId: any
+  link: string,
+  message: string,
+  callToActionType: string,
+  imageUrl: string,
+  videoId: string
 ) => {
   try {
     let objective = "";
@@ -91,7 +92,7 @@ export const createAdService = async (
     let billingEvent = "IMPRESSIONS";
     let creativePayload: any = {};
 
-    // 1️⃣ Determine campaign objective & creative based on adType
+    // 1️⃣ Map adType → campaign objective + creative
     switch (adType) {
       case "TRAFFIC":
         objective = "OUTCOME_TRAFFIC";
@@ -130,6 +131,9 @@ export const createAdService = async (
       case "VIDEO_VIEWS":
         objective = "OUTCOME_ENGAGEMENT";
         optimizationGoal = "THRUPLAY";
+        if (!videoId) {
+          throw new Error("VIDEO_VIEWS requires a videoId.");
+        }
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -260,7 +264,7 @@ export const createAdService = async (
         break;
 
       default:
-        throw new Error(`Ad type "${adType}" is not supported.`);
+        throw new Error(`Unsupported adType: ${adType}`);
     }
 
     // 2️⃣ Create Campaign
@@ -321,16 +325,43 @@ export const createAdService = async (
       }
     );
 
+    // ✅ Success response
     return {
+      success: true,
       message: `${adType} ad created successfully`,
-      campaignId,
-      
-      adSetId,
-      creativeId,
-      adId: adRes.data.id,
+      data: {
+        campaignId,
+        adSetId,
+        creativeId,
+        adId: adRes.data.id,
+      },
     };
   } catch (err: any) {
     console.error("❌ Error creating ad:", err.response?.data || err.message);
+    return err.response
+
+    // Facebook API error
+    if (err.response?.data) {
+      return {
+        success: false,
+        message: "Facebook API error",
+        error: err.response.data,
+      };
+    }
+
+    // Known JS error
+    if (err instanceof Error) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
+
+    // Unknown error
+    return {
+      success: false,
+      message: "Unexpected error occurred while creating ad",
+    };
   }
 };
 
@@ -972,6 +1003,6 @@ export const createTikTokFullAd = async (
 };
 
 export const createCampaignService = {
-  createAdService,
+  createFacebookAdService,
   createLinkedInAd,
 };

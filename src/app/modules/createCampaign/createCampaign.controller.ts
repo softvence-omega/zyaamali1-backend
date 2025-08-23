@@ -38,30 +38,36 @@ export const createLeadFormController = async (req: Request, res: Response) => {
   }
 };
 
-const createAdController = async (req: Request, res: Response) => {
-  const {
-    accessToken,
-    adAccountId,
-    pageId,
-    adType,
-    campaignName,
-    adSetName,
-    adName,
-    dailyBudget,
-    targeting,
-    link,
-    message,
-    callToActionType,
-    imageUrl,
-    videoId,
-  } = req.body;
-
-  if (!accessToken || !adAccountId || !pageId) {
-    return res.status(400).json({ message: "Missing required parameters" });
-  }
-
+export const createAdController = async (req: Request, res: Response) => {
   try {
-    const result = await createCampaignService.createAdService(
+    const {
+      accessToken,
+      adAccountId,
+      pageId,
+      adType,
+      campaignName,
+      adSetName,
+      adName,
+      dailyBudget,
+      targeting,
+      link,
+      message,
+      callToActionType,
+      imageUrl,
+      videoId,
+    } = req.body;
+
+    // Validate required fields
+    if (!accessToken || !adAccountId || !pageId) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Missing required parameters: accessToken, adAccountId, or pageId",
+      });
+    }
+
+    // Call service
+    const result = await createCampaignService.createFacebookAdService(
       accessToken,
       adAccountId,
       pageId,
@@ -77,12 +83,37 @@ const createAdController = async (req: Request, res: Response) => {
       imageUrl,
       videoId
     );
-    return res
-      .status(200)
-      .json({ message: ` ✅ FACEBOOK  ${adType} ad created`, result });
+
+    return res.status(200).json({
+      success: true,
+      message: `✅ FACEBOOK ${adType} ad created successfully`,
+      data: result,
+    });
   } catch (error: any) {
-    console.error("❌ Error in controller:", error.message || error);
-    return res.status(500).json({ message: "Failed to create test ad" });
+    console.error("❌ Error in createAdController:", error);
+
+    // Facebook API errors usually have response details
+    if (error.response?.data) {
+      return res.status(error.response.status || 500).json({
+        success: false,
+        message: "Facebook API error",
+        error: error.response.data,
+      });
+    }
+
+    // Handle known errors
+    if (error instanceof Error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // Fallback for unknown errors
+    return res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred while creating the ad",
+    });
   }
 };
 
