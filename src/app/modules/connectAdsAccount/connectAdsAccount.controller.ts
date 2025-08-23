@@ -80,6 +80,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
         id: pageId,
         name: page.name,
       },
+      pageAccessToken: pageAccessToken,
     });
   } catch (error: any) {
     console.error(
@@ -179,7 +180,7 @@ const handleLinkedInCallback = async (req: Request, res: Response) => {
     res.json({
       message: "✅ LinkedIn connected",
       accessToken,
-      adAccountIds: adAccounts.map((acc:any) => acc.id),
+      adAccountIds: adAccounts.map((acc: any) => acc.id),
     });
   } catch (error: any) {
     console.error("❌ Error getting access token:", error.message);

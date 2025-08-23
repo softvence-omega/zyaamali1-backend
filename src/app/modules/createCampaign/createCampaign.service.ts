@@ -79,7 +79,7 @@ export const createAdService = async (
     const campaignRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/campaigns`,
       {
-        name: "🚀 My Traffic Campaign",
+        name: "🚀 Facebook Frist ads111",
         objective: "OUTCOME_TRAFFIC",
         status: "PAUSED",
         special_ad_categories: [],
@@ -143,7 +143,7 @@ export const createAdService = async (
     const adRes = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/ads`,
       {
-        name: "My Traffic Ad (FB only)",
+        name: "Facebook Frist ads111",
         adset_id: adSetId,
         creative: { creative_id: creativeId },
         status: "PAUSED",
