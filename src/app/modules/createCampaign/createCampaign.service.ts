@@ -324,6 +324,7 @@ export const createAdService = async (
     return {
       message: `${adType} ad created successfully`,
       campaignId,
+      
       adSetId,
       creativeId,
       adId: adRes.data.id,
