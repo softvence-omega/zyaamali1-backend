@@ -300,7 +300,7 @@ export const createFacebookAdService = async (
     // 👇 add this when adType is CONVERSIONS
     if (adType === "CONVERSIONS") {
       adSetPayload.promoted_object = {
-        pixel_id: "<YOUR_PIXEL_ID>", // must be a pixel connected to the ad account
+        pixel_id: "1122412253168452", // must be a pixel connected to the ad account
         custom_event_type: "PURCHASE", // or "LEAD", "ADD_TO_CART" etc.
       };
     }
