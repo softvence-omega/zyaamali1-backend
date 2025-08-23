@@ -410,46 +410,45 @@ export const createGoogleAdService = async ({
   };
 
   // Upload Image Asset
-  const uploadImageAsset = async (
+   const uploadImageAsset = async (
+    customerId: string,
+    refreshToken: string,
     imageUrl: string,
-    type: "LANDSCAPE" | "SQUARE" | "LOGO_SQUARE" | "LOGO_WIDE"
-  ) => {
-    const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
-    const timestamp = Date.now();
+    assetName: string = "Uploaded Image"
+  ): Promise<string> => {
+    try {
+      // 1️⃣ Download the image as a buffer
+      const response = await axios.get(imageUrl, {
+        responseType: "arraybuffer",
+      });
+      const imageData = Buffer.from(response.data).toString("base64");
 
-    let targetWidth = 1200;
-    let targetHeight = 1200;
+      // 2️⃣ Init customer
+      const customer = googleAdsClient.Customer({
+        customer_id: customerId,
+        refresh_token: refreshToken,
+      });
 
-    switch (type) {
-      case "LANDSCAPE":
-        targetWidth = 1200;
-        targetHeight = 628;
-        break;
-      case "SQUARE":
-      case "LOGO_SQUARE":
-        targetWidth = 1200;
-        targetHeight = 1200;
-        break;
-      case "LOGO_WIDE":
-        targetWidth = 1200;
-        targetHeight = 300;
-        break;
-    }
-
-    const processedBuffer = await sharp(data)
-      .resize(targetWidth, targetHeight, { fit: "fill" })
-      .png()
-      .toBuffer();
-    const assetResult = await customer.assets.create([
-      {
-        name: `${type}_Asset_${timestamp}`,
+      // 3️⃣ Call Google Ads AssetService to upload
+      const asset = {
+        name: assetName,
         type: "IMAGE",
-        image_asset: { data: processedBuffer },
-      },
-    ]);
-    console.log(processedBuffer);
+        image_asset: {
+          data: imageData,
+        },
+      };
 
-    return assetResult.results[0].resource_name;
+      const assetResponse = await customer.asset.create(asset);
+
+      // 4️⃣ Return resource name
+      const resourceName = assetResponse.results[0].resource_name;
+      console.log("✅ Uploaded Image Asset:", resourceName);
+
+      return resourceName;
+    } catch (error: any) {
+      console.error("❌ Image upload failed:", error.message || error);
+      throw new Error("Google Ads Image upload failed: " + error.message);
+    }
   };
 
   // Upload Video Asset
@@ -564,7 +563,7 @@ export const createGoogleAdService = async ({
       );
       console.log(landscapeAsset);
 
-      const squareAsset = await uploadImageAsset(images.square, "SQUARE");
+      const squareAsset = await uploadImageAsset(customerId,images.square, "SQUARE");
       const squareLogoAsset = await uploadImageAsset(
         images.logo_square,
         "LOGO_SQUARE"
