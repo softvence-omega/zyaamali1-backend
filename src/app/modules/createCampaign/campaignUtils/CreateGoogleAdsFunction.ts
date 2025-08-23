@@ -35,6 +35,8 @@ export const validateImageRatio = async (
     }
 
     const actualRatio = parseFloat((width / height).toFixed(2));
+    console.log(width,height)
+    console.log(actualRatio)
 
     if (actualRatio !== expectedRatio) {
       throw new Error(
