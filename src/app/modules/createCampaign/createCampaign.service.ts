@@ -399,7 +399,7 @@ export const createGoogleAdService = async ({
     const height = metadata.height || 0;
     const actualRatio = parseFloat((width / height).toFixed(2));
 
-    console.log(actualRatio)
+    console.log(actualRatio);
 
     if (actualRatio !== expectedRatio) {
       throw new Error(
@@ -447,6 +447,7 @@ export const createGoogleAdService = async ({
         image_asset: { data: processedBuffer },
       },
     ]);
+    console.log(processedBuffer);
 
     return assetResult.results[0].resource_name;
   };
@@ -561,6 +562,8 @@ export const createGoogleAdService = async ({
         images.landscape,
         "LANDSCAPE"
       );
+      console.log(landscapeAsset);
+
       const squareAsset = await uploadImageAsset(images.square, "SQUARE");
       const squareLogoAsset = await uploadImageAsset(
         images.logo_square,
@@ -632,13 +635,6 @@ export const createGoogleAdService = async ({
   console.log(`✅ ${adType} Ad created:`, ad.results[0]);
   return ad.results[0];
 };
-
-
-
-
-
-
-
 
 // linkedin
 
