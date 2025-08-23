@@ -50,6 +50,7 @@ export const validateImageRatio = async (
 };
 
 // Extract YouTube Video ID
+
 export const getYouTubeId = (url: string) => {
   try {
     if (url.includes("youtube.com"))
