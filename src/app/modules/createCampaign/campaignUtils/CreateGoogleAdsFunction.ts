@@ -96,7 +96,9 @@ export const uploadImageAsset = async (
       case "SQUARE":
       case "LOGO_SQUARE":
         if (metadata.width !== metadata.height) {
-          throw new Error("SQUARE/LOGO_SQUARE images must be 1:1 (e.g., 1200x1200).");
+          throw new Error(
+            "SQUARE/LOGO_SQUARE images must be 1:1 (e.g., 1200x1200)."
+          );
         }
         break;
 
@@ -118,7 +120,7 @@ export const uploadImageAsset = async (
     return assetResult.results[0].resource_name;
   } catch (err: any) {
     console.error("❌ Upload failed:", err);
-    return err
+    return err;
   }
 };
 
@@ -154,6 +156,7 @@ export const createBudget = async (customer: any, amountMicros: number) => {
         delivery_method: "STANDARD",
       },
     ]);
+
     return budget.results[0].resource_name;
   } catch (err: any) {
     throw new Error(`❌ Failed to create budget: ${err.message}`);
@@ -179,6 +182,7 @@ export const createCampaign = async (
         campaign_budget: budgetResourceName,
       },
     ]);
+    console.log("facebook campaign created", campaign.results[0]);
     return campaign.results[0].resource_name;
   } catch (err: any) {
     throw new Error(`❌ Failed to create campaign: ${err.message}`);
@@ -200,6 +204,7 @@ export const createAdGroup = async (
         cpc_bid_micros: cpcBidMicros || 1_000_000,
       },
     ]);
+    console.log("facebook ad group created", adGroup.results);
     return adGroup.results[0].resource_name;
   } catch (err: any) {
     throw new Error(`❌ Failed to create ad group: ${err.message}`);
@@ -335,6 +340,7 @@ export const createAd = async (
     }
 
     const ad = await customer.adGroupAds.create([adCreatePayload]);
+    console.log("facebook ad  created finally", ad.results);
     return ad.results[0];
   } catch (err: any) {
     console.error("Google Ads API error:", JSON.stringify(err, null, 2));

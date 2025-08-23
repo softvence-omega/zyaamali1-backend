@@ -181,66 +181,108 @@ export const createGoogleAdService = async (params: any) => {
     containsEuPoliticalAdvertising = false,
   } = params;
 
-  const customer = googleAdsClient.Customer({
-    customer_id: customerId,
-    refresh_token: refreshToken,
-  });
+  try {
+    const customer = googleAdsClient.Customer({
+      customer_id: customerId,
+      refresh_token: refreshToken,
+    });
 
-  // Campaign Setup
-  const budgetResourceName = await createBudget(customer, budgetAmountMicros);
-  const campaignResourceName = await createCampaign(
-    customer,
-    budgetResourceName,
-    adType,
-    campaignName
-  );
-
-  // ads group setup
-  const adGroupResourceName = await createAdGroup(
-    customer,
-    campaignResourceName,
-    adGroupName,
-    cpcBidMicros
-  );
-
-  // Build Ad Payload
-  let adPayload;
-  switch (adType.trim().toUpperCase()) {
-    case "SEARCH":
-      adPayload = buildSearchAdPayload(headlines, descriptions, finalUrl);
-      break;
-    case "DISPLAY":
-      adPayload = await buildDisplayAdPayload(
-        customer,
-        images,
-        headlines,
-        descriptions,
-        longHeadline,
-        businessName,
-        finalUrl
+    // Step 1: Campaign Setup
+    let budgetResourceName, campaignResourceName, adGroupResourceName;
+    try {
+      budgetResourceName = await createBudget(customer, budgetAmountMicros);
+    } catch (err: any) {
+      console.error("❌ Failed to create budget:", err);
+      throw new Error(
+        `Budget creation failed: ${err.message || JSON.stringify(err)}`
       );
-      break;
-    case "VIDEO":
-      adPayload = await buildVideoAdPayload(
+    }
+
+    try {
+      campaignResourceName = await createCampaign(
         customer,
-        videoUrl,
-        headlines,
-        descriptions,
-        finalUrl
+        budgetResourceName,
+        adType,
+        campaignName
       );
-      break;
-    default:
-      throw new Error(`Ad type "${adType}" is not supported.`);
+    } catch (err: any) {
+      console.error("❌ Failed to create campaign:", err);
+      throw new Error(
+        `Campaign creation failed: ${err.message || JSON.stringify(err)}`
+      );
+    }
+
+    try {
+      adGroupResourceName = await createAdGroup(
+        customer,
+        campaignResourceName,
+        adGroupName,
+        cpcBidMicros
+      );
+    } catch (err: any) {
+      console.error("❌ Failed to create ad group:", err);
+      throw new Error(
+        `Ad group creation failed: ${err.message || JSON.stringify(err)}`
+      );
+    }
+
+    // Step 2: Build Ad Payload
+    let adPayload;
+    try {
+      switch (adType.trim().toUpperCase()) {
+        case "SEARCH":
+          adPayload = buildSearchAdPayload(headlines, descriptions, finalUrl);
+          break;
+        case "DISPLAY":
+          adPayload = await buildDisplayAdPayload(
+            customer,
+            images,
+            headlines,
+            descriptions,
+            longHeadline,
+            businessName,
+            finalUrl
+          );
+          break;
+        case "VIDEO":
+          adPayload = await buildVideoAdPayload(
+            customer,
+            videoUrl,
+            headlines,
+            descriptions,
+            finalUrl
+          );
+          break;
+        default:
+          throw new Error(`Ad type "${adType}" is not supported.`);
+      }
+    } catch (err: any) {
+      console.error("❌ Failed to build ad payload:", err);
+      throw new Error(
+        `Ad payload build failed: ${err.message || JSON.stringify(err)}`
+      );
+    }
+
+    // Step 3: Final Ad Creation
+    try {
+      return await createAd(
+        customer,
+        adGroupResourceName,
+        adPayload,
+        adType,
+        containsEuPoliticalAdvertising
+      );
+    } catch (err: any) {
+      throw new Error(
+        `Ad creation failed: ${err.message || JSON.stringify(err)}`
+      );
+    }
+  } catch (err: any) {
+    console.error("❌ createGoogleAdService fatal error:", err);
+    throw new Error(
+      `createGoogleAdService failed: ${err.message || JSON.stringify(err)}`
+    );
   }
-
-  // Final Ad Creation
-  return await createAd(
-    customer,
-    adGroupResourceName,
-    adPayload,
-    adType,
-    containsEuPoliticalAdvertising
-  );
 };
 
 // linkedin
