@@ -68,6 +68,7 @@ export const getYouTubeId = (url: string) => {
 // ==========================
 
 // Upload Image Asset
+
 export const uploadImageAsset = async (
   customer: any,
   imageUrl: string,
@@ -77,39 +78,47 @@ export const uploadImageAsset = async (
     const { data } = await axios.get(imageUrl, { responseType: "arraybuffer" });
     const timestamp = Date.now();
 
-    let targetWidth = 1200;
-    let targetHeight = 1200;
+    // validate aspect ratio
+    const metadata = await sharp(data).metadata();
+    if (!metadata.width || !metadata.height) {
+      throw new Error("Could not determine image dimensions.");
+    }
+
+    const aspectRatio = metadata.width / metadata.height;
 
     switch (type) {
       case "LANDSCAPE":
-        targetWidth = 1200;
-        targetHeight = 628;
+        if (Math.abs(aspectRatio - 1.91) > 0.01) {
+          throw new Error("LANDSCAPE images must be 1.91:1 (e.g., 1200x628).");
+        }
         break;
+
       case "SQUARE":
       case "LOGO_SQUARE":
-        targetWidth = 1200;
-        targetHeight = 1200;
+        if (metadata.width !== metadata.height) {
+          throw new Error("SQUARE/LOGO_SQUARE images must be 1:1 (e.g., 1200x1200).");
+        }
+        break;
+
+      case "LOGO_WIDE":
+        if (Math.abs(aspectRatio - 4.0) > 0.01) {
+          throw new Error("LOGO_WIDE images must be 4:1 (e.g., 1200x300).");
+        }
         break;
     }
-
-    const processedBuffer = await sharp(data)
-      .resize(targetWidth, targetHeight, { fit: "fill" })
-      .png()
-      .toBuffer();
 
     const assetResult = await customer.assets.create([
       {
         name: `${type}_Asset_${timestamp}`,
         type: "IMAGE",
-        image_asset: { data: processedBuffer },
+        image_asset: { data },
       },
     ]);
 
     return assetResult.results[0].resource_name;
   } catch (err: any) {
-    throw new Error(
-      `❌ Failed to upload image asset (${type}): ${err.message}`
-    );
+    console.error("❌ Upload failed:", err);
+    return err
   }
 };
 
@@ -301,7 +310,7 @@ export const buildVideoAdPayload = async (
 };
 
 // ==========================
-// 5️⃣ Final Ad Creation 
+// 5️⃣ Final Ad Creation
 // ==========================
 export const createAd = async (
   customer: any,
@@ -328,6 +337,6 @@ export const createAd = async (
     const ad = await customer.adGroupAds.create([adCreatePayload]);
     return ad.results[0];
   } catch (err: any) {
-    throw new Error(`❌ Failed to create ad: ${err.message}`);
+    console.error("Google Ads API error:", JSON.stringify(err, null, 2));
   }
 };
