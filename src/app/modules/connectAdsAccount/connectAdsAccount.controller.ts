@@ -63,7 +63,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
       return res.status(400).send("No Facebook Pages found.");
     }
 
-    const page = pagesRes.data.data[0];
+    const pages = pagesRes.data.data;
     const pageId = page.id;
     const pageAccessToken = page.access_token;
 
@@ -72,15 +72,15 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "✅ Facebook connected",
       accessToken,
-      adAccount: {
-        id: selectedAdAccount.id,
-        name: selectedAdAccount.name,
-      },
+      adAccount: adAccounts.map((account) => ({
+        id: account.id,
+        name: account.name,
+      })),
       page: {
         id: pageId,
         name: page.name,
+        pageAccessToken: pageAccessToken,
       },
-      pageAccessToken: pageAccessToken,
     });
   } catch (error: any) {
     console.error(
