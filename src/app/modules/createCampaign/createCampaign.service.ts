@@ -399,6 +399,8 @@ export const createGoogleAdService = async ({
     const height = metadata.height || 0;
     const actualRatio = parseFloat((width / height).toFixed(2));
 
+    console.log(actualRatio)
+
     if (actualRatio !== expectedRatio) {
       throw new Error(
         `${label} must have ratio ${expectedRatio}, but got ${actualRatio} (${width}x${height})`
@@ -630,6 +632,13 @@ export const createGoogleAdService = async ({
   console.log(`✅ ${adType} Ad created:`, ad.results[0]);
   return ad.results[0];
 };
+
+
+
+
+
+
+
 
 // linkedin
 
