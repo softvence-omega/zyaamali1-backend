@@ -410,7 +410,8 @@ export const createGoogleAdService = async ({
   };
 
   // Upload Image Asset
-   const uploadImageAsset = async (
+
+  const uploadImageAsset = async (
     customerId: string,
     refreshToken: string,
     imageUrl: string,
@@ -429,22 +430,22 @@ export const createGoogleAdService = async ({
         refresh_token: refreshToken,
       });
 
-      // 3️⃣ Call Google Ads AssetService to upload
-      const asset = {
-        name: assetName,
-        type: "IMAGE",
-        image_asset: {
-          data: imageData,
+      // 3️⃣ Create Asset (MUST be inside array [])
+      const assetResponse = await customer.assets.create([
+        {
+          name: assetName,
+          type: "IMAGE",
+          image_asset: {
+            data: imageData,
+          },
         },
-      };
-
-      const assetResponse = await customer.asset.create(asset);
+      ]);
 
       // 4️⃣ Return resource name
       const resourceName = assetResponse.results[0].resource_name;
       console.log("✅ Uploaded Image Asset:", resourceName);
 
-      return resourceName;
+      return resourceName as string;
     } catch (error: any) {
       console.error("❌ Image upload failed:", error.message || error);
       throw new Error("Google Ads Image upload failed: " + error.message);
@@ -558,21 +559,35 @@ export const createGoogleAdService = async ({
         await validateImageRatio(images.logo_wide, 4, "Wide Logo");
 
       const landscapeAsset = await uploadImageAsset(
+        customerId,
+        refreshToken,
         images.landscape,
         "LANDSCAPE"
       );
-      console.log(landscapeAsset);
 
-      const squareAsset = await uploadImageAsset(customerId,images.square, "SQUARE");
+      const squareAsset = await uploadImageAsset(
+        customerId,
+        refreshToken,
+        images.square,
+        "SQUARE"
+      );
+
       const squareLogoAsset = await uploadImageAsset(
+        customerId,
+        refreshToken,
         images.logo_square,
         "LOGO_SQUARE"
       );
-      let wideLogoAsset: string | null | undefined = null;
-      if (images.logo_wide)
-        wideLogoAsset = await uploadImageAsset(images.logo_wide, "LOGO_WIDE");
-      const logoImages = [{ asset: squareLogoAsset }];
-      if (wideLogoAsset) logoImages.push({ asset: wideLogoAsset });
+
+      let wideLogoAsset: string | null = null;
+      if (images.logo_wide) {
+        wideLogoAsset = await uploadImageAsset(
+          customerId,
+          refreshToken,
+          images.logo_wide,
+          "LOGO_WIDE"
+        );
+      }
 
       adPayload = {
         responsive_display_ad: {
@@ -582,7 +597,7 @@ export const createGoogleAdService = async ({
           business_name: businessName || "Your Business Name",
           marketing_images: [{ asset: landscapeAsset }],
           square_marketing_images: [{ asset: squareAsset }],
-          logo_images: logoImages,
+          logo_images: squareLogoAsset,
         },
         final_urls: [finalUrl],
       };
