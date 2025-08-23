@@ -371,6 +371,8 @@ export const createGoogleAdService = async ({
   videoUrl,
   containsEuPoliticalAdvertising = false,
 }: any) => {
+ 
+ 
   const customer = googleAdsClient.Customer({
     customer_id: customerId,
     refresh_token: refreshToken,
