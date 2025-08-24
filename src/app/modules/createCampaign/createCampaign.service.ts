@@ -123,6 +123,7 @@ export const createAdsFacebookAdService = async (
     const adSetId = await createFacebookAdSet(
       adAccountId,
       pageId,
+      link
       adSetName,
       campaignId,
       dailyBudget,

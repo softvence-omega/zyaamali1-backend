@@ -180,18 +180,18 @@ export const buildFacebookAdObjectiveAndCreative = (
         break;
 
       case "MESSAGES":
-        objective = "OUTCOME_LEADS"; // ✅ use ODAX version
-        optimizationGoal = "CONVERSATIONS"; // ✅ valid for messaging
+        objective = "OUTCOME_ENGAGEMENT"; // ✅ Must use ODAX objective
+        optimizationGoal = "CONVERSATIONS"; // ✅ Use CONVERSATIONS for messaging
         billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
             link_data: {
-              link,
-              message,
+              link, // This should be your m.me link
+              message, // Message encouraging users to message you
               picture: imageUrl || undefined,
               call_to_action: {
-                type: callToActionType || "SEND_MESSAGE", // ✅ use SEND_MESSAGE not MESSAGE_PAGE
+                type: "MESSAGE_PAGE", // ✅ Valid call-to-action
                 value: { link },
               },
             },
@@ -251,6 +251,7 @@ export const createFacebookCampaign = async (
 export const createFacebookAdSet = async (
   adAccountId: string,
   pageId: any,
+  link,
   adSetName: string,
   campaignId: string,
   dailyBudget: string,
@@ -290,6 +291,14 @@ export const createFacebookAdSet = async (
     if (adType === "VIDEO_VIEWS") {
       adSetPayload.promoted_object = {
         page_id: pageId,
+      };
+    }
+
+    if (adType === "APP_INSTALLS") {
+      adSetPayload.promoted_object = {
+        application_id: "YOUR_APP_ID", // 🔑 from Facebook Developer App settings
+        object_store_url: link, // 🔗 App Store / Play Store link
+        custom_event_type: "INSTALL_APP",
       };
     }
 
