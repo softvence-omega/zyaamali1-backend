@@ -252,7 +252,7 @@ export const createFacebookAdSet = async (
   adAccountId: string,
   pageId: any,
   link: any,
-  application_id:any,
+  application_id: any,
   adSetName: string,
   campaignId: string,
   dailyBudget: string,
