@@ -117,8 +117,9 @@ export const buildFacebookAdObjectiveAndCreative = (
         break;
 
       case "REACH":
-        objective = "OUTCOME_REACH";
-        optimizationGoal = "REACH"; // ✅ correct
+        objective = "OUTCOME_AWARENESS"; // ✅ Changed from REACH to OUTCOME_AWARENESS for ODAX
+        optimizationGoal = "REACH";
+
         billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
@@ -138,7 +139,9 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "ENGAGEMENT":
         objective = "OUTCOME_ENGAGEMENT";
-        optimizationGoal = "POST_ENGAGEMENT"; // ✅ correct
+        optimizationGoal = "LANDING_PAGE_VIEWS"; 
+        // optimizationGoal = "LINK_CLICKS";   // Alternative option
+        // optimizationGoal = "REACH";   // Another alternative
         billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
@@ -276,6 +279,12 @@ export const createFacebookAdSet = async (
       access_token: accessToken,
     };
 
+    // if (adType === "ENGAGEMENT") {
+    //   adSetPayload.promoted_object = {
+    //     page_id: pageId, // ✅ Add this for engagement campaigns
+    //   };
+    // }
+
     // Only add promoted_object where required
     if (adType === "CONVERSIONS") {
       adSetPayload.promoted_object = {
@@ -290,7 +299,7 @@ export const createFacebookAdSet = async (
       };
     }
 
-    // console.log("Final AdSet Payload:", JSON.stringify(adSetPayload, null, 2));
+    console.log("Final AdSet Payload:", JSON.stringify(adSetPayload, null, 2));
 
     const res = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,
