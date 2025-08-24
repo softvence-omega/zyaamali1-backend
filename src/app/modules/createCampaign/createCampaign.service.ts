@@ -94,6 +94,7 @@ export const createAdsFacebookAdService = async (
   dailyBudget: string,
   targeting: any,
   link: string,
+  application_id: any,
   message: string,
   callToActionType: string,
   imageUrl: string,
@@ -123,7 +124,8 @@ export const createAdsFacebookAdService = async (
     const adSetId = await createFacebookAdSet(
       adAccountId,
       pageId,
-      link
+      link,
+      application_id,
       adSetName,
       campaignId,
       dailyBudget,

@@ -251,7 +251,8 @@ export const createFacebookCampaign = async (
 export const createFacebookAdSet = async (
   adAccountId: string,
   pageId: any,
-  link,
+  link: any,
+  application_id:any,
   adSetName: string,
   campaignId: string,
   dailyBudget: string,
@@ -296,9 +297,9 @@ export const createFacebookAdSet = async (
 
     if (adType === "APP_INSTALLS") {
       adSetPayload.promoted_object = {
-        application_id: "YOUR_APP_ID", // 🔑 from Facebook Developer App settings
+        application_id: application_id, // 🔑 from Facebook Developer App settings
         object_store_url: link, // 🔗 App Store / Play Store link
-        custom_event_type: "INSTALL_APP",
+        custom_event_type: "OTHER",
       };
     }
 
