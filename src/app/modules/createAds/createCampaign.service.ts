@@ -11,14 +11,14 @@ import {
   createAdGroup,
   createBudget,
   createCampaign,
-} from "./campaignUtils/CreateGoogleAdsFunction";
+} from "./adsUtils/CreateGoogleAdsFunction";
 import {
   buildFacebookAdObjectiveAndCreative,
   createFacebookAd,
   createFacebookAdCreative,
   createFacebookAdSet,
   createFacebookCampaign,
-} from "./campaignUtils/createFacebookAdsFunction";
+} from "./adsUtils/createFacebookAdsFunction";
 import {
   buildCreativePayload,
   createTiktokAd,
@@ -28,7 +28,7 @@ import {
   uploadCarouselImages,
   uploadImage,
   uploadVideo,
-} from "./campaignUtils/createTiktokAdsFunction";
+} from "./adsUtils/createTiktokAdsFunction";
 
 // facebook
 

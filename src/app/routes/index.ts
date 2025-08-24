@@ -11,7 +11,7 @@ import { viewerRoutes } from "../modules/viewer/viewer.routes";
 import { creatorRoutes } from "../modules/creator/creator.routes";
 import { contentRoutes } from "../modules/content/content.routes";
 
-import { createAdsCampaignRoute } from "../modules/createCampaign/createCampaign.route";
+import { createAdsCampaignRoute } from "../modules/createAds/createCampaign.route";
 import path from "path";
 import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
 import { chatbotHistoryRoute } from "../modules/chatbotHistory/chatbotHistory.route";
