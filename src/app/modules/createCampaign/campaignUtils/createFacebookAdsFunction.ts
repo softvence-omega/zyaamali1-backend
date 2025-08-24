@@ -139,7 +139,7 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "ENGAGEMENT":
         objective = "OUTCOME_ENGAGEMENT";
-        optimizationGoal = "LANDING_PAGE_VIEWS"; 
+        optimizationGoal = "LANDING_PAGE_VIEWS";
         // optimizationGoal = "LINK_CLICKS";   // Alternative option
         // optimizationGoal = "REACH";   // Another alternative
         billingEvent = "IMPRESSIONS";
@@ -180,8 +180,8 @@ export const buildFacebookAdObjectiveAndCreative = (
         break;
 
       case "MESSAGES":
-        objective = "OUTCOME_MESSAGES";
-        optimizationGoal = "MESSAGES"; // ✅ correct
+        objective = "OUTCOME_LEADS"; // ✅ use ODAX version
+        optimizationGoal = "CONVERSATIONS"; // ✅ valid for messaging
         billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
@@ -191,7 +191,7 @@ export const buildFacebookAdObjectiveAndCreative = (
               message,
               picture: imageUrl || undefined,
               call_to_action: {
-                type: callToActionType || "MESSAGE_PAGE",
+                type: callToActionType || "SEND_MESSAGE", // ✅ use SEND_MESSAGE not MESSAGE_PAGE
                 value: { link },
               },
             },
@@ -279,12 +279,6 @@ export const createFacebookAdSet = async (
       access_token: accessToken,
     };
 
-    // if (adType === "ENGAGEMENT") {
-    //   adSetPayload.promoted_object = {
-    //     page_id: pageId, // ✅ Add this for engagement campaigns
-    //   };
-    // }
-
     // Only add promoted_object where required
     if (adType === "CONVERSIONS") {
       adSetPayload.promoted_object = {
@@ -331,7 +325,8 @@ export const createFacebookAdCreative = async (
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adcreatives`,
       {
         name: `${adType} Creative`,
-        object_story_spec: JSON.stringify(creativePayload.object_story_spec),
+        object_story_spec: creativePayload.object_story_spec,
+
         access_token: accessToken,
       }
     );
