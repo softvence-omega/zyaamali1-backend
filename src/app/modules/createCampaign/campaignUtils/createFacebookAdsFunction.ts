@@ -57,8 +57,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "VIDEO_VIEWS":
         if (!videoId) throw new Error("VIDEO_VIEWS requires a videoId.");
-        objective = "OUTCOME_ENGAGEMENT";
-        optimizationGoal = "THRUPLAY"; // ✅ correct for ODAX
+        objective = "OUTCOME_AWARENESS"; // ✅ correct ODAX pairing
+        optimizationGoal = "THRUPLAY"; // ✅ now valid
         billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
@@ -78,7 +78,7 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "CONVERSIONS":
         objective = "OUTCOME_SALES";
-        optimizationGoal = "CONVERSIONS"; // ✅ must be CONVERSIONS
+        optimizationGoal = "OFFSITE_CONVERSIONS"; // ✅ must be CONVERSIONS
         billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
@@ -219,8 +219,7 @@ export const createFacebookCampaign = async (
   objective: string,
   accessToken: string
 ) => {
-
-  console.log('campaign', objective)
+  console.log("campaign", objective);
   try {
     const res = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/campaigns`,
@@ -259,7 +258,7 @@ export const createFacebookAdSet = async (
   adType: string
 ) => {
   try {
-    console.log(optimizationGoal,campaignId, "ad set -----------------");
+    console.log(optimizationGoal, campaignId, "ad set -----------------");
     const adSetPayload: any = {
       name: adSetName,
       campaign_id: campaignId,
@@ -287,11 +286,11 @@ export const createFacebookAdSet = async (
 
     if (adType === "VIDEO_VIEWS") {
       adSetPayload.promoted_object = {
-        page_id: targeting?.pageId || pageId,
+        page_id: pageId,
       };
     }
 
-    console.log("Final AdSet Payload:", JSON.stringify(adSetPayload, null, 2));
+    // console.log("Final AdSet Payload:", JSON.stringify(adSetPayload, null, 2));
 
     const res = await axios.post(
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,

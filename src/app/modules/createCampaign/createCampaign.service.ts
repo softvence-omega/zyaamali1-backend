@@ -111,7 +111,6 @@ export const createAdsFacebookAdService = async (
         imageUrl,
         videoId
       );
-console.log('creative payload ',creativePayload)
     // 2️⃣ Campaign
     const campaignId = await createFacebookCampaign(
       adAccountId,
