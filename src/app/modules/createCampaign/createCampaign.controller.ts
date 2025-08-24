@@ -67,7 +67,7 @@ export const createAdController = async (req: Request, res: Response) => {
     }
 
     // Call service
-    const result = await createCampaignService.createFacebookAdService(
+    const result = await createCampaignService.createAdsFacebookAdService(
       accessToken,
       adAccountId,
       pageId,

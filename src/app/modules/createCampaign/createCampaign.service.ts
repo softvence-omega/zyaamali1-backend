@@ -83,7 +83,7 @@ class FacebookLeadFormService {
 }
 export const facebookLeadFormService = new FacebookLeadFormService();
 
-export const createFacebookAdService = async (
+export const createAdsFacebookAdService = async (
   accessToken: string,
   adAccountId: string,
   pageId: string,
@@ -123,6 +123,7 @@ export const createFacebookAdService = async (
     // 3️⃣ Ad Set
     const adSetId = await createFacebookAdSet(
       adAccountId,
+      pageId,
       adSetName,
       campaignId,
       dailyBudget,
@@ -438,6 +439,6 @@ export const createTikTokFullAd = async (
 };
 
 export const createCampaignService = {
-  createFacebookAdService,
+  createAdsFacebookAdService,
   createLinkedInAd,
 };

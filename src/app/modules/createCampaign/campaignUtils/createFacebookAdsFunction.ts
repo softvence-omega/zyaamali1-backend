@@ -22,6 +22,7 @@ export const buildFacebookAdObjectiveAndCreative = (
       case "TRAFFIC":
         objective = "OUTCOME_TRAFFIC";
         optimizationGoal = "LINK_CLICKS";
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -41,6 +42,7 @@ export const buildFacebookAdObjectiveAndCreative = (
       case "LEAD_GENERATION":
         objective = "LEAD_GENERATION";
         optimizationGoal = "LEAD_GENERATION";
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -56,7 +58,8 @@ export const buildFacebookAdObjectiveAndCreative = (
       case "VIDEO_VIEWS":
         if (!videoId) throw new Error("VIDEO_VIEWS requires a videoId.");
         objective = "OUTCOME_ENGAGEMENT";
-        optimizationGoal = "THRUPLAY";
+        optimizationGoal = "VIDEO_VIEWS"; // ✅ correct for ODAX
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -75,7 +78,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "CONVERSIONS":
         objective = "OUTCOME_SALES";
-        optimizationGoal = "OFFSITE_CONVERSIONS";
+        optimizationGoal = "CONVERSIONS"; // ✅ must be CONVERSIONS
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -94,7 +98,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "BRAND_AWARENESS":
         objective = "OUTCOME_AWARENESS";
-        optimizationGoal = "REACH";
+        optimizationGoal = "AD_RECALL_LIFT"; // ✅ correct
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -113,7 +118,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "REACH":
         objective = "OUTCOME_REACH";
-        optimizationGoal = "REACH";
+        optimizationGoal = "REACH"; // ✅ correct
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -132,7 +138,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "ENGAGEMENT":
         objective = "OUTCOME_ENGAGEMENT";
-        optimizationGoal = "ENGAGED_USERS";
+        optimizationGoal = "POST_ENGAGEMENT"; // ✅ correct
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -151,7 +158,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "APP_INSTALLS":
         objective = "OUTCOME_APP_PROMOTION";
-        optimizationGoal = "APP_INSTALLS";
+        optimizationGoal = "APP_INSTALLS"; // ✅ correct
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -170,7 +178,8 @@ export const buildFacebookAdObjectiveAndCreative = (
 
       case "MESSAGES":
         objective = "OUTCOME_MESSAGES";
-        optimizationGoal = "MESSAGES";
+        optimizationGoal = "MESSAGES"; // ✅ correct
+        billingEvent = "IMPRESSIONS";
         creativePayload = {
           object_story_spec: {
             page_id: pageId,
@@ -221,6 +230,7 @@ export const createFacebookCampaign = async (
         access_token: accessToken,
       }
     );
+    console.log("Facebook campaign created ", res.data);
     return res.data.id;
   } catch (error: any) {
     console.error(
@@ -236,6 +246,7 @@ export const createFacebookCampaign = async (
 // ==========================
 export const createFacebookAdSet = async (
   adAccountId: string,
+  pageId:any,
   adSetName: string,
   campaignId: string,
   dailyBudget: string,
@@ -263,11 +274,17 @@ export const createFacebookAdSet = async (
       access_token: accessToken,
     };
 
-    // For conversions
+    // Only add promoted_object where required
     if (adType === "CONVERSIONS") {
       adSetPayload.promoted_object = {
-        pixel_id: "1122412253168452", // replace with dynamic pixel id
+        pixel_id: "1122412253168452", // ⚠️ replace with your real pixel
         custom_event_type: "PURCHASE",
+      };
+    }
+
+    if (adType === "VIDEO_VIEWS") {
+      adSetPayload.promoted_object = {
+        page_id: targeting?.pageId || pageId,
       };
     }
 
@@ -275,6 +292,7 @@ export const createFacebookAdSet = async (
       `https://graph.facebook.com/v23.0/act_${adAccountId}/adsets`,
       adSetPayload
     );
+    console.log("Facebook Ad Set created ", res.data);
     return res.data.id;
   } catch (error: any) {
     console.error(
@@ -303,7 +321,7 @@ export const createFacebookAdCreative = async (
         access_token: accessToken,
       }
     );
-    console.log('facebook ads creative', res.data)
+    console.log("facebook  creative created ", res.data);
     return res.data.id;
   } catch (error: any) {
     console.error(
@@ -335,9 +353,8 @@ export const createFacebookAd = async (
         access_token: accessToken,
       }
     );
-    console.log('ads created',res.data)
+    console.log(" facebook ads created", res.data);
     return res.data.id;
-
   } catch (error: any) {
     console.error(
       "❌ Failed to create ad:",
