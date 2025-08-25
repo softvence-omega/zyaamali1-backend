@@ -172,42 +172,64 @@ const redirectToLinkedIn = (req: Request, res: Response) => {
   res.redirect(authURL);
 };
 
-const handleLinkedInCallback = async (req: Request, res: Response) => {
-  const code = req.query.code as string;
-  try {
-    const token = await connectAdsAccountservice.getLinkdinAccessToken(code);
 
+
+export const handleLinkedInCallback = async (req: Request, res: Response) => {
+  const code = req.query.code as string;
+  if (!code) return res.status(400).json({ success: false, message: "Authorization code is missing" });
+
+  try {
+    // ✅ Step 1: Exchange code for access token
+    const token = await connectAdsAccountservice.getLinkdinAccessToken(code);
     const accessToken = token.access_token;
     console.log("✅ LinkedIn Access Token:", accessToken);
 
-    // Step 2: Fetch LinkedIn ad accounts
+    // ✅ Step 2: Fetch LinkedIn Ad Accounts
     const adAccountsResponse = await axios.get(
       "https://api.linkedin.com/v2/adAccountsV2?q=search",
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
 
-    const adAccounts = adAccountsResponse.data.elements;
-    console.log(adAccounts);
+    const adAccounts = adAccountsResponse.data.elements || [];
+    if (!adAccounts.length) {
+      return res.status(404).json({ success: false, message: "No LinkedIn ad accounts found" });
+    }
 
-    // if (!adAccounts.length) {
-    //   return res.status(404).json({ message: "No LinkedIn ad accounts found" });
-    // }
+    // ✅ Step 3: Store in MongoDB (update or create)
+    const storeLinkedInData = await ConnectAccountModel.findOneAndUpdate(
+      { name: "LinkedIn Ads" }, // change to { userId, platform: "linkedin" } if multi-user support needed
+      {
+        name: "LinkedIn Ads",
+        icon: "https://img.icons8.com/color/48/000000/linkedin.png",
+        accessToken,
+        adAccount: adAccounts.map((acc: any) => ({
+          id: acc.id,
+          name: acc.name || `Ad Account ${acc.id}`, // fallback if name missing
+        })),
+      },
+      { new: true, upsert: true }
+    );
 
-    // Step 3: Respond with data
-    res.json({
-      message: "✅ LinkedIn connected",
-      accessToken,
-      adAccountIds: adAccounts.map((acc: any) => acc.id),
+    console.log("✅ Stored LinkedIn Data:", storeLinkedInData);
+
+    // ✅ Step 4: Respond to client
+    return res.status(200).json({
+      success: true,
+      message: "✅ LinkedIn connected successfully",
+      data: storeLinkedInData,
     });
   } catch (error: any) {
-    console.error("❌ Error getting access token:", error.message);
-    res.status(500).json({ error: "Failed to retrieve access token" });
+    console.error("❌ LinkedIn OAuth error:", error.response?.data || error.message);
+    return res.status(500).json({
+      success: false,
+      message: "❌ Failed to connect LinkedIn Ads account",
+      error: error.response?.data || error.message,
+    });
   }
 };
+
 
 // for google
 export const googleAuthRedirect = (req: Request, res: Response) => {
