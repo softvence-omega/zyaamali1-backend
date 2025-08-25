@@ -6,26 +6,39 @@ import config from "../../config";
 import { createToken } from "./auth.utils";
 
 const loginUser = catchAsync(async (req, res) => {
+  if (!req.body?.email || !req.body?.password) {
+    throw new Error("Email and password are required");
+  }
 
   const result = await AuthServices.loginUser(req.body);
+  console.log(result);
+
+  if (!result) {
+    throw new Error("Invalid login credentials");
+  }
+
   const { refreshToken, ...data } = result;
 
   res.cookie("refreshToken", refreshToken, {
-    secure: config.node_env === "production",
     httpOnly: true,
-    sameSite: "none",
+    secure: config.node_env === "production" ? true : false,
+    sameSite: config.node_env === "production" ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24 * 365,
   });
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Login successful",
-    data: data,
+    data,
   });
 });
 
 const googleCallback = catchAsync(async (req, res) => {
   const user = req.user as any;
+  if (!user) {
+    throw new Error("Google authentication failed");
+  }
 
   const jwtPayload = {
     userId: user._id.toString(),
@@ -60,7 +73,15 @@ const googleCallback = catchAsync(async (req, res) => {
 });
 
 const changePassword = catchAsync(async (req, res) => {
+  if (!req.loggedInUser) {
+    throw new Error("Unauthorized: No logged-in user found");
+  }
+
   const result = await AuthServices.changePassword(req.loggedInUser, req.body);
+  if (!result) {
+    throw new Error("Password change failed");
+  }
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -71,7 +92,15 @@ const changePassword = catchAsync(async (req, res) => {
 
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies;
+  if (!refreshToken) {
+    throw new Error("No refresh token found in cookies");
+  }
+
   const result = await AuthServices.refreshToken(refreshToken);
+  if (!result) {
+    throw new Error("Invalid refresh token");
+  }
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -81,7 +110,12 @@ const refreshToken = catchAsync(async (req, res) => {
 });
 
 const forgetPassword = catchAsync(async (req, res) => {
+  if (!req.body?.email) {
+    throw new Error("Email is required for password reset");
+  }
+
   const result = await AuthServices.forgetPassword(req.body.email);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -92,7 +126,12 @@ const forgetPassword = catchAsync(async (req, res) => {
 
 const resetPassword = catchAsync(async (req, res) => {
   const token = req.headers.authorization as string;
+  if (!token) {
+    throw new Error("Authorization token is missing");
+  }
+
   const result = await AuthServices.resetPassword(req.body, token);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
