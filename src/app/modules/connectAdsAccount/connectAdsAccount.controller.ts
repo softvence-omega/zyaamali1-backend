@@ -381,7 +381,6 @@ export const handleTiktokCallback = async (req: Request, res: Response) => {
 export const getAllDataFromDB = async (req: Request, res: Response) => {
   try {
     const result = await connectAdsAccountservice.getAllDataFromDB();
-    console.log("reslut -----------", result);
 
     if (!result || result.length === 0) {
       return res.json({
@@ -413,8 +412,6 @@ export const updateSingleData = async (req: Request, res: Response) => {
     const result = await connectAdsAccountservice.updateSingleData(
       name as string
     );
-    console.log("reslut -----------", result);
-
     if (!result) {
       return res.json({
         success: false,
