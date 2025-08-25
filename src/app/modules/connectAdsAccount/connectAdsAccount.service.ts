@@ -26,6 +26,8 @@ const getFacebookAccessToken = async (code: string) => {
     }
   );
 
+  
+
   return response.data.access_token;
 };
 
