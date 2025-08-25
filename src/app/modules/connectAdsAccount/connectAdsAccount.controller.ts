@@ -382,21 +382,21 @@ export const getAllDataFromDB = async (req: Request, res: Response) => {
     if (!result || result.length === 0) {
       return res.json({
         success: false,
-        message: "No Facebook data found in database",
+        message: "No  data found in database",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "✅ Facebook data fetched successfully",
+      message: "✅  data fetched successfully",
       data: result,
     });
   } catch (error: any) {
-    console.error("❌ Error fetching Facebook data:", error.message || error);
+    console.error("❌ Error fetching  data:", error.message || error);
 
     return res.status(500).json({
       success: false,
-      message: "Internal server error while fetching Facebook data",
+      message: "Internal server error while fetching  data",
       error: error.message || "Unknown error",
     });
   }
@@ -406,7 +406,7 @@ export const updateSingleData = async (req: Request, res: Response) => {
   const name = req.query.name;
   console.log(name, 'name')
   try {
-    const result = await connectAdsAccountservice.updateSingleData(name);
+    const result = await connectAdsAccountservice.updateSingleData(name as string);
     console.log("reslut -----------", result);
 
     if (!result ) {
