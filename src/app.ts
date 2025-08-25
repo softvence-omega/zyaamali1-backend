@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-router.get("https://adelo.ai/dashboard/userprofile", googleAuthCallback);
+// router.get("http://localhost:5000/api/v1/connect/google/callback", googleAuthCallback);
 
 app.use("/api/v1", router);
 
