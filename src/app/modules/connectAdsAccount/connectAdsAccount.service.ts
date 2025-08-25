@@ -168,7 +168,6 @@ const exchangeTiktokCodeForToken = async (code: string) => {
       }
     );
 
-    console.log("Tiktok token response:", response.data.data);
 
     const { access_token, advertiser_ids } = response.data.data;
 

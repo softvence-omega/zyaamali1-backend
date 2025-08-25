@@ -330,7 +330,7 @@ const getTiktokAuthUrl = (req: Request, res: Response) => {
   res.redirect(url);
 };
 
-const handleTiktokCallback = async (req: Request, res: Response) => {
+export const handleTiktokCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
 
   if (typeof code !== "string" || !code) {
@@ -338,14 +338,42 @@ const handleTiktokCallback = async (req: Request, res: Response) => {
   }
 
   try {
-    const {} = await connectAdsAccountservice.exchangeTiktokCodeForToken(
-    const {accessToken,advertiserIds} = await connectAdsAccountservice.exchangeTiktokCodeForToken(
+    // ✅ Step 1: Exchange code for access token + advertiser accounts
+    const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(
       code
     );
-    res.json({accessToken,advertiserIds});
+
+    const accessToken = tokenData.accessToken;
+    const advertiserIds = tokenData.advertiserIds || [];
+
+    // ✅ Step 2: Save to MongoDB
+    const storedTiktokData = await ConnectAccountModel.findOneAndUpdate(
+      { name: "TikTok Ads" },
+      {
+        name: "TikTok Ads",
+        icon: "https://img.icons8.com/color/48/000000/tiktok--v1.png",
+        accessToken,
+        adAccount: advertiserIds.map((id: string) => ({
+          id,
+          name: `TikTok Advertiser ${id}`, // TikTok doesn’t always return a name; you can later enhance
+        })),
+      },
+      { new: true, upsert: true }
+    );
+
+    console.log("✅ TikTok data stored:", storedTiktokData);
+
+    // ✅ Step 3: Respond back
+    return res.status(200).json({
+      message: "✅ TikTok connected successfully",
+      data: storedTiktokData,
+    });
   } catch (error: any) {
-    console.error("❌ TikTok callback error:", error.message);
-    res.status(500).send("TikTok OAuth failed");
+    console.error(
+      "❌ TikTok callback error:",
+      error.response?.data || error.message
+    );
+    return res.status(500).send("TikTok OAuth failed");
   }
 };
 
