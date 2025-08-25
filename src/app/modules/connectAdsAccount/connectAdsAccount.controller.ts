@@ -172,11 +172,12 @@ const redirectToLinkedIn = (req: Request, res: Response) => {
   res.redirect(authURL);
 };
 
-
-
 export const handleLinkedInCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
-  if (!code) return res.status(400).json({ success: false, message: "Authorization code is missing" });
+  if (!code)
+    return res
+      .status(400)
+      .json({ success: false, message: "Authorization code is missing" });
 
   try {
     // ✅ Step 1: Exchange code for access token
@@ -194,7 +195,9 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
 
     const adAccounts = adAccountsResponse.data.elements || [];
     if (!adAccounts.length) {
-      return res.status(404).json({ success: false, message: "No LinkedIn ad accounts found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "No LinkedIn ad accounts found" });
     }
 
     // ✅ Step 3: Store in MongoDB (update or create)
@@ -221,7 +224,10 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
       data: storeLinkedInData,
     });
   } catch (error: any) {
-    console.error("❌ LinkedIn OAuth error:", error.response?.data || error.message);
+    console.error(
+      "❌ LinkedIn OAuth error:",
+      error.response?.data || error.message
+    );
     return res.status(500).json({
       success: false,
       message: "❌ Failed to connect LinkedIn Ads account",
@@ -231,41 +237,97 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
 };
 
 
+
+
+
+
 // for google
+
+
+// for fetch ads account
+const fetchGoogleAdAccounts = async (accessToken: string) => {
+  try {
+    const response = await axios.get(
+      "https://googleads.googleapis.com/v20/customers:listAccessibleCustomers",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN2!,
+          "login-customer-id": process.env.GOOGLE_MANAGER_ID2!, // required if MCC
+        },
+      }
+    );
+
+    return response.data.resourceNames || [];
+  } catch (err: any) {
+    console.error(
+      "❌ Google Ads API Error:",
+      err.response?.data || err.message
+    );
+    throw new Error(
+      "Failed to fetch accounts. Check token, dev token, and MCC ID."
+    );
+  }
+};
+
+// redirect url 
 export const googleAuthRedirect = (req: Request, res: Response) => {
   const url = getGoogleOAuthUrl();
   console.log(url);
   res.redirect(url);
 };
 
+// ✅ Google OAuth Callback
 export const googleAuthCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
   console.log(code, "code from google");
+
   if (typeof code !== "string" || !code) {
     return res
       .status(400)
       .json({ error: "Authorization code is missing or invalid." });
   }
-  const tokens = await exchangeCodeForTokens(code);
-
-  // Save tokens.access_token and tokens.refresh_token to your DB for the user
-  res.json({
-    message: "Google Ads connected successfully.",
-    token: tokens,
-  });
-};
-
-export const getGoogleAdAccounts = async (req: Request, res: Response) => {
-  const accessToken = req.headers.authorization?.replace("Bearer ", "");
-
-  if (!accessToken)
-    return res.status(401).json({ error: "Access token missing" });
 
   try {
-    const accounts = await fetchGoogleAdAccounts(accessToken);
-    res.json(accounts);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch Google Ad accounts" });
+    // Step 1: Exchange code for access & refresh tokens
+    const tokens = await exchangeCodeForTokens(code);
+    const accessToken = tokens.access_token;
+    const refreshToken = tokens.refresh_token;
+
+    // Step 2: Fetch Ad Accounts
+    const accounts = await fetchGoogleAdAccounts(accessToken as string);
+    console.log("✅ Google Ad Accounts:", accounts);
+
+    // Step 3: Store in DB
+    const storedGoogleData = await ConnectAccountModel.findOneAndUpdate(
+      { name: "Google Ads" },
+      {
+        name: "Google Ads",
+        icon: "https://img.icons8.com/color/48/000000/google-logo.png",
+        accessToken,
+        refreshToken,
+        adAccount: accounts.map((acc: string) => ({
+          id: acc.replace("customers/", ""), // "customers/1234567890" → "1234567890"
+          name: acc, // Google doesn’t always return name directly
+        })),
+      },
+      { new: true, upsert: true }
+    );
+
+    // Step 4: Respond to frontend
+    res.json({
+      success: true,
+      message: "✅ Google Ads connected successfully.",
+      tokens,
+      adAccounts: accounts,
+      data: storedGoogleData,
+    });
+  } catch (error: any) {
+    console.error(
+      "❌ Google OAuth error:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ error: "Failed to connect Google Ads account" });
   }
 };
 
