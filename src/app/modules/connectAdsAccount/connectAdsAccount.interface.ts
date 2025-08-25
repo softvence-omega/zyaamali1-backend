@@ -14,8 +14,8 @@ export interface IPages {
 export interface IAccoutData {
   name: string;
   icon: string;
-  accessToken?: string;
-  refreshToken?: string;
-  adAccount?: IAdAccount[]; // ✅ array of objects
-  pages?: IPages[]
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  adAccount?: IAdAccount[] | null; // ✅ array of objects
+  pages?: IPages[] | null
 }

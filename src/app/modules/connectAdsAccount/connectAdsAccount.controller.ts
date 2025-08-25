@@ -69,19 +69,23 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
     const storeFacebookData = await ConnectAccountModel.create({
       name: "Meta Ads",
       icon: "https://img.icons8.com/color/48/000000/facebook-new.png",
-      accessToken: accessToken,
-      adAccount: null || adAccounts.map((account) => ({
-        id: account.id,
-        name: account.name,
-      })) ,
-      pages: pages.map((page: any) => ({
-        pageId: page.id,
-
-        pageName: page.name,
-        pageAccessToken: page.access_token,
-      })),
+      accessToken: accessToken ? accessToken : null,
+      adAccount: adAccounts
+        ? adAccounts.map((account) => ({
+            id: account.id,
+            name: account.name,
+          }))
+        : null,
+      pages: pages
+        ? pages.map((page: any) => ({
+            pageId: page.id,
+            pageName: page.name,
+            pageAccessToken: page.access_token,
+          }))
+        : null,
     });
-    console.log(storeFacebookData);
+
+    console.log("store data ", storeFacebookData);
 
     return res.status(200).json({
       message: "✅ Facebook connected",
