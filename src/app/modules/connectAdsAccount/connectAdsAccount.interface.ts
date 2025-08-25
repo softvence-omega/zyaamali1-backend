@@ -18,4 +18,6 @@ export interface IAccoutData {
   refreshToken?: string | null;
   adAccount?: IAdAccount[] | null; // ✅ array of objects
   pages?: IPages[] | null
+  isSynced: boolean
+
 }

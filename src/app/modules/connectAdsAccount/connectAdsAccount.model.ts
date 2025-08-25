@@ -27,6 +27,7 @@ const accountSchema = new Schema<IAccountDocument>(
     refreshToken: { type: String },
     adAccount: [adAccountSchema],
     pages: [pagesSchema],
+    isSynced: { type: Boolean, required: true },
   },
   { timestamps: true }
 );

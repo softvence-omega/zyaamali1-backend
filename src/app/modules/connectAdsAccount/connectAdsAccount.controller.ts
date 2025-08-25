@@ -86,6 +86,7 @@ export const handleFacebookCallback = async (req: Request, res: Response) => {
           pageName: page.name,
           pageAccessToken: page.access_token,
         })),
+        isSynced: true,
       },
       { new: true, upsert: true } // upsert = insert if not exists
     );
@@ -208,6 +209,7 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
           id: acc.id,
           name: acc.name || `Ad Account ${acc.id}`, // fallback if name missing
         })),
+        isSynced: true,
       },
       { new: true, upsert: true }
     );
@@ -298,6 +300,7 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
           id: acc.replace("customers/", ""), // "customers/1234567890" → "1234567890"
           name: acc, // Google doesn’t always return name directly
         })),
+        isSynced: true,
       },
       { new: true, upsert: true }
     );
@@ -354,6 +357,7 @@ export const handleTiktokCallback = async (req: Request, res: Response) => {
           id,
           name: `TikTok Advertiser ${id}`, // TikTok doesn’t always return a name; you can later enhance
         })),
+        isSynced: true,
       },
       { new: true, upsert: true }
     );
@@ -404,12 +408,14 @@ export const getAllDataFromDB = async (req: Request, res: Response) => {
 
 export const updateSingleData = async (req: Request, res: Response) => {
   const name = req.query.name;
-  console.log(name, 'name')
+  console.log(name, "name");
   try {
-    const result = await connectAdsAccountservice.updateSingleData(name as string);
+    const result = await connectAdsAccountservice.updateSingleData(
+      name as string
+    );
     console.log("reslut -----------", result);
 
-    if (!result ) {
+    if (!result) {
       return res.json({
         success: false,
         message: "No  data found in database",

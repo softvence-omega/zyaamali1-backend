@@ -199,6 +199,7 @@ export const updateSingleData = async (name: string) => {
           accessToken: null,
           adAccount: [],
           pages: [],
+          isSynced: false,
         },
       },
       { new: true } // return updated document
