@@ -5,8 +5,16 @@ export interface IAccountDocument extends IAccoutData, Document {}
 
 const adAccountSchema = new Schema(
   {
-    id: { type: String, required: true },
-    name: { type: String, required: false },
+    id: { type: String },
+    name: { type: String },
+  },
+  { _id: false } // ✅ prevents creating _id for each subdocument
+);
+const pagesSchema = new Schema(
+  {
+    pageId: { type: String },
+    name: { type: String },
+    pageAccessToken: { type: String },
   },
   { _id: false } // ✅ prevents creating _id for each subdocument
 );
@@ -17,12 +25,13 @@ const accountSchema = new Schema<IAccountDocument>(
     icon: { type: String, required: true },
     accessToken: { type: String },
     refreshToken: { type: String },
-    adAccount: [adAccountSchema], // ✅ array of objects
+    adAccount: [adAccountSchema],
+    pages: [pagesSchema],
   },
   { timestamps: true }
 );
 
 export const ConnectAccountModel = model<IAccountDocument>(
-  "Account",
+  "ConnectAccount",
   accountSchema
 );

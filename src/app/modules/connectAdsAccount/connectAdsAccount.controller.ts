@@ -10,6 +10,7 @@ import {
 } from "./connectAdsAccount.service";
 
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
+import { ConnectAccountModel } from "./connectAdsAccount.model";
 
 // for facebook connection
 
@@ -65,6 +66,23 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
 
     const pages = pagesRes.data.data;
 
+    const storeFacebookData = await ConnectAccountModel.create({
+      name: "Meta Ads",
+      icon: "https://img.icons8.com/color/48/000000/facebook-new.png",
+      accessToken: accessToken,
+      adAccount: null || adAccounts.map((account) => ({
+        id: account.id,
+        name: account.name,
+      })) ,
+      pages: pages.map((page: any) => ({
+        pageId: page.id,
+
+        pageName: page.name,
+        pageAccessToken: page.access_token,
+      })),
+    });
+    console.log(storeFacebookData);
+
     return res.status(200).json({
       message: "✅ Facebook connected",
       accessToken,
@@ -74,6 +92,7 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
       })),
       page: pages.map((page: any) => ({
         pageId: page.id,
+
         pageName: page.name,
         pageAccessToken: page.access_token,
       })),
