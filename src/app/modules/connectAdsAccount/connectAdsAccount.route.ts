@@ -1,7 +1,6 @@
 import express from "express";
 import {
   connectAdsAccountController,
-  getGoogleAdAccounts,
   googleAuthCallback,
   googleAuthRedirect,
 } from "./connectAdsAccount.controller";
@@ -35,7 +34,6 @@ router.get(
 // for google
 router.get("/google-auth", googleAuthRedirect);
 router.get("/google/callback", googleAuthCallback);
-// router.get("/google-ad-accounts", getGoogleAdAccounts);
 
 // for tiktok
 router.get("/tiktok-auth", connectAdsAccountController.getTiktokAuthUrl);

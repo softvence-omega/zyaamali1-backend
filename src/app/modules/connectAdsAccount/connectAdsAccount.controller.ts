@@ -5,7 +5,6 @@ import config from "../../config";
 import {
   connectAdsAccountservice,
   exchangeCodeForTokens,
-  fetchGoogleAdAccounts,
   getGoogleOAuthUrl,
 } from "./connectAdsAccount.service";
 
@@ -13,7 +12,6 @@ import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 import { ConnectAccountModel } from "./connectAdsAccount.model";
 
 // for facebook connection
-
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
   const scopes = [
     "public_profile",
@@ -113,7 +111,6 @@ export const handleFacebookCallback = async (req: Request, res: Response) => {
 };
 
 // for instagram connection
-
 const handleInstagramConnection = async (req: Request, res: Response) => {
   const accessToken = req.query.accessToken as string;
   if (!accessToken) return res.status(400).send("Missing access token");
@@ -163,7 +160,6 @@ const handleInstagramConnection = async (req: Request, res: Response) => {
 };
 
 //  fro linkdin connection
-
 const redirectToLinkedIn = (req: Request, res: Response) => {
   const authURL = connectAdsAccountservice.getLinkdinAuthURL();
 
@@ -236,13 +232,7 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
   }
 };
 
-
-
-
-
-
 // for google
-
 
 // for fetch ads account
 const fetchGoogleAdAccounts = async (accessToken: string) => {
@@ -270,7 +260,7 @@ const fetchGoogleAdAccounts = async (accessToken: string) => {
   }
 };
 
-// redirect url 
+// redirect url
 export const googleAuthRedirect = (req: Request, res: Response) => {
   const url = getGoogleOAuthUrl();
   console.log(url);
@@ -303,7 +293,7 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
       { name: "Google Ads" },
       {
         name: "Google Ads",
-        icon: "https://img.icons8.com/color/48/000000/google-logo.png",
+        icon: "https://img.icons8.com/color/48/000000/google-ads.png",
         accessToken,
         refreshToken,
         adAccount: accounts.map((acc: string) => ({
@@ -318,8 +308,8 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
     res.json({
       success: true,
       message: "✅ Google Ads connected successfully.",
-      tokens,
-      adAccounts: accounts,
+      // tokens,
+      // adAccounts: accounts,
       data: storedGoogleData,
     });
   } catch (error: any) {
@@ -348,10 +338,11 @@ const handleTiktokCallback = async (req: Request, res: Response) => {
   }
 
   try {
-    const tokenData = await connectAdsAccountservice.exchangeTiktokCodeForToken(
+    const {} = await connectAdsAccountservice.exchangeTiktokCodeForToken(
+    const {accessToken,advertiserIds} = await connectAdsAccountservice.exchangeTiktokCodeForToken(
       code
     );
-    res.json(tokenData);
+    res.json({accessToken,advertiserIds});
   } catch (error: any) {
     console.error("❌ TikTok callback error:", error.message);
     res.status(500).send("TikTok OAuth failed");

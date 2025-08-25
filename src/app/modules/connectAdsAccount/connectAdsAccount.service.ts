@@ -141,27 +141,7 @@ export const exchangeCodeForTokens = async (code: string) => {
   }
 };
 
-// export const fetchGoogleAdAccounts = async (accessToken: string) => {
-//   try {
-//     const response = await axios.get(
-//       "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
-//       {
-//         headers: {
-//           Authorization: `Bearer ${accessToken}`,
-//           "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN2!,
-//           "login-customer-id": process.env.GOOGLE_MANAGER_ID2!, // only if using an MCC account
-//         },
-//       }
-//     );
 
-//     return response.data;
-//   } catch (err: any) {
-//     console.error("Google Ads API Error:", err.response?.data || err.message);
-//     throw new Error(
-//       "Failed to fetch accounts. Check token, dev token, and MCC ID."
-//     );
-//   }
-// };
 
 // for tiktok connection
 const getTiktokAuthUrl = () => {
@@ -207,7 +187,6 @@ const exchangeTiktokCodeForToken = async (code: string) => {
 
 export const connectAdsAccountservice = {
   getFacebookAccessToken,
-  // getFacebookAdAccounts,
   getInstagramAccounts,
   getLinkdinAuthURL,
   getLinkdinAccessToken,
