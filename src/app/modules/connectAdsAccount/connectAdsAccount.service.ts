@@ -190,17 +190,28 @@ export const getAllDataFromDB = async () => {
     throw new Error("Failed to fetch Facebook data from database");
   }
 };
-export const updateSingleData = async () => {
+export const updateSingleData = async (name: string) => {
   try {
-    const data = await ConnectAccountModel.find().lean();
+    const data = await ConnectAccountModel.findOneAndUpdate(
+      { name }, // find by name
+      {
+        $set: {
+          accessToken: null,
+          adAccount: [],
+          pages: [],
+        },
+      },
+      { new: true } // return updated document
+    );
+
+    if (!data) {
+      throw new Error(`No account found with name: ${name}`);
+    }
 
     return data;
   } catch (error: any) {
-    console.error(
-      "❌ Error in getAllFacebookDataFromDB:",
-      error.message || error
-    );
-    throw new Error("Failed to fetch Facebook data from database");
+    console.error("❌ Error in updateSingleData:", error.message || error);
+    throw new Error("Failed to update account data in database");
   }
 };
 
@@ -214,5 +225,7 @@ export const connectAdsAccountservice = {
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,
+
   getAllDataFromDB,
+  updateSingleData,
 };

@@ -402,6 +402,36 @@ export const getAllDataFromDB = async (req: Request, res: Response) => {
   }
 };
 
+export const updateSingleData = async (req: Request, res: Response) => {
+  const name = req.query.name;
+  console.log(name, 'name')
+  try {
+    const result = await connectAdsAccountservice.updateSingleData(name);
+    console.log("reslut -----------", result);
+
+    if (!result ) {
+      return res.json({
+        success: false,
+        message: "No  data found in database",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅  data updated successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("❌ Error updateing  data:", error.message || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while update  data",
+      error: error.message || "Unknown error",
+    });
+  }
+};
+
 export const connectAdsAccountController = {
   redirectToFacebookOAuth,
   handleFacebookCallback,
@@ -413,5 +443,7 @@ export const connectAdsAccountController = {
 
   getTiktokAuthUrl,
   handleTiktokCallback,
+
   getAllDataFromDB,
+  updateSingleData,
 };
