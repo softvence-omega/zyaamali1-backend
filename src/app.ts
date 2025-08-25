@@ -12,6 +12,7 @@ import config from "./app/config";
 import { configureModel } from "./app/modules/configure/configure.model";
 import { handleStripeWebhook } from "./app/modules/subscription/subscription.controller";
 import "./app/utils/dailyTokenReset"; // Importing the daily token reset utility to ensure it's executed
+import { googleAuthCallback } from "./app/modules/connectAdsAccount/connectAdsAccount.controller";
 const app = express();
 
 app.post(
@@ -30,6 +31,8 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
+
+router.get("/google/callback", googleAuthCallback);
 
 app.use("/api/v1", router);
 

@@ -33,7 +33,7 @@ router.get(
 
 // for google
 router.get("/google-auth", googleAuthRedirect);
-router.get("/google/callback", googleAuthCallback);
+// router.get("/google/callback", googleAuthCallback);
 
 // for tiktok
 router.get("/tiktok-auth", connectAdsAccountController.getTiktokAuthUrl);
