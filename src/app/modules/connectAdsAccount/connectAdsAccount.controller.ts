@@ -12,6 +12,7 @@ import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 import { ConnectAccountModel } from "./connectAdsAccount.model";
 
 // for facebook connection
+
 const redirectToFacebookOAuth = (req: Request, res: Response) => {
   const scopes = [
     "public_profile",
@@ -106,6 +107,32 @@ export const handleFacebookCallback = async (req: Request, res: Response) => {
       success: false,
       message: "❌ Failed to connect Facebook Ads account",
       error: error.response?.data || error.message,
+    });
+  }
+};
+export const getAllFacebookDataFromDB = async (req: Request, res: Response) => {
+  try {
+    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
+
+    // if (!result.data || result.data.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No Facebook data found in database",
+    //   });
+    // }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Facebook data fetched successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("❌ Error fetching Facebook data:", error.message || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching Facebook data",
+      error: error.message || "Unknown error",
     });
   }
 };
@@ -380,6 +407,7 @@ export const handleTiktokCallback = async (req: Request, res: Response) => {
 export const connectAdsAccountController = {
   redirectToFacebookOAuth,
   handleFacebookCallback,
+  getAllFacebookDataFromDB,
   handleInstagramConnection,
 
   redirectToLinkedIn,

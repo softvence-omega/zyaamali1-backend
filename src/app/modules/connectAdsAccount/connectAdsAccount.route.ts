@@ -16,6 +16,10 @@ router.get(
   "/facebook/callback",
   connectAdsAccountController.handleFacebookCallback
 );
+router.get(
+  "/facebook/get-All-Data",
+  connectAdsAccountController.getAllFacebookDataFromDB
+);
 
 
 // for instagram

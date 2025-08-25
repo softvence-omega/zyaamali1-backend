@@ -3,6 +3,7 @@ import config from "../../config";
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 
 import { OAuth2Client } from "google-auth-library";
+import { ConnectAccountModel } from "./connectAdsAccount.model";
 
 const {
   LINKEDIN_CLIENT_ID,
@@ -26,12 +27,20 @@ const getFacebookAccessToken = async (code: string) => {
     }
   );
 
-  
-
-
-
   return response.data.access_token;
 };
+
+export const getAllFacebookDataFromDB = async () => {
+  try {
+    const data = await ConnectAccountModel.find({ name: "Meta Ads" }).lean();
+
+    return data;
+  } catch (error: any) {
+    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
+    throw new Error("Failed to fetch Facebook data from database");
+  }
+};
+
 
 // for instagram
 
@@ -185,7 +194,9 @@ const exchangeTiktokCodeForToken = async (code: string) => {
 };
 
 export const connectAdsAccountservice = {
+  
   getFacebookAccessToken,
+  getAllFacebookDataFromDB,
   getInstagramAccounts,
   getLinkdinAuthURL,
   getLinkdinAccessToken,
