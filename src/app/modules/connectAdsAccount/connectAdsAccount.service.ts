@@ -107,6 +107,16 @@ const getLinkdinAccessToken = async (code: any) => {
     refresh_token_expires_in?: number;
   };
 };
+export const getAllLinkedinDataFromDB = async () => {
+  try {
+    const data = await ConnectAccountModel.find({ name: "LinkedIn Ads" }).lean();
+
+    return data;
+  } catch (error: any) {
+    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
+    throw new Error("Failed to fetch Facebook data from database");
+  }
+};
 
 // for google
 
@@ -147,6 +157,17 @@ export const exchangeCodeForTokens = async (code: string) => {
     return tokens;
   } catch (err) {
     throw new Error("Invalid or expired authorization code");
+  }
+};
+
+export const getAllGoogleDataFromDB = async () => {
+  try {
+    const data = await ConnectAccountModel.find({ name: "Google Ads" }).lean();
+
+    return data;
+  } catch (error: any) {
+    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
+    throw new Error("Failed to fetch Facebook data from database");
   }
 };
 
@@ -192,15 +213,32 @@ const exchangeTiktokCodeForToken = async (code: string) => {
     throw err;
   }
 };
+export const getAllTiktokDataFromDB = async () => {
+  try {
+    const data = await ConnectAccountModel.find({ name: "TikTok Ads" }).lean();
+
+    return data;
+  } catch (error: any) {
+    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
+    throw new Error("Failed to fetch Facebook data from database");
+  }
+};
 
 export const connectAdsAccountservice = {
   
   getFacebookAccessToken,
   getAllFacebookDataFromDB,
+
   getInstagramAccounts,
+
   getLinkdinAuthURL,
   getLinkdinAccessToken,
+  getAllLinkedinDataFromDB,
+
+  getAllGoogleDataFromDB,
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,
+  getAllTiktokDataFromDB
+  
 };

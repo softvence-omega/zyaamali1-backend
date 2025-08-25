@@ -113,13 +113,14 @@ export const handleFacebookCallback = async (req: Request, res: Response) => {
 export const getAllFacebookDataFromDB = async (req: Request, res: Response) => {
   try {
     const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
+    console.log("reslut -----------", result);
 
-    // if (!result.data || result.data.length === 0) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: "No Facebook data found in database",
-    //   });
-    // }
+    if (!result || result.length === 0) {
+      return res.json({
+        success: false,
+        message: "No Facebook data found in database",
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -258,6 +259,33 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
     });
   }
 };
+export const getAllLinkedinDataFromDB = async (req: Request, res: Response) => {
+  try {
+    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
+    console.log("reslut -----------", result);
+
+    if (!result || result.length === 0) {
+      return res.json({
+        success: false,
+        message: "No Facebook data found in database",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Facebook data fetched successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("❌ Error fetching Facebook data:", error.message || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching Facebook data",
+      error: error.message || "Unknown error",
+    });
+  }
+};
 
 // for google
 
@@ -347,6 +375,36 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to connect Google Ads account" });
   }
 };
+export const getAllGoogleDataFromDB = async (req: Request, res: Response) => {
+  try {
+    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
+    console.log("reslut -----------", result);
+
+    if (!result || result.length === 0) {
+      return res.json({
+        success: false,
+        message: "No Facebook data found in database",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Facebook data fetched successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("❌ Error fetching Facebook data:", error.message || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching Facebook data",
+      error: error.message || "Unknown error",
+    });
+  }
+};
+
+
+
 
 // for tiktok
 const getTiktokAuthUrl = (req: Request, res: Response) => {
@@ -403,6 +461,33 @@ export const handleTiktokCallback = async (req: Request, res: Response) => {
     return res.status(500).send("TikTok OAuth failed");
   }
 };
+export const getAllTiktokDataFromDB = async (req: Request, res: Response) => {
+  try {
+    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
+    console.log("reslut -----------", result);
+
+    if (!result || result.length === 0) {
+      return res.json({
+        success: false,
+        message: "No Facebook data found in database",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Facebook data fetched successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("❌ Error fetching Facebook data:", error.message || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching Facebook data",
+      error: error.message || "Unknown error",
+    });
+  }
+};
 
 export const connectAdsAccountController = {
   redirectToFacebookOAuth,
@@ -415,4 +500,5 @@ export const connectAdsAccountController = {
 
   getTiktokAuthUrl,
   handleTiktokCallback,
+  getAllTiktokDataFromDB
 };
