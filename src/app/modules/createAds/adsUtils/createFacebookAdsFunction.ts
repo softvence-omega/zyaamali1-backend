@@ -198,9 +198,10 @@ export const buildFacebookAdObjectiveAndCreative = (
           },
         };
         break;
-
       default:
-        throw new Error(`Unsupported adType: ${adType}`);
+        throw new Error(
+          `Unsupported adType: ${adType} (received: ${JSON.stringify(adType)})`
+        );
     }
   } catch (error: any) {
     console.error(
