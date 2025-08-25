@@ -30,18 +30,6 @@ const getFacebookAccessToken = async (code: string) => {
   return response.data.access_token;
 };
 
-export const getAllFacebookDataFromDB = async () => {
-  try {
-    const data = await ConnectAccountModel.find({ name: "Meta Ads" }).lean();
-
-    return data;
-  } catch (error: any) {
-    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
-    throw new Error("Failed to fetch Facebook data from database");
-  }
-};
-
-
 // for instagram
 
 const getInstagramAccounts = async (
@@ -107,16 +95,6 @@ const getLinkdinAccessToken = async (code: any) => {
     refresh_token_expires_in?: number;
   };
 };
-export const getAllLinkedinDataFromDB = async () => {
-  try {
-    const data = await ConnectAccountModel.find({ name: "LinkedIn Ads" }).lean();
-
-    return data;
-  } catch (error: any) {
-    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
-    throw new Error("Failed to fetch Facebook data from database");
-  }
-};
 
 // for google
 
@@ -160,19 +138,6 @@ export const exchangeCodeForTokens = async (code: string) => {
   }
 };
 
-export const getAllGoogleDataFromDB = async () => {
-  try {
-    const data = await ConnectAccountModel.find({ name: "Google Ads" }).lean();
-
-    return data;
-  } catch (error: any) {
-    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
-    throw new Error("Failed to fetch Facebook data from database");
-  }
-};
-
-
-
 // for tiktok connection
 const getTiktokAuthUrl = () => {
   const base = "https://ads.tiktok.com/marketing_api/auth";
@@ -198,7 +163,6 @@ const exchangeTiktokCodeForToken = async (code: string) => {
       }
     );
 
-
     const { access_token, advertiser_ids } = response.data.data;
 
     return {
@@ -213,32 +177,42 @@ const exchangeTiktokCodeForToken = async (code: string) => {
     throw err;
   }
 };
-export const getAllTiktokDataFromDB = async () => {
+export const getAllDataFromDB = async () => {
   try {
-    const data = await ConnectAccountModel.find({ name: "TikTok Ads" }).lean();
+    const data = await ConnectAccountModel.find().lean();
 
     return data;
   } catch (error: any) {
-    console.error("❌ Error in getAllFacebookDataFromDB:", error.message || error);
+    console.error(
+      "❌ Error in getAllFacebookDataFromDB:",
+      error.message || error
+    );
+    throw new Error("Failed to fetch Facebook data from database");
+  }
+};
+export const updateSingleData = async () => {
+  try {
+    const data = await ConnectAccountModel.find().lean();
+
+    return data;
+  } catch (error: any) {
+    console.error(
+      "❌ Error in getAllFacebookDataFromDB:",
+      error.message || error
+    );
     throw new Error("Failed to fetch Facebook data from database");
   }
 };
 
 export const connectAdsAccountservice = {
-  
   getFacebookAccessToken,
-  getAllFacebookDataFromDB,
 
   getInstagramAccounts,
 
   getLinkdinAuthURL,
   getLinkdinAccessToken,
-  getAllLinkedinDataFromDB,
-
-  getAllGoogleDataFromDB,
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,
-  getAllTiktokDataFromDB
-  
+  getAllDataFromDB,
 };

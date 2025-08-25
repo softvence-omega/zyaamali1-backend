@@ -16,10 +16,6 @@ router.get(
   "/facebook/callback",
   connectAdsAccountController.handleFacebookCallback
 );
-router.get(
-  "/facebook/get-All-Data",
-  connectAdsAccountController.getAllFacebookDataFromDB
-);
 
 
 // for instagram
@@ -45,6 +41,12 @@ router.get("/tiktok-auth", connectAdsAccountController.getTiktokAuthUrl);
 router.get(
   "/tiktok/callback",
   connectAdsAccountController.handleTiktokCallback
+);
+
+
+router.get(
+  "/get-All-Data",
+  connectAdsAccountController.getAllDataFromDB
 );
 
 export const connectAdsAccountRoutes = router;

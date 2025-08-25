@@ -110,33 +110,6 @@ export const handleFacebookCallback = async (req: Request, res: Response) => {
     });
   }
 };
-export const getAllFacebookDataFromDB = async (req: Request, res: Response) => {
-  try {
-    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
-    console.log("reslut -----------", result);
-
-    if (!result || result.length === 0) {
-      return res.json({
-        success: false,
-        message: "No Facebook data found in database",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "✅ Facebook data fetched successfully",
-      data: result,
-    });
-  } catch (error: any) {
-    console.error("❌ Error fetching Facebook data:", error.message || error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching Facebook data",
-      error: error.message || "Unknown error",
-    });
-  }
-};
 
 // for instagram connection
 const handleInstagramConnection = async (req: Request, res: Response) => {
@@ -259,33 +232,6 @@ export const handleLinkedInCallback = async (req: Request, res: Response) => {
     });
   }
 };
-export const getAllLinkedinDataFromDB = async (req: Request, res: Response) => {
-  try {
-    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
-    console.log("reslut -----------", result);
-
-    if (!result || result.length === 0) {
-      return res.json({
-        success: false,
-        message: "No Facebook data found in database",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "✅ Facebook data fetched successfully",
-      data: result,
-    });
-  } catch (error: any) {
-    console.error("❌ Error fetching Facebook data:", error.message || error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching Facebook data",
-      error: error.message || "Unknown error",
-    });
-  }
-};
 
 // for google
 
@@ -314,14 +260,11 @@ const fetchGoogleAdAccounts = async (accessToken: string) => {
     );
   }
 };
-
-// redirect url
 export const googleAuthRedirect = (req: Request, res: Response) => {
   const url = getGoogleOAuthUrl();
   console.log(url);
   res.redirect(url);
 };
-
 // ✅ Google OAuth Callback
 export const googleAuthCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
@@ -375,36 +318,6 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to connect Google Ads account" });
   }
 };
-export const getAllGoogleDataFromDB = async (req: Request, res: Response) => {
-  try {
-    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
-    console.log("reslut -----------", result);
-
-    if (!result || result.length === 0) {
-      return res.json({
-        success: false,
-        message: "No Facebook data found in database",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "✅ Facebook data fetched successfully",
-      data: result,
-    });
-  } catch (error: any) {
-    console.error("❌ Error fetching Facebook data:", error.message || error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching Facebook data",
-      error: error.message || "Unknown error",
-    });
-  }
-};
-
-
-
 
 // for tiktok
 const getTiktokAuthUrl = (req: Request, res: Response) => {
@@ -414,7 +327,6 @@ const getTiktokAuthUrl = (req: Request, res: Response) => {
 
   res.redirect(url);
 };
-
 export const handleTiktokCallback = async (req: Request, res: Response) => {
   const code = req.query.code;
 
@@ -461,9 +373,10 @@ export const handleTiktokCallback = async (req: Request, res: Response) => {
     return res.status(500).send("TikTok OAuth failed");
   }
 };
-export const getAllTiktokDataFromDB = async (req: Request, res: Response) => {
+
+export const getAllDataFromDB = async (req: Request, res: Response) => {
   try {
-    const result = await connectAdsAccountservice.getAllFacebookDataFromDB();
+    const result = await connectAdsAccountservice.getAllDataFromDB();
     console.log("reslut -----------", result);
 
     if (!result || result.length === 0) {
@@ -492,7 +405,7 @@ export const getAllTiktokDataFromDB = async (req: Request, res: Response) => {
 export const connectAdsAccountController = {
   redirectToFacebookOAuth,
   handleFacebookCallback,
-  getAllFacebookDataFromDB,
+
   handleInstagramConnection,
 
   redirectToLinkedIn,
@@ -500,5 +413,5 @@ export const connectAdsAccountController = {
 
   getTiktokAuthUrl,
   handleTiktokCallback,
-  getAllTiktokDataFromDB
+  getAllDataFromDB,
 };
