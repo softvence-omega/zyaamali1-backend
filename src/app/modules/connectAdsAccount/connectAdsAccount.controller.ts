@@ -33,24 +33,28 @@ const redirectToFacebookOAuth = (req: Request, res: Response) => {
   console.log("Redirecting to Facebook OAuth:", authUrl);
   res.redirect(authUrl);
 };
-const handleFacebookCallback = async (req: Request, res: Response) => {
+export const handleFacebookCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
-  if (!code) return res.status(400).send("Authorization code is missing");
+  if (!code)
+    return res
+      .status(400)
+      .json({ success: false, message: "Authorization code is missing" });
 
   try {
     // ✅ Step 1: Exchange code for access token
     const accessToken = await connectAdsAccountservice.getFacebookAccessToken(
       code
     );
-
     FacebookAdsApi.init(accessToken);
 
     // ✅ Step 2: Get Ad Accounts
     const user = new User("me");
     const adAccounts = await user.getAdAccounts(["id", "name"]);
-    if (!adAccounts.length)
-      return res.status(400).send("No ad accounts found.");
-    const selectedAdAccount = adAccounts[0]; // take first one
+    if (!adAccounts.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No ad accounts found" });
+    }
 
     // ✅ Step 3: Get Facebook Pages
     const pagesRes = await axios.get(
@@ -60,53 +64,51 @@ const handleFacebookCallback = async (req: Request, res: Response) => {
       }
     );
 
-    if (!pagesRes.data.data.length) {
-      return res.status(400).send("No Facebook Pages found.");
+    const pages = pagesRes.data.data || [];
+    if (!pages.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No Facebook Pages found" });
     }
 
-    const pages = pagesRes.data.data;
+    // ✅ Step 4: Save or Update DB
+    const storeFacebookData = await ConnectAccountModel.findOneAndUpdate(
+      { name: "Meta Ads" }, // use unique identifier, maybe userId if available
+      {
+        name: "Meta Ads",
+        icon: "https://img.icons8.com/color/48/000000/facebook-new.png",
+        accessToken,
+        adAccount: adAccounts.map((account) => ({
+          id: account.id,
+          name: account.name,
+        })),
+        pages: pages.map((page: any) => ({
+          pageId: page.id,
+          pageName: page.name,
+          pageAccessToken: page.access_token,
+        })),
+      },
+      { new: true, upsert: true } // upsert = insert if not exists
+    );
 
-    const storeFacebookData = await ConnectAccountModel.create({
-      name: "Meta Ads",
-      icon: "https://img.icons8.com/color/48/000000/facebook-new.png",
-      accessToken: accessToken ? accessToken : null,
-      adAccount: adAccounts
-        ? adAccounts.map((account) => ({
-            id: account.id,
-            name: account.name,
-          }))
-        : null,
-      pages: pages
-        ? pages.map((page: any) => ({
-            pageId: page.id,
-            pageName: page.name,
-            pageAccessToken: page.access_token,
-          }))
-        : null,
-    });
+    console.log("✅ Stored Data:", storeFacebookData);
 
-    console.log("store data ", storeFacebookData);
-
+    // ✅ Step 5: Response
     return res.status(200).json({
-      message: "✅ Facebook connected",
-      accessToken,
-      adAccount: adAccounts.map((account) => ({
-        id: account.id,
-        name: account.name,
-      })),
-      page: pages.map((page: any) => ({
-        pageId: page.id,
-
-        pageName: page.name,
-        pageAccessToken: page.access_token,
-      })),
+      success: true,
+      message: "✅ Facebook connected successfully",
+      data: storeFacebookData,
     });
   } catch (error: any) {
     console.error(
       "❌ Facebook OAuth error:",
       error.response?.data || error.message
     );
-    return res.status(500).send("Failed to connect Facebook Ads account");
+    return res.status(500).json({
+      success: false,
+      message: "❌ Failed to connect Facebook Ads account",
+      error: error.response?.data || error.message,
+    });
   }
 };
 
