@@ -87,6 +87,7 @@ export const createAdsFacebookAdService = async (
   accessToken: string,
   adAccountId: string,
   pageId: string,
+  application_id: any,
   adType: string,
   campaignName: string,
   adSetName: string,
@@ -94,13 +95,14 @@ export const createAdsFacebookAdService = async (
   dailyBudget: string,
   targeting: any,
   link: string,
-  application_id: any,
   message: string,
   callToActionType: string,
-  imageUrl: string,
-  videoId: string
+  imageUrl: string | undefined,
+  videoId: string | undefined
 ) => {
   try {
+    console.log(adType, "from service");
+    console.log(campaignName, "campaign from service ");
     // 1️⃣ Build objective + creative
     const { objective, optimizationGoal, billingEvent, creativePayload } =
       buildFacebookAdObjectiveAndCreative(

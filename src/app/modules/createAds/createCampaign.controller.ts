@@ -58,6 +58,7 @@ export const createAdController = async (req: Request, res: Response) => {
       videoId,
     } = req.body;
 
+    console.log(adType,'from controller ')
     // Validate required fields
     if (!accessToken || !adAccountId || !pageId) {
       return res.status(400).json({

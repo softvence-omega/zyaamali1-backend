@@ -16,6 +16,7 @@ export const buildFacebookAdObjectiveAndCreative = (
   let optimizationGoal = "";
   let billingEvent = "IMPRESSIONS";
   let creativePayload: any = {};
+  console.log(adType)
 
   try {
     switch (adType) {
