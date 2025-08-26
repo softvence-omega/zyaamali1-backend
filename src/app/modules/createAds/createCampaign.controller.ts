@@ -57,8 +57,9 @@ export const createAdController = async (req: Request, res: Response) => {
       imageUrl,
       videoId,
     } = req.body;
+    console.log(req.body);
 
-    console.log(adType,'from controller ')
+    console.log(adType, "from controller ");
     // Validate required fields
     if (!accessToken || !adAccountId || !pageId) {
       return res.status(400).json({
@@ -122,6 +123,7 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
     images,
     videoUrl,
   } = req.body;
+  console.log(req.body)
 
   if (!customerId || !refreshToken || !finalUrl || !adType) {
     return res.status(400).json({ message: "Missing required fields." });

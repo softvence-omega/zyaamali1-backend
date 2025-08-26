@@ -346,7 +346,7 @@ export const createAd = async (
     }
 
     const ad = await customer.adGroupAds.create([adCreatePayload]);
-    console.log("facebook ad  created finally", ad.results);
+    console.log("google ad  created finally", ad.results);
     return ad.results[0];
   } catch (err: any) {
     console.error("Google Ads API error:", JSON.stringify(err, null, 2));
