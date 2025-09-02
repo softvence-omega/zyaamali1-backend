@@ -217,22 +217,43 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 // tiktok
 
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
-  const othersField = req.body.othersField;
+  const {
+    campaign_name,
+    adgroup_name,
+    ad_name,
+    ad_text,
+    call_to_action,
+    landing_page_url,
+    budget,
+    bid_price,
+    objective_type,
+    promotion_type,
+    location_ids,
+    post_id,
+  } = JSON.parse(req.body.othersField);
+
+  console.log(req.body.othersField);
+  console.log(
+    campaign_name,
+    adgroup_name,
+    ad_name,
+    ad_text,
+    call_to_action,
+    landing_page_url,
+    budget,
+    bid_price,
+    objective_type,
+    promotion_type,
+    location_ids,
+    post_id,
+    "bodyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+  );
+
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     const videoFile = files?.videoPath?.[0];
     const imageFile = files?.imagePath?.[0];
     const carouselFiles = files?.carouselImages;
-
-    const othersField = req.body.othersField;
-    console.log(othersField);
-
-    // console.log(req.body, "bodyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
-    console.log(
-      videoFile,
-      imageFile,
-      "filessssssssssssssssssssssssssssssssssssss"
-    );
 
     // if (!adType) {
     //   return res.status(400).json({ error: "adType is required" });
@@ -270,31 +291,31 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
       : [];
 
     // Pass dynamic data from req.body
-    const result = await createTikTokFullAd(
-      adType,
-      videoFile?.path,
-      imageFile?.path,
-      post_id,
-      carouselImagePaths.length > 0 ? carouselImagePaths : undefined,
-      {
-        campaign_name,
-        adgroup_name,
-        ad_name,
-        ad_text,
-        call_to_action,
-        landing_page_url,
-        budget: Number(budget) || 100,
-        bid_price: Number(bid_price) || 2,
-        objective_type: objective_type || "TRAFFIC",
-        promotion_type: promotion_type || "WEBSITE",
-        location_ids: location_ids ? location_ids.split(",") : ["1210997"],
-      }
-    );
+    // const result = await createTikTokFullAd(
+    //   adType,
+    //   videoFile?.path,
+    //   imageFile?.path,
+    //   post_id,
+    //   carouselImagePaths.length > 0 ? carouselImagePaths : undefined,
+    //   {
+    //     campaign_name,
+    //     adgroup_name,
+    //     ad_name,
+    //     ad_text,
+    //     call_to_action,
+    //     landing_page_url,
+    //     budget: Number(budget) || 100,
+    //     bid_price: Number(bid_price) || 2,
+    //     objective_type: objective_type || "TRAFFIC",
+    //     promotion_type: promotion_type || "WEBSITE",
+    //     location_ids: location_ids ? location_ids.split(",") : ["1210997"],
+    //   }
+    // );
 
     res.json({
       success: true,
       message: "TikTok ad created successfully",
-      data: result,
+      // data: result,
     });
   } catch (error: any) {
     console.error("❌ TikTok Ad create error:", error.message);
