@@ -27,7 +27,7 @@ router.post("/linkedin/create-ad", createCampaignController.createLinkedInAd);
 // tiktok
 
 router.post(
-  "/tiktok/ad/full",
+  "/tiktok/create-ad",
   upload.fields([
     { name: "videoPath", maxCount: 1 },
     { name: "imagePath", maxCount: 1 },

@@ -231,7 +231,7 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     promotion_type,
     location_ids,
     post_id,
-  } = JSON.parse(req.body.othersField);
+  } = JSON.parse(req.body?.othersField);
 
   console.log(
     campaign_name,
