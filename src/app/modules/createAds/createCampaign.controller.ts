@@ -231,9 +231,7 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     promotion_type,
     location_ids,
     post_id,
-  } = req.body?.othersField
-
-  console.log(req.body);
+  } = JSON.parse(req.body?.othersField);
 
   console.log(
     campaign_name,
@@ -258,9 +256,9 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     const imageFile = files?.imagePath?.[0];
     const carouselFiles = files?.carouselImages;
 
-    // if (!adType) {
-    //   return res.status(400).json({ error: "adType is required" });
-    // }
+    if (!adType) {
+      return res.status(400).json({ error: "adType is required" });
+    }
 
     // Ad type validation
     switch (adType) {
