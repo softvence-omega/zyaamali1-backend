@@ -123,7 +123,7 @@ export const createGoogleAdController = async (req: Request, res: Response) => {
     images,
     videoUrl,
   } = req.body;
-  console.log(req.body)
+  console.log(req.body);
 
   if (!customerId || !refreshToken || !finalUrl || !adType) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -219,26 +219,38 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    const videoFile = files.videoPath?.[0];
-    const imageFile = files.imagePath?.[0];
-    const carouselFiles = files.carouselImages; // array of files for carousel
+    const videoFile = files?.videoPath?.[0];
+    const imageFile = files?.imagePath?.[0];
+    const carouselFiles = files?.carouselImages; // array of files for carousel
 
-    const { adType, postId } = req.body;
+    const { adType, post_id } = req.body;
+    console.log(req.body)
 
     if (!adType) {
       return res.status(400).json({ error: "adType is required" });
     }
 
-    // Validation depending on ad type
+    // Validation depending on ad type - UPDATED BASED ON SERVICE LOGIC
     switch (adType) {
       case "SINGLE_VIDEO":
-      case "TOPVIEW":
-      case "SPARK_AD":
         if (!videoFile) {
           return res
             .status(400)
-            .json({ error: "videoPath is required for this ad type" });
+            .json({ error: "videoPath is required for SINGLE_VIDEO ads" });
         }
+        break;
+
+      case "SPARK_AD":
+        // For SPARK_AD, video is optional but postId is required for TT_USER accounts
+        if (!post_id) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "postId is required for SPARK_AD when using TT_USER accounts",
+            });
+        }
+        // Video is optional for Spark Ads (can use existing post content)
         break;
 
       case "SINGLE_IMAGE":
@@ -269,18 +281,41 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     // Call your TikTok ad creation function
     const result = await createTikTokFullAd(
       adType,
-      videoFile?.path || "",
-      imageFile?.path || "",
-      postId || "",
-      carouselImagePaths
+      videoFile?.path,
+      imageFile?.path,
+      post_id,
+      carouselImagePaths.length > 0 ? carouselImagePaths : undefined
     );
 
-    res.json(result);
+    res.json({
+      success: true,
+      message: "TikTok ad created successfully",
+      data: result,
+    });
   } catch (error: any) {
     console.error("❌ TikTok Ad create error:", error.message);
-    res.status(500).json({ error: "Failed to create TikTok ad" });
+
+    // More specific error responses
+    if (error.message.includes("TT_USER accounts require postId")) {
+      return res.status(400).json({
+        error: "postId is required for Spark Ads with TT_USER accounts",
+      });
+    }
+
+    if (error.response?.data) {
+      return res.status(500).json({
+        error: "TikTok API error",
+        details: error.response.data,
+      });
+    }
+
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to create TikTok ad" });
   }
 };
+
+
 
 export const createCampaignController = {
   createAdController,

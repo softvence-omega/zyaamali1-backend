@@ -61,6 +61,8 @@ export const uploadImage = async (imagePath: string) => {
       throw new Error(`Image upload failed: ${res.data.message}`);
     }
 
+    console.log("✅ Uploaded image_id:", res.data.data.image_id);
+
     return res.data.data.image_id;
   } catch (error: any) {
     console.error(
@@ -85,14 +87,16 @@ export const uploadCarouselImages = async (images: string[]) => {
 };
 
 // ========================= CAMPAIGN / ADGROUP =========================
-export const createTiktokCampaign = async () => {
+export const createTiktokCampaign = async (
+  objective: "TRAFFIC" | "CONVERSIONS" = "TRAFFIC"
+) => {
   try {
     const res = await axios.post(
       `${BASE_URL}/campaign/create/`,
       {
         advertiser_id: ADVERTISER_ID,
-        campaign_name: `My Campaign ${Date.now()}`,
-        objective_type: "TRAFFIC",
+        campaign_name: `Traffic Campaign ${Date.now()}`,
+        objective_type: objective, // TRAFFIC for Website Clicks
         budget_mode: "BUDGET_MODE_DAY",
         budget: 100,
         operation_status: "DISABLE",
@@ -122,19 +126,19 @@ export const createTiktokAdGroup = async (campaign_id: string) => {
       {
         advertiser_id: ADVERTISER_ID,
         campaign_id,
-        adgroup_name: `AdGroup ${Date.now()}`,
-        promotion_type: "WEBSITE",
+        adgroup_name: `Traffic AdGroup ${Date.now()}`,
+        promotion_type: "WEBSITE", // Website Clicks
         placement_type: "PLACEMENT_TYPE_NORMAL",
         placements: ["PLACEMENT_TIKTOK"],
         schedule_type: "SCHEDULE_FROM_NOW",
         schedule_start_time: getUTCDateTime(),
         budget_mode: "BUDGET_MODE_DAY",
         budget: 100,
-        billing_event: "CPC",
-        optimization_goal: "CLICK",
+        billing_event: "CPC", // Pay per click
+        optimization_goal: "CLICK", // Optimize for website clicks
         bid_type: "BID_TYPE_CUSTOM",
         operation_status: "DISABLE",
-        location_ids: ["1210997"],
+        location_ids: ["1210997"], // Country/location targeting
         bid_price: 2,
       },
       { headers }
@@ -193,7 +197,7 @@ export const buildCreativePayload = (
       case "SINGLE_VIDEO":
         return {
           ad_format: "SINGLE_VIDEO",
-          ad_name: "Video Creative",
+          ad_name: "Video Traffic Ad",
           ad_text: "Check this out!",
           call_to_action: "LEARN_MORE",
           landing_page_url: "https://adelo.ai",
@@ -203,10 +207,22 @@ export const buildCreativePayload = (
           ...identity,
         };
 
+      case "SPARK_AD":
+        return {
+          ad_format: "SINGLE_VIDEO",
+          ad_name: "Spark Post Traffic Ad",
+          ad_text: "Check this out!",
+          call_to_action: "LEARN_MORE",
+          landing_page_url: "https://adelo.ai",
+          post_id: postId,
+          display_name: "MyBrand",
+          ...identity,
+        };
+
       case "SINGLE_IMAGE":
         return {
           ad_format: "SINGLE_IMAGE",
-          ad_name: "Image Creative",
+          ad_name: "Image Traffic Ad",
           ad_text: "Discover now!",
           call_to_action: "LEARN_MORE",
           landing_page_url: "https://adelo.ai",
@@ -215,22 +231,11 @@ export const buildCreativePayload = (
           ...identity,
         };
 
-      case "SPARK_AD":
-        if (!postId) throw new Error("Spark Ad requires a valid postId");
-        return {
-          ad_format: "SINGLE_VIDEO",
-          ad_name: "Spark Ad Creative",
-          call_to_action: "LEARN_MORE",
-          spark_ad_type: 1,
-          promotion_post_id: postId,
-          ...identity,
-        };
-
       case "CAROUSEL":
         return {
           ad_format: "CAROUSEL_ADS",
-          ad_name: "Carousel Creative",
-          ad_text: "Swipe to explore more!",
+          ad_name: "Carousel Traffic Ad",
+          ad_text: "Swipe to explore!",
           call_to_action: "LEARN_MORE",
           landing_page_url: "https://adelo.ai",
           display_name: "MyBrand",

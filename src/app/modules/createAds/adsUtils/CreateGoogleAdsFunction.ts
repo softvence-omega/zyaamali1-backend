@@ -187,7 +187,7 @@ export const createCampaign = async (
         campaign_budget: budgetResourceName,
       },
     ]);
-    console.log("facebook campaign created", campaign.results[0]);
+    console.log("google  campaign created", campaign.results[0]);
     return campaign.results[0].resource_name;
   } catch (err: any) {
     throw new Error(`❌ Failed to create campaign: ${err.message}`);
@@ -209,7 +209,7 @@ export const createAdGroup = async (
         cpc_bid_micros: cpcBidMicros || 1_000_000,
       },
     ]);
-    console.log("facebook ad group created", adGroup.results);
+    console.log("google ad group created", adGroup.results);
     return adGroup.results[0].resource_name;
   } catch (err: any) {
     throw new Error(`❌ Failed to create ad group: ${err.message}`);
