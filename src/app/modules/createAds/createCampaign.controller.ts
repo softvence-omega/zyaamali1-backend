@@ -316,7 +316,7 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     res.json({
       success: true,
       message: "TikTok ad created successfully",
-      // data: result,
+      data: result,
     });
   } catch (error: any) {
     console.error("❌ TikTok Ad create error:", error.message);

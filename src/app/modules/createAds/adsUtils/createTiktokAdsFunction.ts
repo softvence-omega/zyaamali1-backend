@@ -106,6 +106,11 @@ export const createTiktokCampaign = async (
     { headers }
   );
 
+
+  if(res.data){
+    console.log("campaign created response ",res.data.data.campaign_id,);
+  }
+
   if (res.data.code !== 0)
     throw new Error(`Campaign creation failed: ${res.data.message}`);
   return res.data.data.campaign_id;
@@ -141,6 +146,10 @@ export const createTiktokAdGroup = async (
     },
     { headers }
   );
+
+   if(res.data){
+    console.log("ads group created response ",);
+  }
 
   if (res.data.code !== 0)
     throw new Error(`Ad group creation failed: ${res.data.message}`);
@@ -188,7 +197,7 @@ export const buildCreativePayload = (
   }
 
 ) => {
-  console.log(options, "options===================from buildCreativePayload");
+
   const common = {
     ad_text: options?.ad_text || "Default ad text",
     call_to_action: options?.call_to_action || "LEARN_MORE",
@@ -196,7 +205,6 @@ export const buildCreativePayload = (
     display_name: options?.display_name || "MyBrand",
     ...identity,
   };
-  console.log(common, "common===================from buildCreativePayload");
 
   const ad_name = options?.ad_name || `Ads ${Date.now()}`;
 
@@ -245,6 +253,11 @@ export const createTiktokAd = async (
     },
     { headers }
   );
+
+   if(res.data){
+    console.log("ads created response ",res.data.data.ad_ids,);
+  }
+
 
   if (res.data.code !== 0)
     throw new Error(`Ad creation failed: ${res.data.message}`);
