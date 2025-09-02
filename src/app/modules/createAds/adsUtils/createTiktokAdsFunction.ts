@@ -184,8 +184,11 @@ export const buildCreativePayload = (
     call_to_action?: string;
     landing_page_url?: string;
     display_name?: string;
+    ad_name?: string;
   }
+
 ) => {
+  console.log(options, "options===================from buildCreativePayload");
   const common = {
     ad_text: options?.ad_text || "Default ad text",
     call_to_action: options?.call_to_action || "LEARN_MORE",
@@ -196,7 +199,7 @@ export const buildCreativePayload = (
 
   switch (adType) {
     case "SINGLE_VIDEO":
-      return { ad_format: "SINGLE_VIDEO", video_id: ids.video_id, ...common };
+      return { ad_format: "SINGLE_VIDEO",  video_id: ids.video_id, ...common };
     case "SPARK_AD":
       return { ad_format: "SINGLE_VIDEO", post_id: postId, ...common };
     case "SINGLE_IMAGE":
@@ -227,6 +230,7 @@ export const createTiktokAd = async (
   adType: string,
   ad_name?: string
 ) => {
+  console.log(ad_name, "ad_name===================from createTiktokAd");
   const res = await axios.post(
     `${BASE_URL}/ad/create`,
     {

@@ -221,6 +221,7 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     campaign_name,
     adgroup_name,
     ad_name,
+    adType,
     ad_text,
     call_to_action,
     landing_page_url,
@@ -232,7 +233,6 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     post_id,
   } = JSON.parse(req.body.othersField);
 
-  console.log(req.body.othersField);
   console.log(
     campaign_name,
     adgroup_name,
@@ -241,6 +241,7 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     call_to_action,
     landing_page_url,
     budget,
+    adType,
     bid_price,
     objective_type,
     promotion_type,
@@ -255,9 +256,9 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     const imageFile = files?.imagePath?.[0];
     const carouselFiles = files?.carouselImages;
 
-    // if (!adType) {
-    //   return res.status(400).json({ error: "adType is required" });
-    // }
+    if (!adType) {
+      return res.status(400).json({ error: "adType is required" });
+    }
 
     // Ad type validation
     switch (adType) {
@@ -291,26 +292,26 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
       : [];
 
     // Pass dynamic data from req.body
-    // const result = await createTikTokFullAd(
-    //   adType,
-    //   videoFile?.path,
-    //   imageFile?.path,
-    //   post_id,
-    //   carouselImagePaths.length > 0 ? carouselImagePaths : undefined,
-    //   {
-    //     campaign_name,
-    //     adgroup_name,
-    //     ad_name,
-    //     ad_text,
-    //     call_to_action,
-    //     landing_page_url,
-    //     budget: Number(budget) || 100,
-    //     bid_price: Number(bid_price) || 2,
-    //     objective_type: objective_type || "TRAFFIC",
-    //     promotion_type: promotion_type || "WEBSITE",
-    //     location_ids: location_ids ? location_ids.split(",") : ["1210997"],
-    //   }
-    // );
+    const result = await createTikTokFullAd(
+      adType,
+      videoFile?.path,
+      imageFile?.path,
+      post_id,
+      carouselImagePaths.length > 0 ? carouselImagePaths : undefined,
+      {
+        campaign_name,
+        adgroup_name,
+        ad_name,
+        ad_text,
+        call_to_action,
+        landing_page_url,
+        budget: Number(budget) || 100,
+        bid_price: Number(bid_price) || 2,
+        objective_type: objective_type || "TRAFFIC",
+        promotion_type: promotion_type || "WEBSITE",
+        location_ids: location_ids ? location_ids.split(",") : ["1210997"],
+      }
+    );
 
     res.json({
       success: true,
