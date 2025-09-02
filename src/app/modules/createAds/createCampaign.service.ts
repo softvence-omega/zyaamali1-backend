@@ -386,12 +386,24 @@ export const createTikTokFullAd = async (
   videoPath?: string,
   imagePath?: string,
   postId?: string,
-  carouselImages?: string[]
+  carouselImages?: string[],
+  options?: {
+    campaign_name?: string;
+    adgroup_name?: string;
+    ad_name?: string;
+    ad_text?: string;
+    call_to_action?: string;
+    landing_page_url?: string;
+    budget?: number;
+    bid_price?: number;
+    objective_type?: string;
+    promotion_type?: string;
+    location_ids?: string[];
+  }
 ) => {
   try {
     console.log(`📦 Starting TikTok ${adType} ad creation flow`);
 
-    // Step 1: Upload Media
     const video_id =
       ["SINGLE_VIDEO", "SPARK_AD"].includes(adType) && videoPath
         ? await uploadVideo(videoPath)
@@ -407,25 +419,38 @@ export const createTikTokFullAd = async (
         ? await uploadCarouselImages(carouselImages)
         : [];
 
-    // Step 2: Create Campaign + AdGroup
-    const campaign_id = await createTiktokCampaign();
-    const adgroup_id = await createTiktokAdGroup(campaign_id);
+    // Campaign & AdGroup with dynamic values
+    const campaign_id = await createTiktokCampaign(
+      options?.objective_type as any,
+      options?.campaign_name,
+      options?.budget
+    );
 
-    // Step 3: Get Identity
+    const adgroup_id = await createTiktokAdGroup(
+      campaign_id,
+      options?.adgroup_name,
+      options?.promotion_type,
+      options?.budget,
+      options?.bid_price,
+      options?.location_ids
+    );
+
     const identity = await getIdentity();
 
-    // Step 4: Build Creative
     const creativePayload = buildCreativePayload(
       adType,
       { video_id, image_id, image_ids },
       identity,
-      postId
+      postId,
+      options
     );
 
-    // Step 5: Create Ad
-    const adId = await createTiktokAd(adgroup_id, creativePayload, adType);
-
-    console.log("✅ Ad created:", adId);
+    const adId = await createTiktokAd(
+      adgroup_id,
+      creativePayload,
+      adType,
+      options?.ad_name
+    );
 
     return {
       adType,
