@@ -196,10 +196,13 @@ export const buildCreativePayload = (
     display_name: options?.display_name || "MyBrand",
     ...identity,
   };
+  console.log(common, "common===================from buildCreativePayload");
+
+  const ad_name = options?.ad_name || `Ads ${Date.now()}`;
 
   switch (adType) {
     case "SINGLE_VIDEO":
-      return { ad_format: "SINGLE_VIDEO",  video_id: ids.video_id, ...common };
+      return { ad_format: "SINGLE_VIDEO", ad_name, video_id: ids.video_id,image_ids:[ids.image_id], ...common };
     case "SPARK_AD":
       return { ad_format: "SINGLE_VIDEO", post_id: postId, ...common };
     case "SINGLE_IMAGE":
