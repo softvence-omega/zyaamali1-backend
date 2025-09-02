@@ -217,38 +217,26 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 // tiktok
 
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
+  const othersField = req.body.othersField;
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     const videoFile = files?.videoPath?.[0];
     const imageFile = files?.imagePath?.[0];
     const carouselFiles = files?.carouselImages;
 
-    const {
-      adType,
-      post_id,
-      campaign_name,
-      adgroup_name,
-      ad_name,
-      ad_text,
-      call_to_action,
-      landing_page_url,
-      budget,
-      bid_price,
-      objective_type,
-      promotion_type,
-      location_ids,
-    } = req.body;
+    const othersField = req.body.othersField;
+    console.log(othersField);
 
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    const videoFile = files?.videoPath?.[0];
-    const imageFile = files?.imagePath?.[0];
-    const carouselFiles = files?.carouselImages;
+    // console.log(req.body, "bodyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+    console.log(
+      videoFile,
+      imageFile,
+      "filessssssssssssssssssssssssssssssssssssss"
+    );
 
-    console.log(req.body, "bodyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
-
-    if (!adType) {
-      return res.status(400).json({ error: "adType is required" });
-    }
+    // if (!adType) {
+    //   return res.status(400).json({ error: "adType is required" });
+    // }
 
     // Ad type validation
     switch (adType) {
