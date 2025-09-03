@@ -9,7 +9,8 @@ import { verifyToken } from "../modules/auth/auth.utils";
 
 const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req, res, next) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization; // "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    const token = authHeader && authHeader.split(" ")[1];
 
     //Check if token is sent
     if (!token) {
