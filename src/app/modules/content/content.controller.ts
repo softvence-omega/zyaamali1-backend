@@ -17,6 +17,7 @@ const postGenaratedContent = catchAsync(async (req: Request, res: Response) => {
     ...req.body,
     owner: req.loggedInUser.userId
   }
+  
   // console.log(contentData, "contentData");
   const result = await contentService.postGenaratedContentIntoDB(contentData);
   sendResponse(res, { statusCode: status.CREATED, success: true, message: "Created successfully", data: result });

@@ -97,6 +97,7 @@ export const contentService = {
   },
 
   async postGenaratedContentIntoDB(data: IContent) {
+    
     // console.log(data);
 
     const isContentExists = await ContentModel.exists({
