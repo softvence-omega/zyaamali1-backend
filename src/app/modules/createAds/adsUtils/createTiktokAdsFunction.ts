@@ -148,7 +148,7 @@ export const createTiktokAdGroup = async (
   );
 
    if(res.data){
-    console.log("ads group created response ",);
+    console.log("ads group created  ",);
   }
 
   if (res.data.code !== 0)
@@ -197,6 +197,7 @@ export const buildCreativePayload = (
   }
 
 ) => {
+  console.log(ids, "ids===================from buildCreativePayload");
 
   const common = {
     ad_text: options?.ad_text || "Default ad text",
@@ -255,7 +256,7 @@ export const createTiktokAd = async (
   );
 
    if(res.data){
-    console.log("ads created response ",res.data.data.ad_ids,);
+    console.log("ads created response ",res.data,);
   }
 
 

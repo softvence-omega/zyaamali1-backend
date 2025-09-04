@@ -401,6 +401,7 @@ export const createTikTokFullAd = async (
     location_ids?: string[];
   }
 ) => {
+  console.log('ads objectivbe ',options?.objective_type)
  
   try {
     console.log(`📦 Starting TikTok ${adType} ad creation flow`);

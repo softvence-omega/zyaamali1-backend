@@ -8,10 +8,27 @@ import {
   getLinkedinController,
 } from "./createCampaign.controller";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = express.Router();
 
-const upload = multer({ dest: "uploads/" });
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+// Multer storage
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (_req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 1024 * 1024 * 200, // 200MB
+    files: 20,
+  },
+});
 
 // facebook
 router.post("/facebook/lead-form", createLeadFormController);
@@ -28,7 +45,7 @@ router.post("/linkedin/create-ad", createCampaignController.createLinkedInAd);
 
 router.post(
   "/tiktok/create-ad",
-  upload.fields([
+ upload.fields([
     { name: "videoPath", maxCount: 1 },
     { name: "imagePath", maxCount: 1 },
     { name: "carouselImages", maxCount: 10 },

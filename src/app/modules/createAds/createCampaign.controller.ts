@@ -218,10 +218,11 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 // tiktok
 
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
-  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  const videoPath = files?.videoPath?.[0];
-  const imagePath = files?.imagePath?.[0];
-  const carouselFiles = files?.carouselImages;
+
+  const files = req.files as { [k: string]: Express.Multer.File[] } | undefined;
+  const video = files?.videoPath?.[0];
+  const image = files?.imagePath?.[0];
+  const carousel = files?.carouselImages || [];
 
   const {
     campaign_name,
@@ -238,24 +239,6 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     location_ids,
     post_id,
   } = req.body;
-  console.log(req.body.othersField);
-
-  // console.log(
-  //   campaign_name,
-  //   adgroup_name,
-  //   ad_name,
-  //   ad_text,
-  //   call_to_action,
-  //   landing_page_url,
-  //   budget,
-  //   adType,
-  //   bid_price,
-  //   objective_type,
-  //   promotion_type,
-  //   location_ids,
-  //   post_id,
-  //   "bodyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
-  // );
 
   try {
     if (!adType) {
@@ -265,38 +248,39 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     // Ad type validation
     switch (adType) {
       case "SINGLE_VIDEO":
-        if (videoPath)
+        if (!video) {
           return res.status(400).json({ error: "videoPath is required" });
+        }
         break;
       case "SPARK_AD":
-        if (!post_id)
-          return res
-            .status(400)
-            .json({ error: "postId is required for SPARK_AD" });
+        if (!post_id) {
+          return res.status(400).json({
+            error: "postId is required for SPARK_AD",
+          });
+        }
         break;
       case "SINGLE_IMAGE":
-        if (!imagePath)
+        if (!image) {
           return res.status(400).json({ error: "imagePath is required" });
+        }
         break;
       case "CAROUSEL":
-        if (!carouselFiles || carouselFiles.length === 0) {
-          return res
-            .status(400)
-            .json({ error: "At least one carousel image is required" });
+        if (!carousel || carousel.length === 0) {
+          return res.status(400).json({
+            error: "At least one carousel image is required",
+          });
         }
         break;
       default:
         return res.status(400).json({ error: "Unsupported ad type" });
     }
 
-    const carouselImagePaths = carouselFiles
-      ? carouselFiles.map((f) => f.path)
-      : [];
+    const carouselImagePaths = carousel.map((f) => f.path);
 
     const result = await createTikTokFullAd(
       adType,
-      videoPath?.path,
-      imagePath?.path,
+      video?.path,
+      image?.path,
       post_id,
       carouselImagePaths.length > 0 ? carouselImagePaths : undefined,
       {
@@ -310,23 +294,25 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
         bid_price: Number(bid_price) || 2,
         objective_type: objective_type || "TRAFFIC",
         promotion_type: promotion_type || "WEBSITE",
-        location_ids: ["1210997"],
+        location_ids: location_ids || ["1210997"],
       }
     );
+
     console.log("✅ TikTok Ad created:", result);
 
     res.json({
       success: true,
       message: "TikTok ad created successfully",
-      // data: result,
+      data: result,
     });
   } catch (error: any) {
     console.error("❌ TikTok Ad create error:", error.message);
-    res
-      .status(500)
-      .json({ error: error.message || "Failed to create TikTok ad" });
+    res.status(500).json({
+      error: error.message || "Failed to create TikTok ad",
+    });
   }
 };
+
 
 export const createCampaignController = {
   createAdController,
