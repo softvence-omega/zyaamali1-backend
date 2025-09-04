@@ -315,7 +315,8 @@ export const getLinkedinCampaignsService = async (
   return data;
 };
 
-export const createLinkedInAd = async ({
+
+export const createLinkedInTextAd = async ({
   accessToken,
   advertiserId,
   campaignName,
@@ -330,30 +331,33 @@ export const createLinkedInAd = async ({
 
   // 1️⃣ Create Campaign
   const campaignRes = await axios.post(
-    "https://api.linkedin.com/v2/adCampaigns",
+    "https://api.linkedin.com/v2/adCampaignsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
       name: campaignName,
       dailyBudget: { amount: 1000, currencyCode: "USD" },
-      type: "TEXT_AD", // or "SPONSORED_UPDATES"
       status: "ACTIVE",
+      runSchedule: {
+        start: new Date().toISOString(),
+      },
+      type: "TEXT_AD", // For sidebar text ads
     },
     { headers }
   );
 
   const campaignId = campaignRes.data.id;
 
-  // 2️⃣ Create Creative
+  // 2️⃣ Create Text Ad Creative
   const creativeRes = await axios.post(
-    "https://api.linkedin.com/v2/adCreatives",
+    "https://api.linkedin.com/v2/adCreativesV2",
     {
       campaign: `urn:li:sponsoredCampaign:${campaignId}`,
-      reference: {
-        reference: {
-          textAd: {
-            headline: creativeText,
-            landingPageUrl: landingPageUrl,
-          },
+      type: "TEXT_AD",
+      variables: {
+        textAd: {
+          headline: creativeText,
+          landingPageUrl,
+          description: "This is a sample text ad created via API",
         },
       },
     },
@@ -362,21 +366,11 @@ export const createLinkedInAd = async ({
 
   const creativeId = creativeRes.data.id;
 
-  // 3️⃣ Create Ad
-  const adRes = await axios.post(
-    "https://api.linkedin.com/v2/adDirectSponsoredContents",
-    {
-      account: `urn:li:sponsoredAccount:${advertiserId}`,
-      creative: `urn:li:sponsoredCreative:${creativeId}`,
-      status: "ACTIVE",
-    },
-    { headers }
-  );
-
+  // ✅ Return details
   return {
     campaignId,
     creativeId,
-    ad: adRes.data,
+    creative: creativeRes.data,
   };
 };
 
@@ -471,5 +465,5 @@ export const createTikTokFullAd = async (
 
 export const createCampaignService = {
   createAdsFacebookAdService,
-  createLinkedInAd,
+  createLinkedInTextAd,
 };

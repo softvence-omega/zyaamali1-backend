@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   createCampaignService,
   createGoogleAdService,
+  createLinkedInTextAd,
   createTikTokFullAd,
   facebookLeadFormService,
   getLinkedinCampaignsService,
@@ -179,6 +180,7 @@ export const getLinkedinController = async (req: Request, res: Response) => {
   }
 };
 
+
 export const createLinkedInAd = async (req: Request, res: Response) => {
   try {
     const {
@@ -189,24 +191,17 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
       landingPageUrl,
     } = req.body;
 
-    if (
-      !accessToken ||
-      !advertiserId ||
-      !campaignName ||
-      !creativeText ||
-      !landingPageUrl
-    ) {
+    if (!accessToken || !advertiserId || !campaignName || !creativeText || !landingPageUrl) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const ad = await createCampaignService.createLinkedInAd({
+    const ad = await createLinkedInTextAd({
       accessToken,
       advertiserId,
       campaignName,
       creativeText,
       landingPageUrl,
     });
-    console.log("linkedin ads ", ad);
 
     res.json(ad);
   } catch (error: any) {
