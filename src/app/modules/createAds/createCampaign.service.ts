@@ -315,7 +315,6 @@ export const getLinkedinCampaignsService = async (
   return data;
 };
 
-
 export const createLinkedInTextAd = async ({
   accessToken,
   advertiserId,
@@ -329,18 +328,38 @@ export const createLinkedInTextAd = async ({
     "Content-Type": "application/json",
   };
 
+  const groupRes = await axios.post(
+    "https://api.linkedin.com/v2/adCampaignGroupsV2",
+    {
+      account: `urn:li:sponsoredAccount:${advertiserId}`,
+      name: "My Campaign Group22",
+      status: "ACTIVE",
+      runSchedule: { start: Date.now() },
+    },
+    { headers }
+  );
+
+  // Correct URN — LinkedIn v2 usually returns `id` OR `entityUrn`
+  const campaignGroupUrn = groupRes.data.entityUrn || groupRes.data.id;
+
+  // Validate
+  // if (!campaignGroupUrn) {
+  //   throw new Error("Failed to create campaign group or retrieve URN");
+  // }
+
+  console.log("Campaign Group URN:", campaignGroupUrn);
+
   // 1️⃣ Create Campaign
   const campaignRes = await axios.post(
     "https://api.linkedin.com/v2/adCampaignsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
+      campaignGroup: campaignGroupUrn, // ✅ pass the correct URN
       name: campaignName,
-      dailyBudget: { amount: 1000, currencyCode: "USD" },
+      dailyBudget: { amount: "1000", currencyCode: "USD" },
+      runSchedule: { start: Date.now() },
+      type: "TEXT_AD",
       status: "ACTIVE",
-      runSchedule: {
-        start: new Date().toISOString(),
-      },
-      type: "TEXT_AD", // For sidebar text ads
     },
     { headers }
   );
@@ -395,8 +414,8 @@ export const createTikTokFullAd = async (
     location_ids?: string[];
   }
 ) => {
-  console.log('ads objectivbe ',options?.objective_type)
- 
+  console.log("ads objectivbe ", options?.objective_type);
+
   try {
     console.log(`📦 Starting TikTok ${adType} ad creation flow`);
 
