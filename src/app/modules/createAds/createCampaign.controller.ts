@@ -218,7 +218,6 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 // tiktok
 
 export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
-
   const files = req.files as { [k: string]: Express.Multer.File[] } | undefined;
   const video = files?.videoPath?.[0];
   const image = files?.imagePath?.[0];
@@ -312,7 +311,6 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 export const createCampaignController = {
   createAdController,
