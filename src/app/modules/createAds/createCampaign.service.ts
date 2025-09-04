@@ -346,6 +346,8 @@ export const createLinkedInTextAd = async ({
   // if (!campaignGroupUrn) {
   //   throw new Error("Failed to create campaign group or retrieve URN");
   // }
+  console.log("Campaign Group Response:", groupRes.data);
+
 
   console.log("Campaign Group URN:", campaignGroupUrn);
 
