@@ -309,7 +309,6 @@ export const getLinkedinCampaignsService = async (
   return data;
 };
 
-
 interface LinkedInAdInput {
   accessToken: string;
   advertiserId: string;
@@ -318,7 +317,8 @@ interface LinkedInAdInput {
   landingPageUrl: string;
 }
 
-const microsToString = (amount: number) => Math.floor(amount * 1_000_000).toString();
+const microsToString = (amount: number) =>
+  Math.floor(amount * 1_000_000).toString();
 
 export const createLinkedInTextAd = async ({
   accessToken,
@@ -339,32 +339,34 @@ export const createLinkedInTextAd = async ({
     console.log("Starting LinkedIn ad creation process...");
     console.log("Using advertiser ID:", advertiserId);
 
-    // ✅ Create Campaign with string amounts
+    // Use your existing campaign group URN
+    const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773618674";
+    console.log("Using existing campaign group:", campaignGroupUrn);
+
+    // ✅ Step 1: Create Campaign
     console.log("Creating campaign...");
-    
+
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
       {
         account: `urn:li:sponsoredAccount:${advertiserId}`,
+        campaignGroup: campaignGroupUrn,
         name: campaignName,
-        dailyBudget: { 
-          amount: microsToString(5), // $5 daily budget as string
-          currencyCode: "USD" 
+        dailyBudget: {
+          amount: microsToString(1), // Start with $1 to test
+          currencyCode: "USD",
         },
-        unitCost: { 
-          amount: microsToString(0.05), // $0.05 CPC bid as string
-          currencyCode: "USD" 
+        unitCost: {
+          amount: microsToString(0.01), // Start with $0.01 bid
+          currencyCode: "USD",
         },
         type: "TEXT_AD",
-        status: "ACTIVE",
+        status: "DRAFT", // Start as DRAFT instead of ACTIVE
         locale: {
           country: "US",
-          language: "en"
+          language: "en",
         },
-        runSchedule: {
-          start: now + 120 * 1000, // Start 2 minutes from now
-          end: now + 3 * 24 * 60 * 60 * 1000, // 3 days
-        },
+        // Remove runSchedule for now to simplify
       },
       { headers }
     );
@@ -376,15 +378,16 @@ export const createLinkedInTextAd = async ({
       throw new Error("Failed to create campaign - no ID returned");
     }
 
-    console.log("Campaign created successfully with ID:", campaignId);
+    const campaignUrn = `urn:li:sponsoredCampaign:${campaignId}`;
+    console.log("Campaign created successfully with URN:", campaignUrn);
 
-    // ✅ Create Text Ad Creative
+    // ✅ Step 2: Create Text Ad Creative
     console.log("Creating text ad creative...");
-    
+
     const creativeRes = await axios.post(
       "https://api.linkedin.com/v2/adCreativesV2",
       {
-        campaign: `urn:li:sponsoredCampaign:${campaignId}`,
+        campaign: campaignUrn,
         type: "TEXT_AD",
         variables: {
           textAd: {
@@ -406,26 +409,55 @@ export const createLinkedInTextAd = async ({
 
     console.log("Ad creation completed successfully!");
 
+    // ✅ Optional: Activate the campaign
+    console.log("Activating campaign...");
+    try {
+      await axios.put(
+        `https://api.linkedin.com/v2/adCampaignsV2/${campaignUrn}`,
+        {
+          patch: {
+            $set: {
+              status: "ACTIVE",
+              runSchedule: {
+                start: now + 120 * 1000,
+                end: now + 7 * 24 * 60 * 60 * 1000,
+              },
+            },
+          },
+        },
+        { headers }
+      );
+      console.log("Campaign activated successfully!");
+    } catch (activationError) {
+      console.warn(
+        "Campaign activation failed, but ad was created in DRAFT mode:",
+        activationError.response?.data
+      );
+    }
+
     return {
       success: true,
       campaignId,
       creativeId,
+      campaignUrn,
       campaign: campaignRes.data,
       creative: creativeRes.data,
     };
-
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("LinkedIn API Error Details:");
-    
+
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
       console.error("Data:", JSON.stringify(error.response?.data, null, 2));
       console.error("URL:", error.config?.url);
+      console.error("Request Data:", error.config?.data);
     } else {
       console.error("Error:", error.message);
     }
 
-    throw new Error(`LinkedIn API Error: ${error.response?.data?.message || error.message}`);
+    throw new Error(
+      `LinkedIn API Error: ${error.response?.data?.message || error.message}`
+    );
   }
 };
 
