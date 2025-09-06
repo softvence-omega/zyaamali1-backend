@@ -335,7 +335,6 @@ export const createLinkedInTextAd = async ({
   const endTime = now + 7 * 24 * 60 * 60 * 1000; // end in 7 days
 
   try {
-
     // Use an existing campaign group
     const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773618674";
     console.log("Using campaign group:", campaignGroupUrn);
@@ -353,7 +352,6 @@ export const createLinkedInTextAd = async ({
       runSchedule: { start: startTime, end: endTime },
     };
 
-  
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
       campaignData,
@@ -373,12 +371,12 @@ export const createLinkedInTextAd = async ({
     console.log("Creating text ad creative...");
     const creativeData = {
       campaign: campaignUrn,
-      type: "TEXT_AD",
+      type: "SPONSORED_CONTENT",
       variables: {
         textAd: {
           headline: creativeText.substring(0, 75),
-          description: "Special offer - limited time only".substring(0, 150),
-          landingPageUrl,
+          landingPageUrl: landingPageUrl, // required
+          // remove description for testing, as it can cause Internal Server Error in some accounts
         },
       },
     };
