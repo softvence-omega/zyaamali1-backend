@@ -324,7 +324,7 @@ export const createLinkedInTextAd = async ({
 }: LinkedInAdInput) => {
   const headers = {
     Authorization: `Bearer ${accessToken}`,
-    "X-Restli-Protocol-Version": "2.0.0",
+    // "X-Restli-Protocol-Version": "2.0.0",
     "Content-Type": "application/json",
   };
 
