@@ -359,24 +359,28 @@ export const createLinkedInTextAd = async ({
   console.log("Campaign Group URN:", campaignGroupUrn);
 
   // ✅ Create Campaign
-  const campaignRes = await axios.post(
-    "https://api.linkedin.com/v2/adCampaignsV2",
-    {
-      account: `urn:li:sponsoredAccount:${advertiserId}`,
-      campaignGroup: campaignGroupUrn,
-      name: campaignName,
-      dailyBudget: { amount: "1000", currencyCode: "USD" }, // string
-      unitCost: { amount: "100", currencyCode: "USD" }, // minimum bid, string in minor units
-      runSchedule: {
-        start: now,
-        end: now + 30 * 24 * 60 * 60 * 1000,
-      },
-      type: "TEXT_AD",
-      status: "ACTIVE",
-      locale: "en_US", // required
+  const micros = (amount: number) => amount * 1_000_000;
+
+
+const campaignRes = await axios.post(
+  "https://api.linkedin.com/v2/adCampaignsV2",
+  {
+    account: `urn:li:sponsoredAccount:${advertiserId}`,
+    campaignGroup: campaignGroupUrn,
+    name: campaignName,
+    dailyBudget: { amount: 1000, currencyCode: "USD" }, // number
+    type: "TEXT_AD",
+    status: "ACTIVE",
+    locale: "en_US",
+    runSchedule: {
+      start: Date.now() + 60 * 1000,  // start 1 min from now
+      end: Date.now() + 7 * 24 * 60 * 60 * 1000,
     },
-    { headers }
-  );
+  },
+  { headers }
+);
+
+
 
   console.log("Campaign Creation Response:", campaignRes.data);
 
