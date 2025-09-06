@@ -317,8 +317,7 @@ interface LinkedInAdInput {
   landingPageUrl: string;
 }
 
-const microsToString = (amount: number) =>
-  Math.floor(amount * 1_000_000).toString();
+const microsToString = (amount: number) => Math.floor(amount * 1_000_000).toString();
 
 export const createLinkedInTextAd = async ({
   accessToken,
@@ -334,48 +333,106 @@ export const createLinkedInTextAd = async ({
   };
 
   const now = Date.now();
+  const startTime = now + 120 * 1000;
+  const endTime = now + 7 * 24 * 60 * 60 * 1000;
 
   try {
     console.log("Starting LinkedIn ad creation process...");
     console.log("Using advertiser ID:", advertiserId);
 
-    // Use your existing campaign group URN
     const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773618674";
     console.log("Using existing campaign group:", campaignGroupUrn);
 
-    // ✅ Step 1: Create Campaign
-    console.log("Creating campaign...");
+    const campaignData = {
+      account: `urn:li:sponsoredAccount:${advertiserId}`,
+      campaignGroup: campaignGroupUrn,
+      name: campaignName,
+      dailyBudget: { 
+        amount: microsToString(1),
+        currencyCode: "USD" 
+      },
+      unitCost: { 
+        amount: microsToString(0.01),
+        currencyCode: "USD" 
+      },
+      type: "TEXT_AD",
+      status: "DRAFT",
+      locale: {
+        country: "US",
+        language: "en"
+      },
+      runSchedule: {
+        start: startTime,
+        end: endTime
+      }
+    };
 
+    console.log("Creating campaign...");
+    
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
-      {
-        account: `urn:li:sponsoredAccount:${advertiserId}`,
-        campaignGroup: campaignGroupUrn,
-        name: campaignName,
-        dailyBudget: {
-          amount: microsToString(1), // Start with $1 to test
-          currencyCode: "USD",
-        },
-        unitCost: {
-          amount: microsToString(0.01), // Start with $0.01 bid
-          currencyCode: "USD",
-        },
-        type: "TEXT_AD",
-        status: "DRAFT", // Start as DRAFT instead of ACTIVE
-        locale: {
-          country: "US",
-          language: "en",
-        },
-        // Remove runSchedule for now to simplify
-      },
-      { headers }
+      campaignData,
+      { 
+        headers,
+        // Add responseType to handle different response formats
+        responseType: 'json'
+      }
     );
 
-    console.log("Campaign Creation Response:", campaignRes.data);
+    console.log("Campaign Creation Status:", campaignRes.status);
+    console.log("Campaign Creation Headers:", campaignRes.headers);
+    console.log("Campaign Creation Full Response:", campaignRes.data);
 
-    const campaignId = campaignRes.data.id;
+    // ✅ Handle different response scenarios
+    let campaignId: string | undefined;
+
+    // Check if response is empty but status is successful (2xx)
+    if (campaignRes.status >= 200 && campaignRes.status < 300) {
+      // Check for ID in different locations
+      
+      // 1. Check response data
+      if (campaignRes.data && campaignRes.data.id) {
+        campaignId = campaignRes.data.id;
+      } 
+      // 2. Check for X-RestLi-Id header (common in LinkedIn API)
+      else if (campaignRes.headers['x-restli-id']) {
+        campaignId = campaignRes.headers['x-restli-id'];
+      }
+      // 3. Check for Location header
+      else if (campaignRes.headers['location']) {
+        const location = campaignRes.headers['location'];
+        const idMatch = location.match(/\/(\d+)$/);
+        if (idMatch) {
+          campaignId = idMatch[1];
+        }
+      }
+      // 4. Check if empty response but successful status
+      else if (campaignRes.status === 201 || campaignRes.status === 200) {
+        // For successful creation, we might need to extract ID from elsewhere
+        console.log("Successful response but no ID found. Checking alternative approaches...");
+      }
+    }
+
     if (!campaignId) {
-      throw new Error("Failed to create campaign - no ID returned");
+      // If we can't get the ID from response, try to list campaigns to find the newly created one
+      console.log("Attempting to find campaign by name...");
+      try {
+        const campaigns = await listCampaigns(accessToken, advertiserId);
+        const newCampaign = campaigns.elements?.find((camp: any) => 
+          camp.name === campaignName
+        );
+        
+        if (newCampaign && newCampaign.id) {
+          campaignId = newCampaign.id;
+          console.log("Found campaign by name:", campaignId);
+        }
+      } catch (listError) {
+        console.warn("Failed to list campaigns:", listError.message);
+      }
+    }
+
+    if (!campaignId) {
+      throw new Error("Failed to extract campaign ID from response. Status: " + campaignRes.status);
     }
 
     const campaignUrn = `urn:li:sponsoredCampaign:${campaignId}`;
@@ -383,84 +440,85 @@ export const createLinkedInTextAd = async ({
 
     // ✅ Step 2: Create Text Ad Creative
     console.log("Creating text ad creative...");
+    
+    const creativeData = {
+      campaign: campaignUrn,
+      type: "TEXT_AD",
+      variables: {
+        textAd: {
+          headline: creativeText.substring(0, 75),
+          landingPageUrl,
+          description: "Special offer - limited time only".substring(0, 150),
+        },
+      },
+    };
 
     const creativeRes = await axios.post(
       "https://api.linkedin.com/v2/adCreativesV2",
-      {
-        campaign: campaignUrn,
-        type: "TEXT_AD",
-        variables: {
-          textAd: {
-            headline: creativeText.substring(0, 75),
-            landingPageUrl,
-            description: "Special offer - limited time only".substring(0, 150),
-          },
-        },
-      },
+      creativeData,
       { headers }
     );
 
     console.log("Creative Creation Response:", creativeRes.data);
 
-    const creativeId = creativeRes.data.id;
-    if (!creativeId) {
-      throw new Error("Failed to create creative - no ID returned");
+    // Handle creative ID extraction
+    let creativeId: string | undefined;
+    
+    if (creativeRes.data && creativeRes.data.id) {
+      creativeId = creativeRes.data.id;
+    } else if (creativeRes.headers['x-restli-id']) {
+      creativeId = creativeRes.headers['x-restli-id'];
     }
+
+    if (!creativeId) {
+      throw new Error("Failed to extract creative ID from response");
+    }
+
+    console.log("Creative created successfully with ID:", creativeId);
 
     console.log("Ad creation completed successfully!");
-
-    // ✅ Optional: Activate the campaign
-    console.log("Activating campaign...");
-    try {
-      await axios.put(
-        `https://api.linkedin.com/v2/adCampaignsV2/${campaignUrn}`,
-        {
-          patch: {
-            $set: {
-              status: "ACTIVE",
-              runSchedule: {
-                start: now + 120 * 1000,
-                end: now + 7 * 24 * 60 * 60 * 1000,
-              },
-            },
-          },
-        },
-        { headers }
-      );
-      console.log("Campaign activated successfully!");
-    } catch (activationError) {
-      console.warn(
-        "Campaign activation failed, but ad was created in DRAFT mode:",
-        activationError.response?.data
-      );
-    }
 
     return {
       success: true,
       campaignId,
       creativeId,
       campaignUrn,
-      campaign: campaignRes.data,
-      creative: creativeRes.data,
     };
-  } catch (error: any) {
-    console.error("LinkedIn API Error Details:");
 
+  } catch (error) {
+    console.error("LinkedIn API Error Details:");
+    
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
+      console.error("Headers:", error.response?.headers);
       console.error("Data:", JSON.stringify(error.response?.data, null, 2));
       console.error("URL:", error.config?.url);
-      console.error("Request Data:", error.config?.data);
     } else {
       console.error("Error:", error.message);
     }
 
-    throw new Error(
-      `LinkedIn API Error: ${error.response?.data?.message || error.message}`
-    );
+    throw new Error(`LinkedIn API Error: ${error.response?.data?.message || error.message}`);
   }
 };
 
+// Utility to list campaigns and find the newly created one
+export const listCampaigns = async (accessToken: string, advertiserId: string) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "X-Restli-Protocol-Version": "2.0.0",
+  };
+
+  try {
+    const response = await axios.get(
+      `https://api.linkedin.com/v2/adCampaignsV2?q=search&search=(account:urn:li:sponsoredAccount:${advertiserId})`,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to list campaigns:", error.response?.data);
+    throw error;
+  }
+};
 // TikTok
 export const createTikTokFullAd = async (
   adType: string,
