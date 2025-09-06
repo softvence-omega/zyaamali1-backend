@@ -332,15 +332,30 @@ export const createLinkedInTextAd = async ({
     "https://api.linkedin.com/v2/adCampaignGroupsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
-      name: "My Campaign Group2233",
+      name: `My Campaign Group ${Date.now()}`, // avoid duplicates
       status: "ACTIVE",
-      runSchedule: { start: Date.now() },
+      runSchedule: {
+        start: Date.now(), // ✅ must be Long (int), not string
+        end: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      },
     },
     { headers }
   );
 
-  // Correct URN — LinkedIn v2 usually returns `id` OR `entityUrn`
-  const campaignGroupUrn = groupRes.data.entityUrn || groupRes.data.id;
+  console.log(
+    "Campaign Group Raw Response:",
+    JSON.stringify(groupRes.data, null, 2)
+  );
+
+  const campaignGroupUrn =
+    groupRes.data.entityUrn ||
+    (groupRes.data.id
+      ? `urn:li:sponsoredCampaignGroup:${groupRes.data.id}`
+      : null);
+
+  // if (!campaignGroupUrn) {
+  //   throw new Error("Failed to create campaign group or retrieve URN");
+  // }
 
   // Validate
   // if (!campaignGroupUrn) {
@@ -348,9 +363,10 @@ export const createLinkedInTextAd = async ({
   // }
   console.log("Campaign Group Response:", groupRes.data);
 
-  console.log("Campaign Group Raw Response:", JSON.stringify(groupRes.data, null, 2));
-
-
+  console.log(
+    "Campaign Group Raw Response:",
+    JSON.stringify(groupRes.data, null, 2)
+  );
 
   console.log("Campaign Group URN:", campaignGroupUrn);
 
