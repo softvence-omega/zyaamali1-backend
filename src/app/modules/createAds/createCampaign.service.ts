@@ -315,6 +315,8 @@ export const getLinkedinCampaignsService = async (
   return data;
 };
 
+const micros = (amount: number) => Math.floor(amount * 1_000_000);
+
 export const createLinkedInTextAd = async ({
   accessToken,
   advertiserId,
@@ -324,93 +326,108 @@ export const createLinkedInTextAd = async ({
 }: LinkedInAdInput) => {
   const headers = {
     Authorization: `Bearer ${accessToken}`,
-    // "X-Restli-Protocol-Version": "2.0.0",
+    "X-Restli-Protocol-Version": "2.0.0",
     "Content-Type": "application/json",
   };
 
-  // ✅ Create Campaign Group
   const now = Date.now();
-  // const groupRes = await axios.post(
-  //   "https://api.linkedin.com/v2/adCampaignGroupsV2",
-  //   {
-  //     account: `urn:li:sponsoredAccount:${advertiserId}`,
-  //     name: `My Campaign Group ${now}`, // avoid duplicates
-  //     status: "ACTIVE",
-  //     runSchedule: {
-  //       start: now, // Long, not string
-  //       end: now + 30 * 24 * 60 * 60 * 1000, // 30 days from now
-  //     },
-  //   },
-  //   { headers }
-  // );
 
-  // console.log("Campaign Group Raw Response:", groupRes.data);
+  try {
+    console.log("Starting LinkedIn ad creation process...");
 
-  // const campaignGroupUrn = groupRes.data.id
-  //   ? `urn:li:sponsoredCampaignGroup:${groupRes.data.id}`
-  //   : null;
-
-  const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773830404";
-
-  if (!campaignGroupUrn) {
-    throw new Error("Failed to create campaign group or retrieve URN");
-  }
-
-  console.log("Campaign Group URN:", campaignGroupUrn);
-
-  // ✅ Create Campaign
-  const micros = (amount: number) => amount * 1_000_000;
-
-
-const campaignRes = await axios.post(
-  "https://api.linkedin.com/v2/adCampaignsV2",
-  {
-    account: `urn:li:sponsoredAccount:${advertiserId}`,
-    campaignGroup: campaignGroupUrn,
-    name: campaignName,
-    dailyBudget: { amount: 1000, currencyCode: "USD" }, // number
-    type: "TEXT_AD",
-    status: "ACTIVE",
-    locale: "en_US",
-    runSchedule: {
-      start: Date.now() + 60 * 1000,  // start 1 min from now
-      end: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    },
-  },
-  { headers }
-);
-
-
-
-  console.log("Campaign Creation Response:", campaignRes.data);
-
-  const campaignId = campaignRes.data.id;
-  if (!campaignId) throw new Error("Failed to create campaign");
-
-  // ✅ Create Text Ad Creative
-  const creativeRes = await axios.post(
-    "https://api.linkedin.com/v2/adCreativesV2",
-    {
-      campaign: `urn:li:sponsoredCampaign:${campaignId}`,
-      type: "TEXT_AD",
-      variables: {
-        textAd: {
-          headline: creativeText,
-          landingPageUrl,
-          description: "This is a sample text ad created via API",
+    // ✅ Alternative: Create Campaign without Campaign Group
+    console.log("Creating campaign without campaign group...");
+    
+    const campaignRes = await axios.post(
+      "https://api.linkedin.com/v2/adCampaignsV2",
+      {
+        account: `urn:li:sponsoredAccount:${advertiserId}`,
+        // Note: campaignGroup field is intentionally omitted
+        name: campaignName,
+        dailyBudget: { 
+          amount: micros(10), // $10 daily budget
+          currencyCode: "USD" 
+        },
+        unitCost: { 
+          amount: micros(0.10), // $0.10 CPC bid
+          currencyCode: "USD" 
+        },
+        targeting: {
+          includedTargetingFacets: {
+            locations: ["urn:li:geo:103644278"] // US location
+          }
+        },
+        type: "TEXT_AD",
+        status: "ACTIVE",
+        locale: "en_US",
+        format: "TEXT_AD",
+        objectiveType: "WEBSITE_VISITS",
+        runSchedule: {
+          start: now + 60 * 1000, // Start 1 minute from now
+          end: now + 7 * 24 * 60 * 60 * 1000, // End in 7 days
         },
       },
-    },
-    { headers }
-  );
+      { headers }
+    );
 
-  const creativeId = creativeRes.data.id;
+    console.log("Campaign Creation Response:", campaignRes.data);
 
-  return {
-    campaignId,
-    creativeId,
-    creative: creativeRes.data,
-  };
+    const campaignId = campaignRes.data.id;
+    if (!campaignId) {
+      throw new Error("Failed to create campaign - no ID returned");
+    }
+
+    console.log("Campaign created successfully with ID:", campaignId);
+
+    // ✅ Create Text Ad Creative
+    console.log("Creating text ad creative...");
+    
+    const creativeRes = await axios.post(
+      "https://api.linkedin.com/v2/adCreativesV2",
+      {
+        campaign: `urn:li:sponsoredCampaign:${campaignId}`,
+        type: "TEXT_AD",
+        variables: {
+          textAd: {
+            headline: creativeText.substring(0, 75), // LinkedIn has character limits
+            landingPageUrl,
+            description: "Created via API - visit our website for more details",
+          },
+        },
+      },
+      { headers }
+    );
+
+    console.log("Creative Creation Response:", creativeRes.data);
+
+    const creativeId = creativeRes.data.id;
+    if (!creativeId) {
+      throw new Error("Failed to create creative - no ID returned");
+    }
+
+    console.log("Ad creation completed successfully!");
+
+    return {
+      success: true,
+      campaignId,
+      creativeId,
+      campaign: campaignRes.data,
+      creative: creativeRes.data,
+    };
+
+  } catch (error:any) {
+    console.error("LinkedIn API Error Details:");
+    
+    if (axios.isAxiosError(error)) {
+      console.error("Status:", error.response?.status);
+      console.error("Data:", error.response?.data);
+      console.error("Headers:", error.response?.headers);
+    } else {
+      console.error("Error:", error.message);
+    }
+
+    throw new Error(`LinkedIn API Error: ${error.response?.data?.message || error.message}`);
+  }
 };
 
 // TikTok
