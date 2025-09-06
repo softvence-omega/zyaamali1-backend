@@ -332,7 +332,7 @@ export const createLinkedInTextAd = async ({
     "https://api.linkedin.com/v2/adCampaignGroupsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
-      name: "My Campaign Group22",
+      name: "My Campaign Group2233",
       status: "ACTIVE",
       runSchedule: { start: Date.now() },
     },
@@ -347,6 +347,9 @@ export const createLinkedInTextAd = async ({
   //   throw new Error("Failed to create campaign group or retrieve URN");
   // }
   console.log("Campaign Group Response:", groupRes.data);
+
+  console.log("Campaign Group Raw Response:", JSON.stringify(groupRes.data, null, 2));
+
 
 
   console.log("Campaign Group URN:", campaignGroupUrn);
@@ -365,6 +368,8 @@ export const createLinkedInTextAd = async ({
     },
     { headers }
   );
+
+  console.log("Campaign Creation Response:", campaignRes.data);
 
   const campaignId = campaignRes.data.id;
 
