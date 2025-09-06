@@ -339,19 +339,20 @@ export const createLinkedInTextAd = async ({
     const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773618674";
     console.log("Using campaign group:", campaignGroupUrn);
 
+    const micros = (amount: number) => Math.round(amount * 1_000_000).toString();
+
     // 1️⃣ Create Campaign in DRAFT mode (paused)
     const campaignData = {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
       campaignGroup: campaignGroupUrn,
       name: campaignName,
-      dailyBudget: { amount: microsToString(1), currencyCode: "USD" },
-      unitCost: { amount: microsToString(0.01), currencyCode: "USD" },
+      dailyBudget: { amount: micros(1), currencyCode: "USD" }, // 1 USD/day
+      unitCost: { amount: micros(0.01), currencyCode: "USD" }, // 0.01 USD
       type: "TEXT_AD",
-      status: "DRAFT", // <- paused mode
+      status: "DRAFT", // paused
       locale: { country: "US", language: "en" },
       runSchedule: { start: startTime, end: endTime },
     };
-
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
       campaignData,
@@ -371,12 +372,11 @@ export const createLinkedInTextAd = async ({
     console.log("Creating text ad creative...");
     const creativeData = {
       campaign: campaignUrn,
-      type: "SPONSORED_CONTENT",
+      type: "TEXT_AD",
       variables: {
         textAd: {
           headline: creativeText.substring(0, 75),
-          landingPageUrl: landingPageUrl, // required
-          // remove description for testing, as it can cause Internal Server Error in some accounts
+          landingPageUrl: landingPageUrl,
         },
       },
     };
