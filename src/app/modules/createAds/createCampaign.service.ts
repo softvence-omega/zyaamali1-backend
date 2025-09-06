@@ -330,25 +330,27 @@ export const createLinkedInTextAd = async ({
 
   // ✅ Create Campaign Group
   const now = Date.now();
-  const groupRes = await axios.post(
-    "https://api.linkedin.com/v2/adCampaignGroupsV2",
-    {
-      account: `urn:li:sponsoredAccount:${advertiserId}`,
-      name: `My Campaign Group ${now}`, // avoid duplicates
-      status: "ACTIVE",
-      runSchedule: {
-        start: now, // Long, not string
-        end: now + 30 * 24 * 60 * 60 * 1000, // 30 days from now
-      },
-    },
-    { headers }
-  );
+  // const groupRes = await axios.post(
+  //   "https://api.linkedin.com/v2/adCampaignGroupsV2",
+  //   {
+  //     account: `urn:li:sponsoredAccount:${advertiserId}`,
+  //     name: `My Campaign Group ${now}`, // avoid duplicates
+  //     status: "ACTIVE",
+  //     runSchedule: {
+  //       start: now, // Long, not string
+  //       end: now + 30 * 24 * 60 * 60 * 1000, // 30 days from now
+  //     },
+  //   },
+  //   { headers }
+  // );
 
-  console.log("Campaign Group Raw Response:", groupRes.data);
+  // console.log("Campaign Group Raw Response:", groupRes.data);
 
-  const campaignGroupUrn = groupRes.data.id
-    ? `urn:li:sponsoredCampaignGroup:${groupRes.data.id}`
-    : null;
+  // const campaignGroupUrn = groupRes.data.id
+  //   ? `urn:li:sponsoredCampaignGroup:${groupRes.data.id}`
+  //   : null;
+
+  const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773830404";
 
   if (!campaignGroupUrn) {
     throw new Error("Failed to create campaign group or retrieve URN");
@@ -361,17 +363,17 @@ export const createLinkedInTextAd = async ({
     "https://api.linkedin.com/v2/adCampaignsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
-      campaignGroup: campaignGroupUrn, // correct URN
+      campaignGroup: campaignGroupUrn,
       name: campaignName,
-      dailyBudget: {
-        amount: 1000, // integer, not string
-        currencyCode: "USD",
-      },
+      dailyBudget: { amount: "1000", currencyCode: "USD" }, // string
+      unitCost: { amount: "100", currencyCode: "USD" }, // minimum bid, string in minor units
       runSchedule: {
-        start: now, // integer Long
+        start: now,
+        end: now + 30 * 24 * 60 * 60 * 1000,
       },
       type: "TEXT_AD",
       status: "ACTIVE",
+      locale: "en_US", // required
     },
     { headers }
   );
@@ -406,7 +408,6 @@ export const createLinkedInTextAd = async ({
     creative: creativeRes.data,
   };
 };
-
 
 // TikTok
 export const createTikTokFullAd = async (

@@ -205,7 +205,7 @@ export const createLinkedInAd = async (req: Request, res: Response) => {
 
     res.json(ad);
   } catch (error: any) {
-    console.error("Error creating ad:", error.response?.data || error.message);
+    console.error("Error creating ad:", error.response?.data.errorDetails || error.message);
     res.status(500).json({ error: error.response?.data || error.message });
   }
 };
