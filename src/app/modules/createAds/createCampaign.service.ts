@@ -334,86 +334,110 @@ export const createLinkedInTextAd = async ({
   };
 
   const now = Date.now();
+  const startTime = now + 120 * 1000;
+  const endTime = now + 7 * 24 * 60 * 60 * 1000;
 
   try {
     console.log("Starting LinkedIn ad creation process...");
     console.log("Using advertiser ID:", advertiserId);
 
-    // Use your existing campaign group URN
     const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773618674";
     console.log("Using existing campaign group:", campaignGroupUrn);
 
-    // ✅ Step 1: Create Campaign
+    const campaignData = {
+      account: `urn:li:sponsoredAccount:${advertiserId}`,
+      campaignGroup: campaignGroupUrn,
+      name: campaignName,
+      dailyBudget: {
+        amount: microsToString(1),
+        currencyCode: "USD",
+      },
+      unitCost: {
+        amount: microsToString(0.01),
+        currencyCode: "USD",
+      },
+      type: "TEXT_AD",
+      status: "DRAFT",
+      locale: {
+        country: "US",
+        language: "en",
+      },
+      runSchedule: {
+        start: startTime,
+        end: endTime,
+      },
+    };
+
     console.log("Creating campaign...");
 
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
-      {
-        account: `urn:li:sponsoredAccount:${advertiserId}`,
-        campaignGroup: campaignGroupUrn,
-        name: campaignName,
-        dailyBudget: {
-          amount: microsToString(1), // Start with $1 to test
-          currencyCode: "USD",
-        },
-        unitCost: {
-          amount: microsToString(0.01), // Start with $0.01 bid
-          currencyCode: "USD",
-        },
-        type: "TEXT_AD",
-        status: "DRAFT", // Start as DRAFT instead of ACTIVE
-        locale: {
-          country: "US",
-          language: "en",
-        },
-        runSchedule: { 
-        start: Date.now() + 120000, 
-        end: Date.now() + 604800000 
-      }
-        // Remove runSchedule for now to simplify
-      },
+      campaignData,
       { headers }
     );
 
-    console.log("Campaign Creation Response:", campaignRes.data);
-
-    const campaignId = campaignRes.data.id;
+    const campaignId = campaignRes.headers["x-restli-id"];
     if (!campaignId) {
-      throw new Error("Failed to create campaign - no ID returned");
+      throw new Error("Failed to extract campaign ID from headers");
     }
 
     const campaignUrn = `urn:li:sponsoredCampaign:${campaignId}`;
     console.log("Campaign created successfully with URN:", campaignUrn);
 
-    // ✅ Step 2: Create Text Ad Creative
+    // ✅ Wait a moment before creating creative (LinkedIn might need time to process)
+    console.log("Waiting 2 seconds before creating creative...");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // ✅ Step 2: Create Text Ad Creative - Try different approaches
     console.log("Creating text ad creative...");
 
-    const creativeRes = await axios.post(
-      "https://api.linkedin.com/v2/adCreativesV2",
-      {
-        campaign: campaignUrn,
-        type: "TEXT_AD",
-        variables: {
-          textAd: {
-            headline: creativeText.substring(0, 75),
-            landingPageUrl,
-            description: "Special offer - limited time only".substring(0, 150),
-          },
-        },
-      },
-      { headers }
-    );
+    let creativeId;
 
-    console.log("Creative Creation Response:", creativeRes.data);
+    // Try Approach 1: Simple structure
+    try {
+      creativeId = await createCreativeSimple(
+        accessToken,
+        campaignUrn,
+        creativeText,
+        landingPageUrl
+      );
+      console.log(
+        "Creative created successfully with simple approach, ID:",
+        creativeId
+      );
+    } catch (simpleError) {
+      console.log("Simple approach failed, trying alternative...");
 
-    const creativeId = creativeRes.data.id;
-    if (!creativeId) {
-      throw new Error("Failed to create creative - no ID returned");
+      // Try Approach 2: Different structure
+      try {
+        creativeId = await createCreativeAlternative(
+          accessToken,
+          campaignUrn,
+          creativeText,
+          landingPageUrl
+        );
+        console.log(
+          "Creative created successfully with alternative approach, ID:",
+          creativeId
+        );
+      } catch (altError) {
+        console.log("Alternative approach failed, trying direct API...");
+
+        // Try Approach 3: Direct API call with different endpoint
+        creativeId = await createCreativeDirect(
+          accessToken,
+          campaignUrn,
+          creativeText,
+          landingPageUrl
+        );
+        console.log(
+          "Creative created successfully with direct approach, ID:",
+          creativeId
+        );
+      }
     }
 
-    console.log("Ad creation completed successfully!");
-
-    // ✅ Optional: Activate the campaign
+    // ✅ Step 3: Activate the campaign
     console.log("Activating campaign...");
     try {
       await axios.put(
@@ -422,10 +446,6 @@ export const createLinkedInTextAd = async ({
           patch: {
             $set: {
               status: "ACTIVE",
-              runSchedule: {
-                start: now + 120 * 1000,
-                end: now + 7 * 24 * 60 * 60 * 1000,
-              },
             },
           },
         },
@@ -434,27 +454,24 @@ export const createLinkedInTextAd = async ({
       console.log("Campaign activated successfully!");
     } catch (activationError) {
       console.warn(
-        "Campaign activation failed, but ad was created in DRAFT mode:",
-        activationError.response?.data
+        "Campaign activation failed, but ad was created in DRAFT mode."
       );
     }
+
+    console.log("Ad creation completed successfully!");
 
     return {
       success: true,
       campaignId,
       creativeId,
       campaignUrn,
-      campaign: campaignRes.data,
-      creative: creativeRes.data,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("LinkedIn API Error Details:");
 
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
       console.error("Data:", JSON.stringify(error.response?.data, null, 2));
-      console.error("URL:", error.config?.url);
-      console.error("Request Data:", error.config?.data);
     } else {
       console.error("Error:", error.message);
     }
@@ -463,6 +480,130 @@ export const createLinkedInTextAd = async ({
       `LinkedIn API Error: ${error.response?.data?.message || error.message}`
     );
   }
+};
+
+// Approach 1: Simple creative structure
+const createCreativeSimple = async (
+  accessToken: string,
+  campaignUrn: string,
+  creativeText: string,
+  landingPageUrl: string
+) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "X-Restli-Protocol-Version": "2.0.0",
+    "Content-Type": "application/json",
+  };
+
+  const creativeData = {
+    campaign: campaignUrn,
+    type: "TEXT_AD",
+    variables: {
+      textAd: {
+        headline: creativeText.substring(0, 75),
+        landingPageUrl: landingPageUrl,
+        description: "Special offer - limited time only".substring(0, 150),
+      },
+    },
+  };
+
+  console.log(
+    "Simple creative request:",
+    JSON.stringify(creativeData, null, 2)
+  );
+
+  const creativeRes = await axios.post(
+    "https://api.linkedin.com/v2/adCreativesV2",
+    creativeData,
+    { headers }
+  );
+
+  return creativeRes.headers["x-restli-id"];
+};
+
+// Approach 2: Alternative structure
+const createCreativeAlternative = async (
+  accessToken: string,
+  campaignUrn: string,
+  creativeText: string,
+  landingPageUrl: string
+) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "X-Restli-Protocol-Version": "2.0.0",
+    "Content-Type": "application/json",
+  };
+
+  const creativeData = {
+    campaign: campaignUrn,
+    type: "TEXT_AD",
+    variables: {
+      data: {
+        "com.linkedin.ads.TextAdCreativeVariables": {
+          text: {
+            headline: creativeText.substring(0, 75),
+            description: "Special offer - limited time only".substring(0, 150),
+          },
+          destination: {
+            landingPageUrl: landingPageUrl,
+          },
+        },
+      },
+    },
+  };
+
+  console.log(
+    "Alternative creative request:",
+    JSON.stringify(creativeData, null, 2)
+  );
+
+  const creativeRes = await axios.post(
+    "https://api.linkedin.com/v2/adCreativesV2",
+    creativeData,
+    { headers }
+  );
+
+  return creativeRes.headers["x-restli-id"];
+};
+
+// Approach 3: Direct API call with different endpoint
+const createCreativeDirect = async (
+  accessToken: string,
+  campaignUrn: string,
+  creativeText: string,
+  landingPageUrl: string
+) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "X-Restli-Protocol-Version": "2.0.0",
+    "Content-Type": "application/json",
+  };
+
+  // Try the older API endpoint
+  const creativeData = {
+    campaign: campaignUrn,
+    type: "TEXT_AD",
+    content: {
+      title: creativeText.substring(0, 75),
+      description: "Special offer - limited time only".substring(0, 150),
+    },
+    destination: {
+      url: landingPageUrl,
+    },
+  };
+
+  console.log(
+    "Direct creative request:",
+    JSON.stringify(creativeData, null, 2)
+  );
+
+  const creativeRes = await axios.post(
+    "https://api.linkedin.com/v2/adCreatives",
+    creativeData,
+    { headers }
+  );
+
+  return creativeRes.headers["x-restli-id"];
 };
 
 // TikTok
