@@ -291,13 +291,7 @@ export const createGoogleAdService = async (params: any) => {
 };
 
 // linkedin
-interface LinkedInAdInput {
-  accessToken: string;
-  advertiserId: string;
-  campaignName: string;
-  creativeText: string;
-  landingPageUrl: string;
-}
+
 export const getLinkedinCampaignsService = async (
   accessToken: string,
   advertiserId: string
@@ -315,7 +309,16 @@ export const getLinkedinCampaignsService = async (
   return data;
 };
 
-const micros = (amount: number) => Math.floor(amount * 1_000_000);
+
+interface LinkedInAdInput {
+  accessToken: string;
+  advertiserId: string;
+  campaignName: string;
+  creativeText: string;
+  landingPageUrl: string;
+}
+
+const microsToString = (amount: number) => Math.floor(amount * 1_000_000).toString();
 
 export const createLinkedInTextAd = async ({
   accessToken,
@@ -334,37 +337,33 @@ export const createLinkedInTextAd = async ({
 
   try {
     console.log("Starting LinkedIn ad creation process...");
+    console.log("Using advertiser ID:", advertiserId);
 
-    // ✅ Alternative: Create Campaign without Campaign Group
-    console.log("Creating campaign without campaign group...");
+    // ✅ Create Campaign with string amounts
+    console.log("Creating campaign...");
     
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
       {
         account: `urn:li:sponsoredAccount:${advertiserId}`,
-        // Note: campaignGroup field is intentionally omitted
         name: campaignName,
         dailyBudget: { 
-          amount: micros(10), // $10 daily budget
+          amount: microsToString(5), // $5 daily budget as string
           currencyCode: "USD" 
         },
         unitCost: { 
-          amount: micros(0.10), // $0.10 CPC bid
+          amount: microsToString(0.05), // $0.05 CPC bid as string
           currencyCode: "USD" 
-        },
-        targeting: {
-          includedTargetingFacets: {
-            locations: ["urn:li:geo:103644278"] // US location
-          }
         },
         type: "TEXT_AD",
         status: "ACTIVE",
-        locale: "en_US",
-        format: "TEXT_AD",
-        objectiveType: "WEBSITE_VISITS",
+        locale: {
+          country: "US",
+          language: "en"
+        },
         runSchedule: {
-          start: now + 60 * 1000, // Start 1 minute from now
-          end: now + 7 * 24 * 60 * 60 * 1000, // End in 7 days
+          start: now + 120 * 1000, // Start 2 minutes from now
+          end: now + 3 * 24 * 60 * 60 * 1000, // 3 days
         },
       },
       { headers }
@@ -389,9 +388,9 @@ export const createLinkedInTextAd = async ({
         type: "TEXT_AD",
         variables: {
           textAd: {
-            headline: creativeText.substring(0, 75), // LinkedIn has character limits
+            headline: creativeText.substring(0, 75),
             landingPageUrl,
-            description: "Created via API - visit our website for more details",
+            description: "Special offer - limited time only".substring(0, 150),
           },
         },
       },
@@ -420,8 +419,8 @@ export const createLinkedInTextAd = async ({
     
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
-      console.error("Data:", error.response?.data);
-      console.error("Headers:", error.response?.headers);
+      console.error("Data:", JSON.stringify(error.response?.data, null, 2));
+      console.error("URL:", error.config?.url);
     } else {
       console.error("Error:", error.message);
     }
