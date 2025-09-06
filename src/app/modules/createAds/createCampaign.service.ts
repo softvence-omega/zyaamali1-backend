@@ -328,57 +328,48 @@ export const createLinkedInTextAd = async ({
     "Content-Type": "application/json",
   };
 
+  // ✅ Create Campaign Group
+  const now = Date.now();
   const groupRes = await axios.post(
     "https://api.linkedin.com/v2/adCampaignGroupsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
-      name: `My Campaign Group ${Date.now()}`, // avoid duplicates
+      name: `My Campaign Group ${now}`, // avoid duplicates
       status: "ACTIVE",
       runSchedule: {
-        start: Date.now(), // ✅ must be Long (int), not string
-        end: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        start: now, // Long, not string
+        end: now + 30 * 24 * 60 * 60 * 1000, // 30 days from now
       },
     },
     { headers }
   );
 
-  console.log(
-    "Campaign Group Raw Response:",
-    JSON.stringify(groupRes.data, null, 2)
-  );
+  console.log("Campaign Group Raw Response:", groupRes.data);
 
-  const campaignGroupUrn =
-    groupRes.data.entityUrn ||
-    (groupRes.data.id
-      ? `urn:li:sponsoredCampaignGroup:${groupRes.data.id}`
-      : null);
+  const campaignGroupUrn = groupRes.data.id
+    ? `urn:li:sponsoredCampaignGroup:${groupRes.data.id}`
+    : null;
 
-  // if (!campaignGroupUrn) {
-  //   throw new Error("Failed to create campaign group or retrieve URN");
-  // }
-
-  // Validate
-  // if (!campaignGroupUrn) {
-  //   throw new Error("Failed to create campaign group or retrieve URN");
-  // }
-  console.log("Campaign Group Response:", groupRes.data);
-
-  console.log(
-    "Campaign Group Raw Response:",
-    JSON.stringify(groupRes.data, null, 2)
-  );
+  if (!campaignGroupUrn) {
+    throw new Error("Failed to create campaign group or retrieve URN");
+  }
 
   console.log("Campaign Group URN:", campaignGroupUrn);
 
-  // 1️⃣ Create Campaign
+  // ✅ Create Campaign
   const campaignRes = await axios.post(
     "https://api.linkedin.com/v2/adCampaignsV2",
     {
       account: `urn:li:sponsoredAccount:${advertiserId}`,
-      campaignGroup: campaignGroupUrn, // ✅ pass the correct URN
+      campaignGroup: campaignGroupUrn, // correct URN
       name: campaignName,
-      dailyBudget: { amount: "1000", currencyCode: "USD" },
-      runSchedule: { start: Date.now() },
+      dailyBudget: {
+        amount: 1000, // integer, not string
+        currencyCode: "USD",
+      },
+      runSchedule: {
+        start: now, // integer Long
+      },
       type: "TEXT_AD",
       status: "ACTIVE",
     },
@@ -388,8 +379,9 @@ export const createLinkedInTextAd = async ({
   console.log("Campaign Creation Response:", campaignRes.data);
 
   const campaignId = campaignRes.data.id;
+  if (!campaignId) throw new Error("Failed to create campaign");
 
-  // 2️⃣ Create Text Ad Creative
+  // ✅ Create Text Ad Creative
   const creativeRes = await axios.post(
     "https://api.linkedin.com/v2/adCreativesV2",
     {
@@ -408,13 +400,13 @@ export const createLinkedInTextAd = async ({
 
   const creativeId = creativeRes.data.id;
 
-  // ✅ Return details
   return {
     campaignId,
     creativeId,
     creative: creativeRes.data,
   };
 };
+
 
 // TikTok
 export const createTikTokFullAd = async (
