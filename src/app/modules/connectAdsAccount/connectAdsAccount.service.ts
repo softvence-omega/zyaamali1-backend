@@ -61,7 +61,7 @@ const getLinkdinAuthURL = () => {
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
     // With your current product tier, you can use these scopes. Add rw_campaigns later if approved.
-    scope: "r_ads rw_ads r_ads_reporting profile",
+    scope: "r_ads rw_ads r_ads_reporting r_basicprofile",
   });
   return `${base}?${params.toString()}`;
 };
