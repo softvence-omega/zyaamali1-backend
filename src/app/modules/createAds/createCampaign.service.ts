@@ -335,8 +335,6 @@ export const createLinkedInTextAd = async ({
   const endTime = now + 7 * 24 * 60 * 60 * 1000; // end in 7 days
 
   try {
-    console.log("=== Starting LinkedIn ad creation process ===");
-    console.log("Advertiser ID:", advertiserId);
 
     // Use an existing campaign group
     const campaignGroupUrn = "urn:li:sponsoredCampaignGroup:773618674";
@@ -355,7 +353,7 @@ export const createLinkedInTextAd = async ({
       runSchedule: { start: startTime, end: endTime },
     };
 
-    console.log("Creating campaign...");
+  
     const campaignRes = await axios.post(
       "https://api.linkedin.com/v2/adCampaignsV2",
       campaignData,
