@@ -16,7 +16,7 @@ import { TUser } from "../user/user.interface";
 import mongoose from "mongoose";
 
 type TContent = {
-  title: string;
+
   platform: string;
   ratio: string;
 };
@@ -60,7 +60,7 @@ export const contentService = {
 
       // Check if content with same title & platform already exists
       const exists = await ContentModel.exists({
-        title: contentData.title,
+
         platform: contentData.platform,
         type: contentData.type,
       });
@@ -68,7 +68,7 @@ export const contentService = {
       if (exists) {
         throw new ApiError(
           status.BAD_REQUEST,
-          `A content of type '${contentData.type}' with the title '${contentData.title}' already exists on the '${contentData.platform}' platform.`
+          `A content of type '${contentData.type}' with the title  already exists on the '${contentData.platform}' platform.`
         );
       }
 
@@ -89,10 +89,12 @@ export const contentService = {
   },
 
   async postGenaratedContentIntoDB(data: IContent) {
-    // console.log(data);
+
+
+    console.log('generated content  from service ',data);
 
     const isContentExists = await ContentModel.exists({
-      title: data.title,
+
       platform: data.platform,
       type: data.type,
       owner: data.owner,
@@ -101,7 +103,7 @@ export const contentService = {
     if (isContentExists) {
       throw new ApiError(
         status.BAD_REQUEST,
-        `A content of type '${data.type}' with the title '${data.title}' already exists on the '${data.platform}' platform.`
+        `A content of type '${data.type}' with the title  already exists on the '${data.platform}' platform.`
       );
     }
 
@@ -208,7 +210,7 @@ export const contentService = {
     }
 
     const teamAdminId =
-      user.role === "admin" ? user._id : user.createdBy || null;
+      user.role === "admin" ? user._id : user.createdBy || null; 
 
     if (!teamAdminId) {
       throw new ApiError(
@@ -264,7 +266,7 @@ export const contentService = {
 
     if (findUser.role === "admin") {
       const filterCondition = {
-        $or: [{ source: "premade" }, { source: "user", owner: findUser._id }],
+        $or: [{ source: "premade" }, { source: "generated", owner: findUser._id }],
       };
       return await ContentModel.findOne({
         ...baseFilter,
@@ -283,7 +285,7 @@ export const contentService = {
       const filterCondition = {
         $or: [
           { source: "premade" },
-          { source: "user", owner: findUser.createdBy }, // নিজের admin এর content
+          { source: "generated", owner: findUser.createdBy }, // নিজের admin এর content
         ],
       };
 

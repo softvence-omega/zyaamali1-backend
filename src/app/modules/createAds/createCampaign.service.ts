@@ -394,7 +394,7 @@ export const createLinkedInTextAd = async ({
     console.log("=== LinkedIn ad creation complete (paused campaign) ===");
 
     return { success: true, campaignId, creativeId, campaignUrn };
-  } catch (error) {
+  } catch (error:any) {
     console.error("LinkedIn API Error:");
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);

@@ -12,6 +12,8 @@ const postPremadeContent = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: status.CREATED, success: true, message: "Created successfully", data: result });
 });
 
+
+
 const postGenaratedContent = catchAsync(async (req: Request, res: Response) => {
   const contentData = {
     ...req.body,
