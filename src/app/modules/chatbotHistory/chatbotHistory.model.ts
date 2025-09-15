@@ -1,19 +1,14 @@
 import mongoose, { Schema, model } from "mongoose";
 import { TChatbotHistory } from "./chatbotHistory.interface";
+import { string } from "zod";
 
 const chatbotHistorySchema = new Schema<TChatbotHistory>(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    userQuestion: {
+    sessionId: {
       type: String,
       required: true,
-      trim: true,
     },
-    aiAnswer: {
+    title: {
       type: String,
       required: true,
     },
@@ -24,6 +19,6 @@ const chatbotHistorySchema = new Schema<TChatbotHistory>(
 );
 
 export const chatbotHistoryModel = model<TChatbotHistory>(
-  "chatbotHistory",
+  "Session",
   chatbotHistorySchema
 );

@@ -27,6 +27,8 @@ const postGenaratedContent = catchAsync(async (req: Request, res: Response) => {
 
 const getAllContent = catchAsync(async (req: Request, res: Response) => {
   const result = await contentService.getAllContentFromDB(req.query, req.loggedInUser.userId);
+
+  console.log(result, "result----------------------");
   sendResponse(res, { statusCode: status.OK, success: true, message: "Fetched successfully", data: result });
 });
 

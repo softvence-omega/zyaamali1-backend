@@ -195,12 +195,14 @@ export const contentService = {
     const user = await User.findById(userId);
     if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
 
+    
+
     if (user.role === "superAdmin") {
       const qb = new QueryBuilder(
         ContentModel.find({ isDeleted: false }),
         query
       )
-        .search(CONTENT_SEARCHABLE_FIELDS)
+        // .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
         .paginate()

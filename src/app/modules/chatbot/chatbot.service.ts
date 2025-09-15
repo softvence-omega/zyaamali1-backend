@@ -1,13 +1,14 @@
-import { chatbotHistoryModel } from "./chatbotHistory.model";
-import { TChatbotHistory } from "./chatbotHistory.interface";
+
+import { TChatbotHistory } from "./chatbot.interface";
+import { chatbotModel } from "./chatbot.model";
 
 const saveChatbotHistory = async (payload: Partial<TChatbotHistory>) => {
-  const user = await chatbotHistoryModel.create(payload);
+  const user = await chatbotModel.create(payload);
   return user;
 };
 
 const getChatbotHistory = async () => {
-  const result = await chatbotHistoryModel.find({}).populate("userId");
+  const result = await chatbotModel.find({}).populate("userId");
   if (!result) {
     throw new Error("No chatbot history found");
   }
@@ -15,7 +16,7 @@ const getChatbotHistory = async () => {
 };
 
 const getSingleChatbotHistory = async (userId: string) => {
-  const result = await chatbotHistoryModel
+  const result = await chatbotModel
     .find({ userId: userId })
     .populate("userId");
   if (!result) {
