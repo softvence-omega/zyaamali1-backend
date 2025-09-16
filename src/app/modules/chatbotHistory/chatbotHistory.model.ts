@@ -19,6 +19,6 @@ const chatbotHistorySchema = new Schema<TChatbotHistory>(
 );
 
 export const chatbotHistoryModel = model<TChatbotHistory>(
-  "Session",
+  "chatbotHistory",
   chatbotHistorySchema
 );

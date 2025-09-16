@@ -7,25 +7,26 @@ const saveChatbotHistory = async (payload: Partial<TChatbotHistory>) => {
 };
 
 const getChatbotHistory = async () => {
-  const result = await chatbotHistoryModel.find({}).populate("userId");
+  const result = await chatbotHistoryModel.find({})
   if (!result) {
     throw new Error("No chatbot history found");
   }
   return result;
 };
 
-const getSingleChatbotHistory = async (userId: string) => {
-  const result = await chatbotHistoryModel
-    .find({ userId: userId })
-    .populate("userId");
-  if (!result) {
-    throw new Error("No chatbot history found");
-  }
-  return result;
-};
+// const getSingleChatbotHistory = async (sessionId: string) => {
+
+
+//   const result = await chatbotHistoryModel
+//     .find({ sessionId: sessionId })
+//   if (!result) {
+//     throw new Error("No chatbot history found");
+//   }
+//   return result;
+// };
 
 export const ChatbotHistoryService = {
   saveChatbotHistory,
   getChatbotHistory,
-  getSingleChatbotHistory,
+  // getSingleChatbotHistory,
 };

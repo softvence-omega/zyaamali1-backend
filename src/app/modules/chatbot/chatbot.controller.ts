@@ -22,10 +22,10 @@ const getChatbotHistory = catchAsync(async (req, res) => {
   });
 });
 const getSingleChatbotHistory = catchAsync(async (req, res) => {
-  const { userId } = req.query;
+  const { sessionId } = req.query;
 
   const result = await ChatbotHistoryService.getSingleChatbotHistory(
-    userId as string
+    sessionId as string
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
