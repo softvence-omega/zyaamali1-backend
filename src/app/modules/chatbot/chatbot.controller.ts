@@ -24,6 +24,9 @@ const getChatbotHistory = catchAsync(async (req, res) => {
 const getSingleChatbotHistory = catchAsync(async (req, res) => {
   const { sessionId } = req.query;
 
+  const user = req.loggedInUser
+  console.log('user', user);
+
   const result = await ChatbotHistoryService.getSingleChatbotHistory(
     sessionId as string
   );
