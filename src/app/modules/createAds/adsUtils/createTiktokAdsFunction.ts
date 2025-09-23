@@ -4,7 +4,7 @@ import crypto from "crypto";
 import FormData from "form-data";
 
 const ACCESS_TOKEN =
-  process.env.ACCESS_TOKEN || "f6f28a79c10762e8ffb8e57a6d6e3a40e7c704b7";
+  process.env.ACCESS_TOKEN || "64b9e084e5413f2618d5064257690bc47d6076d4";
 const ADVERTISER_ID = process.env.ADVERTISER_ID || "7538282648226054162";
 const BASE_URL = "https://business-api.tiktok.com/open_api/v1.3";
 const headers = { "Access-Token": ACCESS_TOKEN };
@@ -106,9 +106,8 @@ export const createTiktokCampaign = async (
     { headers }
   );
 
-
-  if(res.data){
-    console.log("campaign created response ",res.data.data.campaign_id,);
+  if (res.data) {
+    console.log("campaign created response ", res.data.data.campaign_id);
   }
 
   if (res.data.code !== 0)
@@ -147,8 +146,8 @@ export const createTiktokAdGroup = async (
     { headers }
   );
 
-   if(res.data){
-    console.log("ads group created  ",);
+  if (res.data) {
+    console.log("ads group created  ");
   }
 
   if (res.data.code !== 0)
@@ -195,28 +194,42 @@ export const buildCreativePayload = (
     display_name?: string;
     ad_name?: string;
   }
-
 ) => {
   console.log(ids, "ids===================from buildCreativePayload");
 
   const common = {
     ad_text: options?.ad_text || "Default ad text",
     call_to_action: options?.call_to_action || "LEARN_MORE",
-    landing_page_url: options?.landing_page_url || "https://example.com",
+    landing_page_url: options?.landing_page_url || "https://adelo.ai",
     display_name: options?.display_name || "MyBrand",
     ...identity,
   };
+
+  console.log('common', common)
 
   const ad_name = options?.ad_name || `Ads ${Date.now()}`;
 
   switch (adType) {
     case "SINGLE_VIDEO":
-      return { ad_format: "SINGLE_VIDEO", ad_name, video_id: ids.video_id,image_ids:[ids.image_id], ...common };
+      return {
+        ad_format: "SINGLE_VIDEO",
+        ad_name,
+        video_id: ids.video_id,
+        image_ids: [ids.image_id],
+        ...common,
+      };
     case "SPARK_AD":
       return { ad_format: "SINGLE_VIDEO", post_id: postId, ...common };
     case "SINGLE_IMAGE":
+      console.log({
+        ad_format: "SINGLE_IMAGE",
+        ad_name,
+        image_ids: [ids.image_id],
+        ...common,
+      });
       return {
         ad_format: "SINGLE_IMAGE",
+        ad_name,
         image_ids: [ids.image_id],
         ...common,
       };
@@ -227,7 +240,7 @@ export const buildCreativePayload = (
         carousel_card_list: ids.image_ids?.map((id, idx) => ({
           image_id: id,
           card_name: `Card ${idx + 1}`,
-          landing_page_url: options?.landing_page_url || "https://example.com",
+          landing_page_url: options?.landing_page_url || "https://adelo.ai",
         })),
       };
     default:
@@ -248,17 +261,16 @@ export const createTiktokAd = async (
     {
       advertiser_id: ADVERTISER_ID,
       adgroup_id,
-      ad_name: ad_name || `Ad ${Date.now()}`,
+      ad_name: ad_name,
       operation_status: "DISABLE",
       creatives: [creativePayload],
     },
     { headers }
   );
 
-   if(res.data){
-    console.log("ads created response ",res.data,);
+  if (res.data) {
+    console.log("ads created response ", res.data);
   }
-
 
   if (res.data.code !== 0)
     throw new Error(`Ad creation failed: ${res.data.message}`);

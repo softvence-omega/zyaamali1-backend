@@ -232,7 +232,13 @@ export const createFullTiktokAdFlow = async (req: Request, res: Response) => {
     promotion_type,
     location_ids,
     post_id,
+    data
   } = req.body;
+
+
+  // console.log('video', video)
+  // console.log('image', image)
+  console.log('req.body', req.body)
 
   try {
     if (!adType) {

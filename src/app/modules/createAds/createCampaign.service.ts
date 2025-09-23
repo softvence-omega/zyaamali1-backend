@@ -445,7 +445,7 @@ export const createTikTokFullAd = async (
 
     const image_id =
       ["SINGLE_IMAGE", "SINGLE_VIDEO"].includes(adType) && imagePath
-        ? await uploadImage(imagePath)
+        ? await uploadImage(imagePath) 
         : undefined;
 
     const image_ids =
@@ -478,6 +478,7 @@ export const createTikTokFullAd = async (
       postId,
       options
     );
+
 
     const adId = await createTiktokAd(
       adgroup_id,

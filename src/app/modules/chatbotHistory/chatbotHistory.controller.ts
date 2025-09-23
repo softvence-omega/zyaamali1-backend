@@ -21,22 +21,22 @@ const getChatbotHistory = catchAsync(async (req, res) => {
     data: result,
   });
 });
-// const getSingleChatbotHistory = catchAsync(async (req, res) => {
-//   const { sessionId } = req.query;
+const getSingleChatbotHistory = catchAsync(async (req, res) => {
+  const { sessionId } = req.query;
 
-//   const result = await ChatbotHistoryService.getSingleChatbotHistory(
-//     sessionId as string
-//   );
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "get chatbot history .",
-//     data: result,
-//   });
-// });
+  const result = await ChatbotHistoryService.getSingleChatbotHistory(
+    sessionId as string
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "get chatbot history .",
+    data: result,
+  });
+});
 
 export const ChatbotHistoryController = {
   saveChatbotHistory,
   getChatbotHistory,
-  // getSingleChatbotHistory,
+  getSingleChatbotHistory,
 };

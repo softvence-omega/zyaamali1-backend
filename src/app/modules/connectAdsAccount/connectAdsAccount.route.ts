@@ -46,3 +46,5 @@ router.get("/get-All-Data", connectAdsAccountController.getAllDataFromDB);
 router.put("/update-Data", connectAdsAccountController.updateSingleData);
 
 export const connectAdsAccountRoutes = router;
+
+

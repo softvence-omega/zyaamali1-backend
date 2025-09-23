@@ -14,19 +14,19 @@ const getChatbotHistory = async () => {
   return result;
 };
 
-// const getSingleChatbotHistory = async (sessionId: string) => {
+const getSingleChatbotHistory = async (sessionId: string) => {
 
 
-//   const result = await chatbotHistoryModel
-//     .find({ sessionId: sessionId })
-//   if (!result) {
-//     throw new Error("No chatbot history found");
-//   }
-//   return result;
-// };
+  const result = await chatbotHistoryModel
+    .find({ sessionId: sessionId })
+  if (!result) {
+    throw new Error("No chatbot history found");
+  }
+  return result;
+};
 
 export const ChatbotHistoryService = {
   saveChatbotHistory,
   getChatbotHistory,
-  // getSingleChatbotHistory,
+  getSingleChatbotHistory,
 };
