@@ -147,7 +147,7 @@ export const createTiktokAdGroup = async (
   );
 
   if (res.data) {
-    console.log("ads group created  ");
+    console.log("ads group created  ", res.data.data.adgroup_id);
   }
 
   if (res.data.code !== 0)
@@ -169,11 +169,13 @@ export const getIdentity = async () => {
     }
 
     const { identity_id, identity_type } = res.data.data.identity_list[0] || {};
+
+    console.log('identity ------', res.data.data)
     if (!identity_id) throw new Error("No identity found for this advertiser");
 
     return { identity_id, identity_type };
   } catch (error: any) {
-    console.error(
+    console.error( 
       "❌ Failed to get identity:",
       error.response?.data || error.message
     );
@@ -195,17 +197,19 @@ export const buildCreativePayload = (
     ad_name?: string;
   }
 ) => {
-  console.log(ids, "ids===================from buildCreativePayload");
+  // console.log(ids, "ids===================from buildCreativePayload");
 
   const common = {
     ad_text: options?.ad_text || "Default ad text",
     call_to_action: options?.call_to_action || "LEARN_MORE",
     landing_page_url: options?.landing_page_url || "https://adelo.ai",
-    display_name: options?.display_name || "MyBrand",
-    ...identity,
+    // display_name: options?.display_name || "MyBrand",
+    // ...identity,
+    identity_id: identity.identity_id,
+    identity_type: identity.identity_type
   };
 
-  console.log('common', common)
+  // console.log('common', common)
 
   const ad_name = options?.ad_name || `Ads ${Date.now()}`;
 
@@ -221,12 +225,6 @@ export const buildCreativePayload = (
     case "SPARK_AD":
       return { ad_format: "SINGLE_VIDEO", post_id: postId, ...common };
     case "SINGLE_IMAGE":
-      console.log({
-        ad_format: "SINGLE_IMAGE",
-        ad_name,
-        image_ids: [ids.image_id],
-        ...common,
-      });
       return {
         ad_format: "SINGLE_IMAGE",
         ad_name,
@@ -255,7 +253,16 @@ export const createTiktokAd = async (
   adType: string,
   ad_name?: string
 ) => {
-  console.log(ad_name, "ad_name===================from createTiktokAd");
+  console.log(
+    {
+      advertiser_id: ADVERTISER_ID,
+      adgroup_id,
+      ad_name: ad_name,
+      operation_status: "DISABLE",
+      creatives: [creativePayload],
+    },
+    "===================creativePayload from createTiktokAd"
+  );
   const res = await axios.post(
     `${BASE_URL}/ad/create`,
     {
