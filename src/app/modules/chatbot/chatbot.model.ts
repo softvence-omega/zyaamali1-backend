@@ -4,7 +4,7 @@ import { TChatbotHistory } from "./chatbot.interface";
 const chatbotHistorySchema = new Schema<TChatbotHistory>(
   {
     sessionId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "chatbotHistory",
       required: true,
     },

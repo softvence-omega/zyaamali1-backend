@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 
 export type TChatbotHistory = {
-  sessionId: Types.ObjectId;
+  sessionId: string,
   userQuestion: string;
   aiAnswer: string;
 

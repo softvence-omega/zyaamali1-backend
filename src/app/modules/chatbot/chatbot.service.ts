@@ -17,9 +17,10 @@ const getChatbotHistory = async () => {
 
 const getSingleChatbotHistory = async (sessionId: string) => {
 
-  
+  console.log('sessinon id form service ', sessionId)
   const result = await chatbotModel
-    .find({ sessionId: sessionId })
+    .find({sessionId:sessionId})
+    console.log('result ', result)
    
   if (!result) {
     throw new Error("No chatbot history found");
