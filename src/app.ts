@@ -12,8 +12,8 @@ import config from "./app/config";
 import { configureModel } from "./app/modules/configure/configure.model";
 import { handleStripeWebhook } from "./app/modules/subscription/subscription.controller";
 import "./app/utils/dailyTokenReset"; // Importing the daily token reset utility to ensure it's executed
+import { googleAuthCallback } from "./app/modules/connectAdsAccount/connectAdsAccount.controller";
 const app = express();
-
 
 app.post(
   "/api/v1/subscription/webhook",
@@ -22,23 +22,28 @@ app.post(
 );
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"], // your frontend
+    credentials: true, // 🔥 allow cookies
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-app.use("/api/v1", router);
+// router.get("http://localhost:5000/api/v1/connect/google/callback", googleAuthCallback);
 
+app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello harmonia!");
 });
 
-
 export const createDefaultSuperAdmin = async () => {
   try {
     const existingSuperAdmin = await User.findOne({
-        email: "mohibullamiazi@gmail.com",
+      email: "mohibullamiazi@gmail.com",
     });
 
     const hashedPassword = await bcrypt.hash(
@@ -77,16 +82,15 @@ const postConfigureIntoDB = async () => {
     } else {
       return await configureModel.create({
         dollerPerToken: 5,
-        dailyTokenLimit: 100
-
+        dailyTokenLimit: 100,
       });
     }
   } catch (error: unknown) {
     throw error;
   }
-}
+};
 
-postConfigureIntoDB()
+postConfigureIntoDB();
 
 app.use(notFound);
 app.use(globalErrorHandler);

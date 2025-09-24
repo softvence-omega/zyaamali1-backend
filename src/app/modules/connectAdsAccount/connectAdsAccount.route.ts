@@ -1,8 +1,6 @@
 import express from "express";
 import {
   connectAdsAccountController,
-  getGoogleAdAccounts,
-  getLinkedinAdAccounts,
   googleAuthCallback,
   googleAuthRedirect,
 } from "./connectAdsAccount.controller";
@@ -19,7 +17,6 @@ router.get(
   connectAdsAccountController.handleFacebookCallback
 );
 
-
 // for instagram
 
 router.get(
@@ -33,12 +30,10 @@ router.get(
   "/linkedin/callback",
   connectAdsAccountController.handleLinkedInCallback
 );
-router.get("/linkedin-ad-accounts", getLinkedinAdAccounts);
 
 // for google
 router.get("/google-auth", googleAuthRedirect);
 router.get("/google/callback", googleAuthCallback);
-router.get("/google-ad-accounts", getGoogleAdAccounts);
 
 // for tiktok
 router.get("/tiktok-auth", connectAdsAccountController.getTiktokAuthUrl);
@@ -47,4 +42,9 @@ router.get(
   connectAdsAccountController.handleTiktokCallback
 );
 
+router.get("/get-All-Data", connectAdsAccountController.getAllDataFromDB);
+router.put("/update-Data", connectAdsAccountController.updateSingleData);
+
 export const connectAdsAccountRoutes = router;
+
+

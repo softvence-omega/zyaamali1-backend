@@ -1,19 +1,19 @@
 import mongoose, { Schema, model } from "mongoose";
 import { TChatbotHistory } from "./chatbotHistory.interface";
+import { string } from "zod";
+
+// Function to generate a random session ID (you can adjust the length or algorithm as needed)
+const generateRandomSessionId = () =>
+  Math.floor(Math.random() * 1000000000).toString();
 
 const chatbotHistorySchema = new Schema<TChatbotHistory>(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    userQuestion: {
+    sessionId: {
       type: String,
       required: true,
-      trim: true,
+      default: generateRandomSessionId,
     },
-    aiAnswer: {
+    title: {
       type: String,
       required: true,
     },

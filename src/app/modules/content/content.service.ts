@@ -16,17 +16,13 @@ import { TUser } from "../user/user.interface";
 import mongoose from "mongoose";
 
 type TContent = {
-  title: string;
-  platform: string;
-  ratio: string
-}
 
+  platform: string;
+  ratio: string;
+};
 
 export const contentService = {
-  async postPremadeContentIntoDB(
-    data: any,
-    file?: Express.Multer.File
-  ) {
+  async postPremadeContentIntoDB(data: any, file?: Express.Multer.File) {
     if (!file) {
       throw new ApiError(status.BAD_REQUEST, "A file is required.");
     }
@@ -35,8 +31,8 @@ export const contentService = {
     const resourceType = file.mimetype.startsWith("video/")
       ? "video"
       : file.mimetype.startsWith("image/")
-        ? "image"
-        : "raw";
+      ? "image"
+      : "raw";
 
     const fileName = `content-${uuid()}`;
 
@@ -55,7 +51,6 @@ export const contentService = {
       // console.log(secure_url);
       const contentType = file.mimetype.split("/")[0];
 
-
       const contentData = {
         ...data,
         type: contentType,
@@ -63,10 +58,9 @@ export const contentService = {
         link: secure_url,
       };
 
-
       // Check if content with same title & platform already exists
       const exists = await ContentModel.exists({
-        title: contentData.title,
+
         platform: contentData.platform,
         type: contentData.type,
       });
@@ -74,11 +68,9 @@ export const contentService = {
       if (exists) {
         throw new ApiError(
           status.BAD_REQUEST,
-          `A content of type '${contentData.type}' with the title '${contentData.title}' already exists on the '${contentData.platform}' platform.`
+          `A content of type '${contentData.type}' with the title  already exists on the '${contentData.platform}' platform.`
         );
       }
-
-
 
       // Save to DB
       return await ContentModel.create(contentData);
@@ -92,15 +84,17 @@ export const contentService = {
       );
     } finally {
       // Clean up the temporary uploaded file
-      fs.unlink(file.path, () => { });
+      fs.unlink(file.path, () => {});
     }
   },
 
   async postGenaratedContentIntoDB(data: IContent) {
-    // console.log(data);
+
+
+    console.log('generated content  from service ',data);
 
     const isContentExists = await ContentModel.exists({
-      title: data.title,
+
       platform: data.platform,
       type: data.type,
       owner: data.owner,
@@ -109,16 +103,13 @@ export const contentService = {
     if (isContentExists) {
       throw new ApiError(
         status.BAD_REQUEST,
-        `A content of type '${data.type}' with the title '${data.title}' already exists on the '${data.platform}' platform.`
+        `A content of type '${data.type}' with the title  already exists on the '${data.platform}' platform.`
       );
     }
 
     const result = await ContentModel.create(data);
-    return result
-
+    return result;
   },
-
-
 
   //   // Step 1: Check if user exists
   //   const findUser = await User.findById(userId);
@@ -204,12 +195,14 @@ export const contentService = {
     const user = await User.findById(userId);
     if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
 
+    
+
     if (user.role === "superAdmin") {
       const qb = new QueryBuilder(
         ContentModel.find({ isDeleted: false }),
-        query,
+        query
       )
-        .search(CONTENT_SEARCHABLE_FIELDS)
+        // .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
         .paginate()
@@ -218,19 +211,19 @@ export const contentService = {
       return { result: await qb.modelQuery, meta: await qb.countTotal() };
     }
 
-
     const teamAdminId =
-      user.role === "admin"
-        ? user._id
-        : user.createdBy || null; 
+      user.role === "admin" ? user._id : user.createdBy || null; 
 
     if (!teamAdminId) {
-      throw new ApiError(status.FORBIDDEN, "Team admin not found for this user");
+      throw new ApiError(
+        status.FORBIDDEN,
+        "Team admin not found for this user"
+      );
     }
 
     const qb = new QueryBuilder(
       ContentModel.find({ isDeleted: false }).populate("owner"),
-      query,
+      query
     )
       .search(CONTENT_SEARCHABLE_FIELDS)
       .filter()
@@ -244,14 +237,14 @@ export const contentService = {
     const result = contents.filter((c: any) => {
       const owner = c.owner;
 
-      if (!owner) return false;             // owner ফাঁকা → বাদ দাও
+      if (!owner) return false; // owner ফাঁকা → বাদ দাও
       if (c.source === "premade") return true; // premade → সবার জন্য
 
       // নিচের তিন শর্তে ‘টিমের’ কনটেন্ট ধরা পড়বে
       return (
-        owner._id.equals(user._id) ||         // যে লগ‑ইন আছে তার নিজের
-        owner._id.equals(teamAdminId) ||      // টিম‑অ্যাডমিনের
-        owner.createdBy?.equals(teamAdminId)  // টিম‑মেম্বারের
+        owner._id.equals(user._id) || // যে লগ‑ইন আছে তার নিজের
+        owner._id.equals(teamAdminId) || // টিম‑অ্যাডমিনের
+        owner.createdBy?.equals(teamAdminId) // টিম‑মেম্বারের
       );
     });
 
@@ -261,51 +254,60 @@ export const contentService = {
     };
   },
 
-
-
   async getSingleContentFromDB(id: string, userId: string) {
     const findUser = await User.findById(userId);
     if (!findUser) {
-      throw new ApiError(status.NOT_FOUND, 'User not found');
+      throw new ApiError(status.NOT_FOUND, "User not found");
     }
 
     const baseFilter = { _id: id, isDeleted: false };
 
-    if (findUser.role === 'superAdmin') {
-      return await ContentModel.findOne(baseFilter).populate('owner');
+    if (findUser.role === "superAdmin") {
+      return await ContentModel.findOne(baseFilter).populate("owner");
     }
 
-    if (findUser.role === 'admin') {
+    if (findUser.role === "admin") {
       const filterCondition = {
-        $or: [
-          { source: 'premade' },
-          { source: 'user', owner: findUser._id }, 
-        ],
+        $or: [{ source: "premade" }, { source: "generated", owner: findUser._id }],
       };
-      return await ContentModel.findOne({ ...baseFilter, ...filterCondition }).populate('owner');
+      return await ContentModel.findOne({
+        ...baseFilter,
+        ...filterCondition,
+      }).populate("owner");
     }
 
-    if (findUser.role === 'creator' || findUser.role === 'viewer') {
+    if (findUser.role === "creator" || findUser.role === "viewer") {
       if (!findUser.createdBy) {
-        throw new ApiError(status.FORBIDDEN, 'CreatedBy (admin) not found for this user');
+        throw new ApiError(
+          status.FORBIDDEN,
+          "CreatedBy (admin) not found for this user"
+        );
       }
 
       const filterCondition = {
         $or: [
-          { source: 'premade' },
-          { source: 'user', owner: findUser.createdBy }, // নিজের admin এর content
+          { source: "premade" },
+          { source: "generated", owner: findUser.createdBy }, // নিজের admin এর content
         ],
       };
 
-      return await ContentModel.findOne({ ...baseFilter, ...filterCondition }).populate('owner');
+      return await ContentModel.findOne({
+        ...baseFilter,
+        ...filterCondition,
+      }).populate("owner");
     }
 
-    throw new ApiError(status.FORBIDDEN, 'You do not have permission to access this content.');
-  }
+    throw new ApiError(
+      status.FORBIDDEN,
+      "You do not have permission to access this content."
+    );
+  },
 
-  ,
-
-  async updateContentIntoDB(id: string, data: Partial<TContent>, userId: string) {
+  async updateContentIntoDB(
+    id: string,
+    data: Partial<TContent>,
+    userId: string
+  ) {
     const session = await mongoose.startSession();
 
     try {
@@ -313,13 +315,16 @@ export const contentService = {
 
       // 1. Check if user exists
 
-      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false, owner: userId });
+      const isContentExist = await ContentModel.findOne({
+        _id: id,
+        isDeleted: false,
+        owner: userId,
+      });
       // console.log(isContentExist);
 
       if (!isContentExist) {
-        throw new ApiError(status.NOT_FOUND, 'Content not found!')
+        throw new ApiError(status.NOT_FOUND, "Content not found!");
       }
-
 
       // 4. Update content with validation and session
       const updatedContent = await ContentModel.findByIdAndUpdate(id, data, {
@@ -338,9 +343,7 @@ export const contentService = {
     } finally {
       session.endSession();
     }
-  }
-  ,
-
+  },
   async softDeleteContentFromDB(id: string, userId: string) {
     const session = await mongoose.startSession();
 
@@ -349,20 +352,27 @@ export const contentService = {
 
       // 1. Check if user exists
 
-      const isContentExist = await ContentModel.findOne({ _id: id, isDeleted: false, owner: userId });
+      const isContentExist = await ContentModel.findOne({
+        _id: id,
+        isDeleted: false,
+        owner: userId,
+      });
       // console.log(isContentExist);
 
       if (!isContentExist) {
-        throw new ApiError(status.NOT_FOUND, 'Content not found!')
+        throw new ApiError(status.NOT_FOUND, "Content not found!");
       }
 
-
       // 4. Update content with validation and session
-    await ContentModel.findByIdAndUpdate(id, { isDeleted: true }, {
-        new: true,
-        runValidators: true,
-        session,
-      });
+      await ContentModel.findByIdAndUpdate(
+        id,
+        { isDeleted: true },
+        {
+          new: true,
+          runValidators: true,
+          session,
+        }
+      );
 
       // 5. Commit transaction
       await session.commitTransaction();
@@ -376,13 +386,12 @@ export const contentService = {
     }
   },
 
-
-
   async getAllPremadeContentFromDB(query: any) {
     try {
-
-
-      const service_query = new QueryBuilder(ContentModel.find({ source: "premade" }), query)
+      const service_query = new QueryBuilder(
+        ContentModel.find({ source: "premade" }),
+        query
+      )
         .search(CONTENT_SEARCHABLE_FIELDS)
         .filter()
         .sort()
@@ -395,7 +404,6 @@ export const contentService = {
         result,
         meta,
       };
-
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`${error.message}`);

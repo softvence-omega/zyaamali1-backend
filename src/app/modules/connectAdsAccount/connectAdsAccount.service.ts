@@ -3,6 +3,7 @@ import config from "../../config";
 import { FacebookAdsApi, User, AdAccount } from "facebook-nodejs-business-sdk";
 
 import { OAuth2Client } from "google-auth-library";
+import { ConnectAccountModel } from "./connectAdsAccount.model";
 
 const {
   LINKEDIN_CLIENT_ID,
@@ -29,8 +30,6 @@ const getFacebookAccessToken = async (code: string) => {
   return response.data.access_token;
 };
 
-
-
 // for instagram
 
 const getInstagramAccounts = async (
@@ -39,7 +38,10 @@ const getInstagramAccounts = async (
 ) => {
   FacebookAdsApi.init(accessToken);
   const adAccount = new AdAccount(adAccountId);
-  const instaAccounts = await adAccount.getInstagramAccounts(['id', 'username']);
+  const instaAccounts = await adAccount.getInstagramAccounts([
+    "id",
+    "username",
+  ]);
 
   return instaAccounts.map((insta) => ({
     id: insta.id,
@@ -51,82 +53,47 @@ const getInstagramAccounts = async (
 // for linkdin connection
 
 const getLinkdinAuthURL = () => {
-  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_REDIRECT_URI) {
-    throw new Error("Missing LinkedIn client ID or redirect URI");
-  }
-
+  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_REDIRECT_URI)
+    throw new Error("Missing LinkedIn envs");
   const base = "https://www.linkedin.com/oauth/v2/authorization";
   const params = new URLSearchParams({
     response_type: "code",
     client_id: LINKEDIN_CLIENT_ID,
     redirect_uri: LINKEDIN_REDIRECT_URI,
-
-    scope: "r_ads,rw_ads,rw_organization_admin",
+    // With your current product tier, you can use these scopes. Add rw_campaigns later if approved.
+    scope: "r_ads rw_ads r_ads_reporting r_basicprofile",
   });
-
   return `${base}?${params.toString()}`;
 };
 
 const getLinkdinAccessToken = async (code: any) => {
-  const response = await axios.post(
+  if (
+    !LINKEDIN_CLIENT_ID ||
+    !LINKEDIN_CLIENT_SECRET ||
+    !LINKEDIN_REDIRECT_URI
+  ) {
+    throw new Error("Missing LinkedIn envs");
+  }
+  const resp = await axios.post(
     "https://www.linkedin.com/oauth/v2/accessToken",
-    null,
-    {
-      params: {
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: LINKEDIN_REDIRECT_URI,
-        client_id: LINKEDIN_CLIENT_ID,
-        client_secret: LINKEDIN_CLIENT_SECRET,
-      },
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    }
+    new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: LINKEDIN_REDIRECT_URI,
+      client_id: LINKEDIN_CLIENT_ID,
+      client_secret: LINKEDIN_CLIENT_SECRET,
+    }),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
 
-  return response.data.access_token;
-};
+  console.log(resp);
 
-export const getLinkedinAdAccountsAndOrganizations = async (
-  accessToken: string
-) => {
-  try {
-    // Fetch Ad Accounts
-    const adAccountResponse = await axios.get(
-      "https://api.linkedin.com/v2/adAccountsV2?q=search",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "X-Restli-Protocol-Version": "2.0.0",
-        },
-      }
-    );
-
-    const adAccounts = adAccountResponse.data;
-
-    // Fetch Organizations (where user is admin)
-    const orgResponse = await axios.get(
-      "https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "X-Restli-Protocol-Version": "2.0.0",
-        },
-      }
-    );
-    console.log(orgResponse.data.elements);
-    const organizations = orgResponse.data.elements.map(
-      (el: any) => el.organizationalTarget
-    );
-
-    return {
-      adAccounts, // List of ad accounts
-      organizations, // List of organization URNs
-    };
-  } catch (error: any) {
-    throw new Error(`Failed to fetch LinkedIn data: ${error.message}`);
-  }
+  return resp.data as {
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+    refresh_token_expires_in?: number;
+  };
 };
 
 // for google
@@ -135,6 +102,7 @@ export const getGoogleOAuthUrl = () => {
   const scopes = [
     "https://www.googleapis.com/auth/adwords",
     "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/youtube.readonly",
   ];
 
   const oauth2Client = new OAuth2Client(
@@ -154,7 +122,6 @@ export const getGoogleOAuthUrl = () => {
   return url;
 };
 
-
 export const exchangeCodeForTokens = async (code: string) => {
   const oauth2Client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID2,
@@ -168,28 +135,6 @@ export const exchangeCodeForTokens = async (code: string) => {
     return tokens;
   } catch (err) {
     throw new Error("Invalid or expired authorization code");
-  }
-};
-
-export const fetchGoogleAdAccounts = async (accessToken: string) => {
-  try {
-    const response = await axios.get(
-      "https://content-googleads.googleapis.com/v20/customers:listAccessibleCustomers",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "developer-token": process.env.GOOGLE_DEVELOPER_TOKEN2!,
-          "login-customer-id": process.env.GOOGLE_MANAGER_ID2!, // only if using an MCC account
-        },
-      }
-    );
-
-    return response.data;
-  } catch (err: any) {
-    console.error("Google Ads API Error:", err.response?.data || err.message);
-    throw new Error(
-      "Failed to fetch accounts. Check token, dev token, and MCC ID."
-    );
   }
 };
 
@@ -218,15 +163,13 @@ const exchangeTiktokCodeForToken = async (code: string) => {
       }
     );
 
-    console.log("Tiktok token response:", response.data.data);
-
     const { access_token, advertiser_ids } = response.data.data;
 
     return {
       accessToken: access_token,
       advertiserIds: advertiser_ids,
     };
-  } catch (err:any) {
+  } catch (err: any) {
     console.error(
       "Failed to exchange code:",
       err.response?.data || err.message
@@ -234,15 +177,56 @@ const exchangeTiktokCodeForToken = async (code: string) => {
     throw err;
   }
 };
+export const getAllDataFromDB = async () => {
+  try {
+    const data = await ConnectAccountModel.find().lean();
+
+    return data;
+  } catch (error: any) {
+    console.error(
+      "❌ Error in getAllFacebookDataFromDB:",
+      error.message || error
+    );
+    throw new Error("Failed to fetch Facebook data from database");
+  }
+};
+export const updateSingleData = async (name: string) => {
+  try {
+    const data = await ConnectAccountModel.findOneAndUpdate(
+      { name }, // find by name
+      {
+        $set: {
+          accessToken: null,
+          adAccount: [],
+          pages: [],
+          isSynced: false,
+        },
+      },
+      { new: true } // return updated document
+    );
+
+    if (!data) {
+      throw new Error(`No account found with name: ${name}`);
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("❌ Error in updateSingleData:", error.message || error);
+    throw new Error("Failed to update account data in database");
+  }
+};
 
 export const connectAdsAccountservice = {
   getFacebookAccessToken,
-  // getFacebookAdAccounts,
+
   getInstagramAccounts,
+
   getLinkdinAuthURL,
   getLinkdinAccessToken,
-  getLinkedinAdAccountsAndOrganizations,
 
   getTiktokAuthUrl,
   exchangeTiktokCodeForToken,
+
+  getAllDataFromDB,
+  updateSingleData,
 };

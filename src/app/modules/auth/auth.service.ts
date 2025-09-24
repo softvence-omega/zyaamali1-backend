@@ -8,7 +8,9 @@ import { createToken, verifyToken } from "./auth.utils";
 import { sendEmail } from "../../utils/sendEmail";
 
 const loginUser = async (payload: TLoginUser) => {
-  const user: any = await User.findOne({ email: payload?.email }).select("+password");
+  const user: any = await User.findOne({ email: payload?.email }).select(
+    "+password"
+  );
 
   // Check if user exists
   if (!user) {
@@ -37,7 +39,10 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   //  Check password
-  const isPasswordMatched = await bcrypt.compare(payload.password, user.password);
+  const isPasswordMatched = await bcrypt.compare(
+    payload.password,
+    user.password
+  );
   if (!isPasswordMatched) {
     throw new ApiError(httpStatus.FORBIDDEN, "Password did not match!");
   }
@@ -45,6 +50,8 @@ const loginUser = async (payload: TLoginUser) => {
   //  Create Tokens
   const jwtPayload = {
     userId: user._id.toString(),
+    email: user.email,
+    name: user.fullName,
     role: user.role,
   };
 
@@ -61,11 +68,10 @@ const loginUser = async (payload: TLoginUser) => {
   );
 
   return {
-    accessToken,
     refreshToken,
+    accessToken,
   };
 };
-
 
 const changePassword = async (
   userData: any,
@@ -216,5 +222,3 @@ export const AuthServices = {
   forgetPassword,
   resetPassword,
 };
-
-

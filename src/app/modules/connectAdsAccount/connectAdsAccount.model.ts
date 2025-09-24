@@ -1,0 +1,38 @@
+import { Schema, model, Document } from "mongoose";
+import { IAccoutData } from "./connectAdsAccount.interface";
+
+export interface IAccountDocument extends IAccoutData, Document {}
+
+const adAccountSchema = new Schema(
+  {
+    id: { type: String },
+    name: { type: String },
+  },
+  { _id: false } // ✅ prevents creating _id for each subdocument
+);
+const pagesSchema = new Schema(
+  {
+    pageId: { type: String },
+    name: { type: String },
+    pageAccessToken: { type: String },
+  },
+  { _id: false } // ✅ prevents creating _id for each subdocument
+);
+
+const accountSchema = new Schema<IAccountDocument>(
+  {
+    name: { type: String, required: true },
+    icon: { type: String, required: true },
+    accessToken: { type: String },
+    refreshToken: { type: String },
+    adAccount: [adAccountSchema],
+    pages: [pagesSchema],
+    isSynced: { type: Boolean, required: true },
+  },
+  { timestamps: true }
+);
+
+export const ConnectAccountModel = model<IAccountDocument>(
+  "ConnectAccount",
+  accountSchema
+);

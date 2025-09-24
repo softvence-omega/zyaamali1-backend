@@ -23,8 +23,8 @@ const contentSchema = new Schema(
     },
     source: {
       type: String,
-      enum: ["premade", "user"],
-      default: "premade",
+      enum: ["premade", "generated"],
+      default: "generated",
     },
     owner: {
       type: Schema.Types.ObjectId,
@@ -33,10 +33,7 @@ const contentSchema = new Schema(
     prompt: {
       type: String,
     },
-    title: {
-      type: String,
-      required: true,
-    },
+
     isDeleted: {
       type: Boolean,
       default: false
