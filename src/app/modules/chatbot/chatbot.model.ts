@@ -5,7 +5,7 @@ const chatbotHistorySchema = new Schema<TChatbotHistory>(
   {
     sessionId: {
       type: String,
-      ref: "chatbotHistory",
+      // ref: "chatbotHistory",
       required: true,
     },
    

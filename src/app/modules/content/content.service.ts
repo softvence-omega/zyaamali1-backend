@@ -93,19 +93,19 @@ export const contentService = {
 
     console.log('generated content  from service ',data);
 
-    const isContentExists = await ContentModel.exists({
+    // const isContentExists = await ContentModel.exists({
 
-      platform: data.platform,
-      type: data.type,
-      owner: data.owner,
-    });
+    //   platform: data.platform,
+    //   type: data.type,
+    //   owner: data.owner,
+    // });
 
-    if (isContentExists) {
-      throw new ApiError(
-        status.BAD_REQUEST,
-        `A content of type '${data.type}' with the title  already exists on the '${data.platform}' platform.`
-      );
-    }
+    // if (isContentExists) {
+    //   throw new ApiError(
+    //     status.BAD_REQUEST,
+    //     `A content of type '${data.type}' with the title  already exists on the '${data.platform}' platform.`
+    //   );
+    // }
 
     const result = await ContentModel.create(data);
     return result;

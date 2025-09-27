@@ -24,7 +24,7 @@ app.post(
 // Middlewares
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // your frontend
+    origin: ["http://localhost:5173", "https://adelo.ai"], // your frontend
     credentials: true, // 🔥 allow cookies
   })
 );
