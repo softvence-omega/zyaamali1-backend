@@ -32,7 +32,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-
 app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {
@@ -76,7 +75,7 @@ createDefaultSuperAdmin();
 const postConfigureIntoDB = async () => {
   try {
     const count = await configureModel.countDocuments();
-   
+
     if (count > 0) {
       console.log("ℹ️ Configuration already exists in the database.");
     } else {
