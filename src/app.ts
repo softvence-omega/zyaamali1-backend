@@ -32,7 +32,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// router.get("http://localhost:5000/api/v1/connect/google/callback", googleAuthCallback);
 
 app.use("/api/v1", router);
 
@@ -77,6 +76,7 @@ createDefaultSuperAdmin();
 const postConfigureIntoDB = async () => {
   try {
     const count = await configureModel.countDocuments();
+   
     if (count > 0) {
       console.log("ℹ️ Configuration already exists in the database.");
     } else {

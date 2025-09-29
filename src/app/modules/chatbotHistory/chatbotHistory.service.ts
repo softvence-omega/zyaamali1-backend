@@ -30,3 +30,4 @@ export const ChatbotHistoryService = {
   getChatbotHistory,
   getSingleChatbotHistory,
 };
+
