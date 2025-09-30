@@ -11,7 +11,7 @@ const chatbotHistorySchema = new Schema<TChatbotHistory>(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
 
     userQuestion: {
