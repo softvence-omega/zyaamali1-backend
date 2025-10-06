@@ -29,7 +29,7 @@ app.post(
 // Middlewares
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://adelo.ai"], // your frontend
+    origin: ["http://localhost:5173", "https://adelo.ai" , "https://taupe-brigadeiros-191de8.netlify.app"], // your frontend
 
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // allow all needed methods
     credentials: true, // allow cookies
