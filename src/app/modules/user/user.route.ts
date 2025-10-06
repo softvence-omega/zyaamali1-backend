@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get("/all-user", auth(USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN), UserControllers.getAllUsers);
 router.get("/me", auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN), UserControllers.getMe);
+router.get("/get-single-user/:id", UserControllers.getSingleUser);
 
 router.post(
   "/register",
@@ -21,7 +22,7 @@ router.post(
   UserControllers.uploadImage
 );
 
-router.patch(
+router.put(
   "/update-profile",
   auth(USER_ROLE.VIEWER, USER_ROLE.ADMIN, USER_ROLE.CREATOR, USER_ROLE.SUPER_ADMIN),
   UserControllers.updateProfile

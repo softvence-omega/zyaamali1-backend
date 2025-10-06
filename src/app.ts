@@ -30,7 +30,9 @@ app.post(
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://adelo.ai"], // your frontend
-    credentials: true, // 🔥 allow cookies
+
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // allow all needed methods
+    credentials: true, // allow cookies
   })
 );
 app.use(express.json());

@@ -136,10 +136,14 @@ const uploadImage = catchAsync(async (req, res) => {
 
 const updateProfile = catchAsync(async (req, res) => {
   try {
+
+    console.log("req.body", req.body);
     const result = await UserServices.updateProfile(
       req.loggedInUser.userId,
       req.body
     );
+
+
 
     sendResponse(res, {
       statusCode: httpStatus.OK,

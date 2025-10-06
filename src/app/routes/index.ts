@@ -16,6 +16,7 @@ import path from "path";
 import { adCampainRoutes } from "../modules/adCampain/adCampain.routes";
 import {  chatbotRoute } from "../modules/chatbot/chatbot.route";
 import { chatbotHistoryRoute } from "../modules/chatbotHistory/chatbotHistory.route";
+import { onboardingRoute } from "../modules/userOnboarding/userOnboarding.route";
 
 const router = Router();
 
@@ -36,10 +37,13 @@ const moduleRoutes = [
     path: "/configure",
     route: configureRoutes,
   },
-
   {
     path: "/user",
     route: UserRoutes,
+  },
+  {
+    path: "/onboarding",
+    route: onboardingRoute,
   },
   {
     path: "/subscription",
