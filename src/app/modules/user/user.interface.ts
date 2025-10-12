@@ -56,8 +56,8 @@ export interface TUser {
   isActive?: boolean;
   provider?: string;
   createdBy: Types.ObjectId | null;
-  teamMembers: Types.ObjectId[];      // যাদের এই user‑এর অধীনে যোগ করা হয়েছে
-
+  teamMembers: Types.ObjectId[];     
+  onBoardingcompleted: boolean; 
   createdAt?: Date;
   updatedAt?: Date;
 }

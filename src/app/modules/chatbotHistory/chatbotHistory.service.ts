@@ -7,7 +7,7 @@ const saveChatbotHistory = async (payload: Partial<TChatbotHistory>) => {
 };
 
 const getChatbotHistory = async () => {
-  const result = await chatbotHistoryModel.find({})
+  const result = await chatbotHistoryModel.find({});
   if (!result) {
     throw new Error("No chatbot history found");
   }
@@ -15,10 +15,7 @@ const getChatbotHistory = async () => {
 };
 
 const getSingleChatbotHistory = async (sessionId: string) => {
-
-
-  const result = await chatbotHistoryModel
-    .find({ sessionId: sessionId })
+  const result = await chatbotHistoryModel.find({ sessionId: sessionId });
   if (!result) {
     throw new Error("No chatbot history found");
   }

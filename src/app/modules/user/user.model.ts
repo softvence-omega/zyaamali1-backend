@@ -73,6 +73,10 @@ const userSchema = new Schema<TUser>(
       },
     ],
 
+    onBoardingcompleted: {
+      type: Boolean,
+      default: false,
+    },
     provider: {
       type: String,
       default: null,

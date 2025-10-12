@@ -53,6 +53,7 @@ const loginUser = async (payload: TLoginUser) => {
     email: user.email,
     name: user.fullName,
     role: user.role,
+    onBoardingcompleted: user.onBoardingcompleted
   };
 
   const accessToken = createToken(
